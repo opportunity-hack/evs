@@ -38,7 +38,7 @@ import {
 import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
 
-import { HorseListbox, InstructorListbox } from './listboxes.tsx'
+import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
 import { Horse, User, Event } from '@prisma/client'
 import { addMinutes } from 'date-fns'
 import { useFetcher } from '@remix-run/react'
@@ -47,6 +47,7 @@ import { useResetCallback } from '~/lib/utils.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { Info } from 'lucide-react'
+import { ButtonLink } from '~/utils/forms.tsx'
 
 const locales = {
   'en-US': enUS,
@@ -257,6 +258,7 @@ interface RegistrationProps {
 function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
   const registrationFetcher = useFetcher();
   const user = useUser();
+  const userIsAdmin = user.roles.find(role => role.name === 'admin')
 
   const calEvent = events.find(event => event.id === selectedEventId)
     if (!calEvent) {
@@ -316,7 +318,10 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
   <DialogContent>
       <DialogHeader>
         <DialogTitle className="text-h4">{calEvent.title} - Volunteer Registration</DialogTitle>
+        <div className="flex items-center justify-between">
         <p>{calEvent.start.toLocaleDateString()}, {format(calEvent.start, "p")} - {format(calEvent.end, "p")}</p>
+        {userIsAdmin ? <ButtonLink size="sm" variant="primary" to={`/calendar/${calEvent.id}`}>Manage Event</ButtonLink> : null}
+        </div>
       </DialogHeader>
           <DialogDescription>
             {isRegistered ? "Manage registration" : "Select a role to volunteer in"}
