@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./app/*"],
+      "@/*":["./app/*"],
       "tests/*": ["./tests/*"]
     },
     "skipLibCheck": true,
