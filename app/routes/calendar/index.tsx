@@ -221,6 +221,7 @@ export default function Schedule() {
     setRegisterOpen(!registerOpen)
   }
 
+  // TODO: get accurate descriptions of each role
   const volunteerTypes = [
     {
       displayName: "barn crew",
@@ -232,25 +233,25 @@ export default function Schedule() {
       displayName: "pasture crew",
       field: "pastureCrew",
       reqField: "pastureCrewReq",
-      description: "Pasture Crew volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning pastures. Pasture Crew volunteers must be at least 16 years old."
+      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
     },
     {
       displayName: "lesson assistants",
       field: "lessonAssistants",
       reqField: "lessonAssistantsReq",
-      description: "Lesson Assistant volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning stalls. Lesson Assistant volunteers must be at least 16 years old."
+      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
     },
     {
       displayName: "horse leaders",
       field: "horseLeaders",
       reqField: "horseLeadersReq",
-      description: "Horse Leader volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning stalls. Horse Leader volunteers must be at least 16 years old."
+      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
     },
     {
       displayName: "side walkers",
       field: "sideWalkers",
       reqField: "sideWalkersReq",
-      description: "Sidewalker volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning stalls. Sidewalker volunteers must be at least 16 years old."
+      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
     },
   ] as const
 
@@ -271,52 +272,52 @@ export default function Schedule() {
     <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
       <DialogContent>
       <DialogHeader>
-        <DialogTitle>{selectedEvent.title}</DialogTitle>
+        <DialogTitle className="text-h4">{selectedEvent.title} - Volunteer Registration</DialogTitle>
+        <p>{selectedEvent.start.toLocaleDateString()}, {format(selectedEvent.start, "p")} - {format(selectedEvent.end, "p")}</p>
       </DialogHeader>
           <DialogDescription>
-            Click to register to volunteer in a role for this event.
+            Select a role to volunteer in:
           </DialogDescription>
         <registrationFetcher.Form method="post" action="/resources/event-register">
           <Input type="hidden" name="eventId" value={selectedEvent.id}></Input>
+      <RadioGroup name="role" defaultValue={volunteerTypes[0].field} >
+      <ul className="">
+
       {volunteerTypes.map((volunteerType) => {
         const calEvent = events.find(event => event.id === selectedEvent.id)
         if (!calEvent) {
           return null
         }
-        const isRegistered = calEvent[volunteerType.field].find(volunteer => volunteer.id === user.id)
 
         return (
-          <ul key={volunteerType.field} className="">
-          <li className="flex justify-between items-center m-2">
+          <li key ={volunteerType.field} className="flex justify-between items-center m-2">
             <TooltipProvider>
             <Tooltip>
             <TooltipTrigger asChild>
-              <div>
-              <div className="flex items-center">
-                <Info size="20" className="mr-1"/>
-                <div>
-                <span className="capitalize">{volunteerType.displayName}:</span> {calEvent[volunteerType.field].length} registered of {calEvent[`${volunteerType.field}Req`]} needed.
+              <div className="flex w-full justify-between">
+                <div className="flex items-center">
+                <RadioGroupItem className="mr-2" value={volunteerType.field}/>
+                  <label>
+                    <span className="capitalize">{volunteerType.displayName}:</span> {calEvent[volunteerType.field].length} registered of {calEvent[`${volunteerType.field}Req`]} needed.
+                  </label>
                 </div>
-              </div>
-              {isRegistered ? <div className="text-sm">
-                You are registered to volunteer in this role.
-              </div> : null}
+                <Info size="20" className="mr-1"/>
               </div>
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-[250px]">{volunteerType.description}</p>
             </TooltipContent>
-            </Tooltip>
+              </Tooltip>
             </TooltipProvider>
-            {
-            isRegistered ? <Button variant="destructive" type="submit" name="role" value={volunteerType.field}>Unregister</Button> :
-            <Button type="submit" name="role" value={volunteerType.field}>Register</Button>
-            }
           </li>
-          </ul>
           )
           }
         )}
+          </ul>
+          </ RadioGroup>
+        <DialogFooter>
+          <Button type="submit" name="_action" value="register">Register</Button>
+        </DialogFooter>
         </registrationFetcher.Form>
       </DialogContent>
     </Dialog>
@@ -327,12 +328,12 @@ export default function Schedule() {
   )
 }
 
-interface EventDialogProps {
+interface CreateEventDialogProps {
   horses: Horse[]
   instructors: User[]
 }
 
-function CreateEventDialog({horses, instructors}: EventDialogProps) {
+function CreateEventDialog({horses, instructors}: CreateEventDialogProps) {
     const [open, setOpen] = useState(false);
 
     return (
@@ -356,7 +357,7 @@ function CreateEventDialog({horses, instructors}: EventDialogProps) {
     )
 }
 
-interface EventFormProps extends EventDialogProps {
+interface EventFormProps extends CreateEventDialogProps {
   doneCallback?: Function
 }
 

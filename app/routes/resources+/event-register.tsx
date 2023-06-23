@@ -4,6 +4,11 @@ import { parse } from '@conform-to/zod'
 import { json, DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
 
+const actions = [
+  "register",
+  "unregister",
+] as const
+
 const volunteerTypes = [
     "barnCrew",
     "pastureCrew",
@@ -13,6 +18,7 @@ const volunteerTypes = [
 ] as const
 
 const EventRegistrationSchema = z.object({
+  _action: z.enum(actions),
   eventId: z.string(),
   role: z.enum(volunteerTypes)
 })
@@ -52,6 +58,6 @@ export async function action({ request }: DataFunctionArgs) {
       status: 'success',
       submission,
     } as const,
-    { status: 503 },
+    { status: 200 },
   )
 }
