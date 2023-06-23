@@ -257,14 +257,16 @@ export default function Schedule() {
   return (
   <div className="grid place-items-center">
     <h1 className="text-5xl mb-5">Calendar</h1>
+    <div className="container sm:h-[80vh] sm:w-[80vw] h-screen w-screen">
     <Calendar
       localizer={localizer}
       events={events}
       startAccessor="start"
       endAccessor="end"
       onSelectEvent={handleSelectEvent}
-      style={{ height: '820px', width: '1020px', backgroundColor: "white", color: "black", padding: 20, borderRadius: "1.5rem"  }}
+      style={{ height: '100%', width: '100%', backgroundColor: "white", color: "black", padding: 20, borderRadius: "1.5rem"  }}
     />
+    </div>
 
     <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
       <DialogContent>
