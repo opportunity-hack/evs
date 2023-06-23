@@ -35,6 +35,7 @@ import { useNonce } from './utils/nonce-provider.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
 import { useRef } from 'react'
+import { Toaster } from './components/ui/toaster.tsx'
 
 export const links: LinksFunction = () => {
 	return [
@@ -168,6 +169,7 @@ function App() {
 
 				<div className="flex-1">
 					<Outlet />
+          <Toaster />
 				</div>
 
 				<div className="container mx-auto flex justify-between">
