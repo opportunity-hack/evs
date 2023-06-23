@@ -1,9 +1,12 @@
 import type { V2_MetaFunction } from '@remix-run/node'
 import { horseMountains, ohack} from './logos/logos.ts'
+import { ButtonLink } from '~/utils/forms.tsx'
+import { useOptionalUser } from '~/utils/user.ts'
 
 export const meta: V2_MetaFunction = () => [{ title: 'Girard Training Stables' }]
 
 export default function Index() {
+  const user = useOptionalUser()
 	return (
 		<main className="relative min-h-screen sm:flex sm:items-center sm:justify-center">
 			<div className="relative sm:pb-16 sm:pt-8">
@@ -25,6 +28,15 @@ export default function Index() {
 							<p className="mx-auto mt-6 max-w-lg text-center text-xl text-white sm:max-w-3xl font-semibold bg-slate-500">
 								Equestrian Volunteer Scheduling Application
 							</p>
+              { user ? 
+              <ButtonLink className="px-4 max-w-[200px] mx-auto mt-4" to="/calendar" size="sm" variant="primary">
+                Go to Calendar
+              </ButtonLink>
+              :
+              <ButtonLink className="px-4 max-w-[100px] mx-auto mt-4" to="/login" size="sm" variant="primary">
+                Log In
+              </ButtonLink>
+              }
 						</div>
 					</div>
 				</div>
