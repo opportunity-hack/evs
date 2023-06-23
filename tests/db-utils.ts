@@ -21,6 +21,7 @@ export function createUser() {
 		username,
 		name: `${firstName} ${lastName}`,
 		email: `${username}@example.com`,
+    instructor: faker.datatype.boolean(),
 	}
 }
 
@@ -28,4 +29,30 @@ export function createPassword(username: string = faker.internet.userName()) {
 	return {
 		hash: bcrypt.hashSync(username, 10),
 	}
+}
+
+export function createHorse() {
+    const name = faker.person.firstName()
+
+    const exampleStatuses = [
+      "Ready and raring to go",
+      "Ok",
+      "Unwell",
+      "Tired",
+    ]
+    const exampleNotes = [
+      "A little ornery; needs experienced, careful riders and handlers.",
+      "Very easy going. Good for beginner handlers and riders.",
+      "Easily spooked, riders and handlers need to be aware of their surroundings.",
+      "Very social. Needs a firm handler",
+    ]
+
+    const notes = exampleNotes[Math.floor(Math.random() * exampleNotes.length)]
+    const status = exampleStatuses[Math.floor(Math.random() * exampleStatuses.length)]
+
+    return {
+      name,
+      notes,
+      status,
+    }
 }

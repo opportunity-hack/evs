@@ -63,6 +63,7 @@
     "clsx": "^1.2.1",
     "compression": "^1.7.4",
     "cross-env": "^7.0.3",
+    "date-fns": "^2.30.0",
     "dotenv": "^16.1.4",
     "eslint-plugin-remix-react-routes": "^1.0.5",
     "execa": "^7.1.1",

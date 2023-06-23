@@ -1,9 +1,10 @@
 import fs from 'fs'
 import { faker } from '@faker-js/faker'
-import { createPassword, createUser } from 'tests/db-utils.ts'
+import { createPassword, createUser, createHorse } from 'tests/db-utils.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { deleteAllData } from 'tests/setup/utils.ts'
 import { getPasswordHash } from '~/utils/auth.server.ts'
+import { addMinutes } from 'date-fns'
 
 async function seed() {
 	console.log('🌱 Seeding...')
@@ -112,6 +113,96 @@ async function seed() {
 		`🐨 Created user "kody" with the password "kodylovesyou" and admin role`,
 	)
 
+	console.time(
+		`🙍 Created user "Bob" with the password "bobnotadmin" and no role`,
+	)
+	await prisma.user.create({
+		data: {
+			email: 'bob@not.admin',
+			username: 'bob',
+			name: 'Bob',
+			password: {
+				create: {
+					hash: await getPasswordHash('bobnotadmin'),
+				},
+			},
+		},
+	})
+	console.timeEnd(
+		`🙍 Created user "Bob" with the password "bobnotadmin" and no role`,
+
+	)
+	console.time(
+		`👩 Created user "Isabelle" with the password "isabelleinstructor" as an instructor`,
+	)
+	await prisma.user.create({
+		data: {
+			email: 'isabelle@is.instructor',
+			username: 'isabelle',
+			name: 'Isabelle',
+			password: {
+				create: {
+					hash: await getPasswordHash('isabelleinstructor'),
+				},
+			},
+      instructor: true
+		},
+	})
+	console.timeEnd(
+		`👩 Created user "Isabelle" with the password "isabelleinstructor" as an instructor`,
+	)
+
+	const totalHorses = 40
+	console.time(`🐴 Created ${totalHorses} horses...`)
+	const horses = await Promise.all(
+		Array.from({ length: totalHorses }, async (_, index) => {
+			const horseData = createHorse()
+			const horse = await prisma.horse.create({
+				data: {
+					...horseData,
+				},
+			})
+			return horse
+		}),
+	)
+	console.timeEnd(`🐴 Created ${totalHorses} horses...`)
+
+	console.time(
+		`📅 Created a few events in the current month`,
+	)
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = today.getMonth()
+  const eventOne = new Date(year, month, 7, 13)
+	await prisma.event.create({
+		data: {
+      title: "An event",
+      start: eventOne,
+      end: addMinutes(eventOne, 90)
+		},
+	})
+
+  const eventTwo = new Date(year, month, 16, 16)
+	await prisma.event.create({
+		data: {
+      title: "Another event",
+      start: eventTwo,
+      end: addMinutes(eventTwo, 60),
+		},
+	})
+
+  const eventThree = new Date(year, month, 22, 9)
+	await prisma.event.create({
+		data: {
+      title: "Yet another event",
+      start: eventThree,
+      end: addMinutes(eventThree, 30),
+		},
+	})
+
+	console.timeEnd(
+		`📅 Created a few events in the current month`,
+	)
 	console.timeEnd(`🌱 Database has been seeded`)
 }
 
