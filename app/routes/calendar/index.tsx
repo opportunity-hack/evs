@@ -39,7 +39,7 @@ import { conform, useForm } from '@conform-to/react'
 import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
 
-import { HorseListbox, InstructorListbox } from './comboboxes.tsx'
+import { HorseListbox, InstructorListbox } from './listboxes.tsx'
 import { Horse, User, Event } from '@prisma/client'
 import { add, addMinutes } from 'date-fns'
 import horses from '../horses/index.tsx'
