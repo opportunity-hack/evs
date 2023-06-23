@@ -41,6 +41,28 @@ export async function action({ request }: DataFunctionArgs) {
     )
   }
 
+  if (submission.value._action === "unregister") {
+    await prisma.event.update({
+      where: { 
+        id: submission.value.eventId
+      },
+      data: {
+        [submission.value.role]: {
+          disconnect: {
+            id: userId
+          }
+        }
+      },
+    })
+    return json(
+      {
+        status: 'successfully unregistered',
+        submission,
+      } as const,
+      { status: 200 },
+    )
+  }
+
   await prisma.event.update({
     where: { 
       id: submission.value.eventId

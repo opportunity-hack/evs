@@ -35,15 +35,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip.tsx"
 
-import { conform, useForm } from '@conform-to/react'
 import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
 
 import { HorseListbox, InstructorListbox } from './listboxes.tsx'
 import { Horse, User, Event } from '@prisma/client'
-import { add, addMinutes } from 'date-fns'
-import horses from '../horses/index.tsx'
-import { useFetcher, useNavigation, useRevalidator, useTransition } from '@remix-run/react'
+import { addMinutes } from 'date-fns'
+import { useFetcher } from '@remix-run/react'
 import { useActionData } from '~/remix.ts'
 import { useResetCallback } from '~/lib/utils.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
@@ -148,6 +146,14 @@ const createEventSchema = z.object({
   horseLeadersReq: z.coerce.number().gt(-1),
 });
 
+interface CalEvent extends Event {
+  barnCrew: User[]
+  pastureCrew: User[]
+  lessonAssistants: User[]
+  sideWalkers: User[]
+  horseLeaders: User[]
+}
+
 export async function action({ request }: ActionArgs) {
   requireAdmin(request)
   const body = await request.formData();
@@ -213,13 +219,49 @@ export default function Schedule() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(events[0]);
 
-  const registrationFetcher = useFetcher();
-  const revalidator = useRevalidator();
-
   const handleSelectEvent = (calEvent: any) => {
     setSelectedEvent(calEvent)
     setRegisterOpen(!registerOpen)
   }
+
+
+  return (
+  <div className="grid place-items-center">
+    <h1 className="text-5xl mb-5">Calendar</h1>
+    <div className="container sm:h-[80vh] sm:w-[80vw] h-screen w-screen">
+    <Calendar
+      localizer={localizer}
+      events={events}
+      startAccessor="start"
+      endAccessor="end"
+      onSelectEvent={handleSelectEvent}
+      style={{ height: '100%', width: '100%', backgroundColor: "white", color: "black", padding: 20, borderRadius: "1.5rem"  }}
+    />
+    </div>
+
+    <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
+      <RegistrationDialogue selectedEventId={selectedEvent.id} events={events} />      
+    </Dialog>
+
+    { userIsAdmin ? <CreateEventDialog horses={horses} instructors={instructors} />
+    : null }
+  </div>
+  )
+}
+
+interface RegistrationProps {
+  events: CalEvent[]
+  selectedEventId: string
+}
+
+function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
+  const registrationFetcher = useFetcher();
+  const user = useUser();
+
+  const calEvent = events.find(event => event.id === selectedEventId)
+    if (!calEvent) {
+      return null
+    }
 
   // TODO: get accurate descriptions of each role
   const volunteerTypes = [
@@ -255,77 +297,78 @@ export default function Schedule() {
     },
   ] as const
 
-  return (
-  <div className="grid place-items-center">
-    <h1 className="text-5xl mb-5">Calendar</h1>
-    <div className="container sm:h-[80vh] sm:w-[80vw] h-screen w-screen">
-    <Calendar
-      localizer={localizer}
-      events={events}
-      startAccessor="start"
-      endAccessor="end"
-      onSelectEvent={handleSelectEvent}
-      style={{ height: '100%', width: '100%', backgroundColor: "white", color: "black", padding: 20, borderRadius: "1.5rem"  }}
-    />
-    </div>
+  let isRegistered = false;
+  let volunteerTypeIdx = 0;
+  for (const role of volunteerTypes) {
+    const found = calEvent[role.field].find(volunteer => volunteer.id === user.id)
+    if (found) {
+      isRegistered = true;
+      break;
+    }
+    volunteerTypeIdx += 1;
+  }
+  if (!isRegistered) {
+    volunteerTypeIdx = 0;
+  }
+  const registeredAs = volunteerTypes[volunteerTypeIdx]
 
-    <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
-      <DialogContent>
+  return (
+  <DialogContent>
       <DialogHeader>
-        <DialogTitle className="text-h4">{selectedEvent.title} - Volunteer Registration</DialogTitle>
-        <p>{selectedEvent.start.toLocaleDateString()}, {format(selectedEvent.start, "p")} - {format(selectedEvent.end, "p")}</p>
+        <DialogTitle className="text-h4">{calEvent.title} - Volunteer Registration</DialogTitle>
+        <p>{calEvent.start.toLocaleDateString()}, {format(calEvent.start, "p")} - {format(calEvent.end, "p")}</p>
       </DialogHeader>
           <DialogDescription>
-            Select a role to volunteer in:
+            {isRegistered ? "Manage registration" : "Select a role to volunteer in"}
           </DialogDescription>
         <registrationFetcher.Form method="post" action="/resources/event-register">
-          <Input type="hidden" name="eventId" value={selectedEvent.id}></Input>
-      <RadioGroup name="role" defaultValue={volunteerTypes[0].field} >
-      <ul className="">
+          <Input type="hidden" name="eventId" value={calEvent.id}></Input>
+        {!isRegistered ?
+        <RadioGroup name="role" defaultValue={volunteerTypes[0].field} >
+        <ul className="">
 
-      {volunteerTypes.map((volunteerType) => {
-        const calEvent = events.find(event => event.id === selectedEvent.id)
-        if (!calEvent) {
-          return null
-        }
+        {volunteerTypes.map((volunteerType) => {
 
-        return (
-          <li key ={volunteerType.field} className="flex justify-between items-center m-2">
-            <TooltipProvider>
-            <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex w-full justify-between">
-                <div className="flex items-center">
-                <RadioGroupItem className="mr-2" value={volunteerType.field}/>
-                  <label>
-                    <span className="capitalize">{volunteerType.displayName}:</span> {calEvent[volunteerType.field].length} registered of {calEvent[`${volunteerType.field}Req`]} needed.
-                  </label>
+          return (
+            <li key ={volunteerType.field} className="flex justify-between items-center m-2">
+                <div className="flex w-[80%] justify-between">
+                  <div className="flex items-center">
+                  <RadioGroupItem className="mr-2" id={volunteerType.field} value={volunteerType.field}/>
+                    <Label htmlFor={volunteerType.field}>
+                      <span className="capitalize">{volunteerType.displayName}:</span> {calEvent[volunteerType.field].length} registered of {calEvent[`${volunteerType.field}Req`]} needed.
+                    </Label>
+                  </div>
+              <TooltipProvider>
+              <Tooltip>
+              <TooltipTrigger asChild>
+                  <Info size="20" className="mr-1"/>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-[250px]">{volunteerType.description}</p>
+              </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
                 </div>
-                <Info size="20" className="mr-1"/>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="max-w-[250px]">{volunteerType.description}</p>
-            </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </li>
-          )
-          }
-        )}
-          </ul>
+            </li>
+            )
+            }
+          )}
+            </ul>
           </ RadioGroup>
+          : <>
+          <input type="hidden" name="role" value={registeredAs.field}/>
+          <div>
+            You are registered to volunteer in this event as one of the {registeredAs.displayName}.
+          </div>
+          </>}
         <DialogFooter>
-          <Button type="submit" name="_action" value="register">Register</Button>
+          {isRegistered ? 
+            <Button type="submit" name="_action" value="unregister" variant="destructive">Unregister</Button>
+            : <Button type="submit" name="_action" value="register">Register</Button>}
         </DialogFooter>
         </registrationFetcher.Form>
       </DialogContent>
-    </Dialog>
-
-    { userIsAdmin ? <CreateEventDialog horses={horses} instructors={instructors} />
-    : null }
-  </div>
-  )
+    )
 }
 
 interface CreateEventDialogProps {
