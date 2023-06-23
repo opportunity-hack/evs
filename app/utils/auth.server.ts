@@ -30,6 +30,12 @@ authenticator.use(
 		if (!user) {
 			throw new Error('Invalid username or password')
 		}
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() }
+    })
+
 		const session = await prisma.session.create({
 			data: {
 				expirationDate: new Date(Date.now() + SESSION_EXPIRATION_TIME),
