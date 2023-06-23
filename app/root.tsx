@@ -83,7 +83,7 @@ export async function loader({ request }: DataFunctionArgs) {
 				() =>
 					prisma.user.findUnique({
 						where: { id: userId },
-						select: { id: true, name: true, username: true, imageId: true },
+						select: { id: true, name: true, username: true, imageId: true, roles: true },
 					}),
 				{ timings, type: 'find user', desc: 'find user in root' },
 		  )
@@ -128,6 +128,23 @@ function App() {
 	const nonce = useNonce()
 	const user = useOptionalUser()
 	const theme = useTheme()
+  const userIsAdmin = user?.roles.find(role => role.name === 'admin')
+
+
+  let nav = (<ButtonLink to="/login" size="sm" variant="primary">
+        Log In
+      </ButtonLink>) 
+  if (user) {
+    nav = (
+    <div className="flex items-center gap-5">
+      <ButtonLink className="px-4" to="/calendar" size="sm" variant="primary">
+        Calendar
+      </ButtonLink>
+      {userIsAdmin ? <AdminDropdown /> : null}
+      <UserDropdown />
+    </div>
+    )
+  }
 
 	return (
 		<html lang="en" className={`${theme} h-full`}>
@@ -145,15 +162,7 @@ function App() {
 							<div className="font-light">Equestrian</div>
 							<div className="font-bold">Volunteer Scheduler</div>
 						</Link>
-						<div className="flex items-center gap-10">
-							{user ? (
-								<UserDropdown />
-							) : (
-								<ButtonLink to="/login" size="sm" variant="primary">
-									Log In
-								</ButtonLink>
-							)}
-						</div>
+						{nav}
 					</nav>
 				</header>
 
@@ -255,3 +264,49 @@ function UserDropdown() {
 		</DropdownMenu.Root>
 	)
 }
+
+function AdminDropdown() {
+	return (
+		<DropdownMenu.Root>
+			<DropdownMenu.Trigger asChild>
+				<Link
+					to="/users"
+					// this is for progressive enhancement
+					onClick={e => e.preventDefault()}
+					className="flex items-center gap-2 rounded-full bg-night-500 py-3 px-4 outline-none hover:bg-night-400 focus:bg-night-400 radix-state-open:bg-night-400"
+				>
+					<span className="text-body-sm font-bold text-white">
+            Admin
+          </span>
+				</Link>
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Portal>
+				<DropdownMenu.Content
+					sideOffset={8}
+					align="start"
+					className="flex flex-col rounded-3xl bg-[#323232]"
+				>
+					<DropdownMenu.Item asChild>
+						<Link
+							prefetch="intent"
+							to={`/users`}
+							className="rounded-t-3xl px-4 py-5 outline-none hover:bg-night-500 radix-highlighted:bg-night-500"
+						>
+							Users
+						</Link>
+					</DropdownMenu.Item>
+					<DropdownMenu.Item asChild>
+						<Link
+							prefetch="intent"
+							to={`/horses`}
+							className="rounded-b-3xl px-4 py-5 outline-none hover:bg-night-500 radix-highlighted:bg-night-500"
+						>
+							Horses
+						</Link>
+					</DropdownMenu.Item>
+				</DropdownMenu.Content>
+			</DropdownMenu.Portal>
+		</DropdownMenu.Root>
+	)
+}
+
