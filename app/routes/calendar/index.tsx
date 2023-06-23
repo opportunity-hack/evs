@@ -28,6 +28,13 @@ import { Input } from '~/components/ui/input.tsx'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group.tsx'
 import { Label } from '~/components/ui/label.tsx'
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip.tsx"
+
 import { conform, useForm } from '@conform-to/react'
 import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
@@ -41,6 +48,7 @@ import { useActionData } from '~/remix.ts'
 import { useResetCallback } from '~/lib/utils.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
+import { Info } from 'lucide-react'
 
 const locales = {
   'en-US': enUS,
@@ -218,26 +226,31 @@ export default function Schedule() {
       displayName: "barn crew",
       field: "barnCrew",
       reqField: "barnCrewReq",
+      description: "Barn Crew volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning stalls. Barn Crew volunteers must be at least 16 years old."
     },
     {
       displayName: "pasture crew",
       field: "pastureCrew",
       reqField: "pastureCrewReq",
+      description: "Pasture Crew volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning pastures. Pasture Crew volunteers must be at least 16 years old."
     },
     {
       displayName: "lesson assistants",
       field: "lessonAssistants",
       reqField: "lessonAssistantsReq",
+      description: "Lesson Assistant volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning stalls. Lesson Assistant volunteers must be at least 16 years old."
     },
     {
       displayName: "horse leaders",
       field: "horseLeaders",
       reqField: "horseLeadersReq",
+      description: "Horse Leader volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning stalls. Horse Leader volunteers must be at least 16 years old."
     },
     {
       displayName: "side walkers",
       field: "sideWalkers",
       reqField: "sideWalkersReq",
+      description: "Sidewalker volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning stalls. Sidewalker volunteers must be at least 16 years old."
     },
   ] as const
 
@@ -273,12 +286,26 @@ export default function Schedule() {
         return (
           <ul key={volunteerType.field} className="">
           <li className="flex justify-between items-center m-2">
-            <div>
-            <span className="capitalize">{volunteerType.displayName}:</span> {calEvent[volunteerType.field].length} registered of {calEvent[`${volunteerType.field}Req`]} needed.
-            {isRegistered ? <div className="text-sm">
-              You are registered to volunteer in this role.
-            </div> : null}
-            </div>
+            <TooltipProvider>
+            <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+              <div className="flex items-center">
+                <Info size="20" className="mr-1"/>
+                <div>
+                <span className="capitalize">{volunteerType.displayName}:</span> {calEvent[volunteerType.field].length} registered of {calEvent[`${volunteerType.field}Req`]} needed.
+                </div>
+              </div>
+              {isRegistered ? <div className="text-sm">
+                You are registered to volunteer in this role.
+              </div> : null}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-[250px]">{volunteerType.description}</p>
+            </TooltipContent>
+            </Tooltip>
+            </TooltipProvider>
             {
             isRegistered ? <Button variant="destructive" type="submit" name="role" value={volunteerType.field}>Unregister</Button> :
             <Button type="submit" name="role" value={volunteerType.field}>Register</Button>
