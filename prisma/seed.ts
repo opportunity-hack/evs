@@ -121,6 +121,18 @@ async function seed() {
 			email: 'bob@not.admin',
 			username: 'bob',
 			name: 'Bob',
+			image: {
+				create: {
+					contentType: 'image/png',
+					file: {
+						create: {
+							blob: await fs.promises.readFile(
+								'./tests/fixtures/images/user/1.jpg',
+							),
+						},
+					},
+				},
+			},
 			password: {
 				create: {
 					hash: await getPasswordHash('bobnotadmin'),
@@ -140,6 +152,18 @@ async function seed() {
 			email: 'isabelle@is.instructor',
 			username: 'isabelle',
 			name: 'Isabelle',
+			image: {
+				create: {
+					contentType: 'image/png',
+					file: {
+						create: {
+							blob: await fs.promises.readFile(
+								'./tests/fixtures/images/user/9.jpg',
+							),
+						},
+					},
+				},
+			},
 			password: {
 				create: {
 					hash: await getPasswordHash('isabelleinstructor'),
