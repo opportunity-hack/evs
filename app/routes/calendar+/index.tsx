@@ -75,7 +75,7 @@ export const loader = async ({ request }: LoaderArgs) => {
         name: true,
       }
      }, 
-     instructor: {
+     instructors: {
       select: {
         name: true,
         username: true,
@@ -187,7 +187,7 @@ export async function action({ request }: ActionArgs) {
       title,
       start,
       end,
-      instructor: {
+      instructors: {
         connect: { id: instructorId }
       },
       horses: {
