@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { faker } from '@faker-js/faker'
-import { createPassword, createUser, createHorse } from 'tests/db-utils.ts'
+import { createPassword, createUser, createHorse, createEvent } from 'tests/db-utils.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { deleteAllData } from 'tests/setup/utils.ts'
 import { getPasswordHash } from '~/utils/auth.server.ts'
@@ -198,31 +198,12 @@ async function seed() {
   const year = today.getFullYear()
   const month = today.getMonth()
   const eventOne = new Date(year, month, 7, 13)
-	await prisma.event.create({
-		data: {
-      title: "An event",
-      start: eventOne,
-      end: addMinutes(eventOne, 90)
-		},
-	})
-
   const eventTwo = new Date(year, month, 16, 16)
-	await prisma.event.create({
-		data: {
-      title: "Another event",
-      start: eventTwo,
-      end: addMinutes(eventTwo, 60),
-		},
-	})
-
   const eventThree = new Date(year, month, 22, 9)
-	await prisma.event.create({
-		data: {
-      title: "Yet another event",
-      start: eventThree,
-      end: addMinutes(eventThree, 30),
-		},
-	})
+
+	createEvent(eventOne)
+	createEvent(eventTwo)
+	createEvent(eventThree)
 
 	console.timeEnd(
 		`📅 Created a few events in the current month`,
