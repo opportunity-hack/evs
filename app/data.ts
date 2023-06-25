@@ -36,6 +36,7 @@ export interface UserData {
   id: string
   name: string | null
   username: string
+  imageId: string | null
 }
 
 export interface HorseData {
@@ -48,6 +49,9 @@ export interface CalEvent {
   title: string
   start: Date
   end: Date
+
+  instructors: UserData[]
+  horses: HorseData[]
 
   barnCrewReq: number
   pastureCrewReq: number
