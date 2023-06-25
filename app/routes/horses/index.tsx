@@ -29,7 +29,7 @@ export const loader = async ({ request }: DataFunctionArgs) => {
   );
 };
 
-export default function horses() {
+export default function Horses() {
   const data = useLoaderData<typeof loader>()
   return ( 
   <div className="container">

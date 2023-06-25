@@ -7,6 +7,7 @@ import getDay from 'date-fns/getDay'
 import enUS from 'date-fns/locale/en-US'
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
+import { volunteerTypes, UserData, HorseData, CalEvent } from '~/data.ts'
 import { useState } from 'react'
 
 import { Form, LoaderArgs, json } from "~/remix.ts";
@@ -39,7 +40,6 @@ import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
 
 import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
-import { Horse, User, Event } from '@prisma/client'
 import { addMinutes } from 'date-fns'
 import { useFetcher } from '@remix-run/react'
 import { useActionData } from '~/remix.ts'
@@ -146,14 +146,6 @@ const createEventSchema = z.object({
   sideWalkersReq: z.coerce.number().gt(-1),
   horseLeadersReq: z.coerce.number().gt(-1),
 });
-
-interface CalEvent extends Event {
-  barnCrew: User[]
-  pastureCrew: User[]
-  lessonAssistants: User[]
-  sideWalkers: User[]
-  horseLeaders: User[]
-}
 
 export async function action({ request }: ActionArgs) {
   requireAdmin(request)
@@ -265,40 +257,6 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
       return null
     }
 
-  // TODO: get accurate descriptions of each role
-  const volunteerTypes = [
-    {
-      displayName: "barn crew",
-      field: "barnCrew",
-      reqField: "barnCrewReq",
-      description: "Barn Crew volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning stalls. Barn Crew volunteers must be at least 16 years old."
-    },
-    {
-      displayName: "pasture crew",
-      field: "pastureCrew",
-      reqField: "pastureCrewReq",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-    },
-    {
-      displayName: "lesson assistants",
-      field: "lessonAssistants",
-      reqField: "lessonAssistantsReq",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-    },
-    {
-      displayName: "horse leaders",
-      field: "horseLeaders",
-      reqField: "horseLeadersReq",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-    },
-    {
-      displayName: "side walkers",
-      field: "sideWalkers",
-      reqField: "sideWalkersReq",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-    },
-  ] as const
-
   let isRegistered = false;
   let volunteerTypeIdx = 0;
   for (const role of volunteerTypes) {
@@ -377,8 +335,8 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
 }
 
 interface CreateEventDialogProps {
-  horses: Horse[]
-  instructors: User[]
+  horses: HorseData[]
+  instructors: UserData[]
 }
 
 function CreateEventDialog({horses, instructors}: CreateEventDialogProps) {

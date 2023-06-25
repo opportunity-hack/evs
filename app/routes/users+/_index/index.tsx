@@ -12,7 +12,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   );
 };
 
-export default function users() {
+export default function Users() {
  const data = useLoaderData<typeof loader>()
  return ( 
   <div>

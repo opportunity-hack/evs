@@ -1,14 +1,18 @@
 import { Fragment, useState } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronsUpDown } from 'lucide-react'
-import { Horse, User } from '@prisma/client'
 
 const listboxButtonClassName = "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 
 const listBoxOptionsClassname="z-50 absolute mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border-input border border-1"
 
+interface HorseData {
+  id: string
+  name: string
+}
+
 interface HorseListboxProps {
-  horses: Horse[]
+  horses: HorseData[]
   name: string
 }
 
@@ -75,8 +79,14 @@ export function HorseListbox({horses, name}: HorseListboxProps) {
   )
 }
 
+interface UserData {
+  id: string
+  name: string | null
+  username: string
+}
+
 interface InstructorListboxProps {
-  instructors: User[]
+  instructors: UserData[]
   name: string
 }
 
