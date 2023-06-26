@@ -206,14 +206,14 @@ function UserDropdown() {
 					to={`/users/${user.username}`}
 					// this is for progressive enhancement
 					onClick={e => e.preventDefault()}
-					className="bg-brand-500 hover:bg-brand-400 focus:bg-brand-400 radix-state-open:bg-brand-400 flex items-center gap-2 rounded-full py-2 pl-2 pr-4 outline-none"
+					className="bg-primary hover:bg-primary/90 focus:bg-primary/90 radix-state-open:bg-primary/90 flex items-center gap-2 rounded-full py-2 pl-2 pr-4 outline-none text-primary-foreground"
 				>
 					<img
 						className="h-8 w-8 rounded-full object-cover"
 						alt={user.name ?? user.username}
 						src={getUserImgSrc(user.imageId)}
 					/>
-					<span className="text-body-sm font-bold text-white">
+					<span className="text-body-sm font-bold">
 						{user.name ?? user.username}
 					</span>
 				</Link>
@@ -222,13 +222,13 @@ function UserDropdown() {
 				<DropdownMenu.Content
 					sideOffset={8}
 					align="start"
-					className="flex flex-col rounded-3xl bg-[#323232]"
+					className="flex flex-col rounded-3xl text-primary-foreground"
 				>
 					<DropdownMenu.Item asChild>
 						<Link
 							prefetch="intent"
 							to={`/users/${user.username}`}
-							className="hover:bg-brand-500 radix-highlighted:bg-brand-500 rounded-t-3xl px-7 py-5 outline-none"
+							className="bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90 rounded-t-3xl px-7 py-5 outline-none"
 						>
 							Profile
 						</Link>
@@ -237,7 +237,7 @@ function UserDropdown() {
 						<Link
 							prefetch="intent"
 							to={`/users/${user.username}/notes`}
-							className="hover:bg-brand-500 radix-highlighted:bg-brand-500 px-7 py-5 outline-none"
+							className="bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90 px-7 py-5 outline-none"
 						>
 							Notes
 						</Link>
@@ -253,7 +253,7 @@ function UserDropdown() {
 						<Form
 							action="/logout"
 							method="POST"
-							className="radix-highlighted:bg-brand-500 rounded-b-3xl outline-none"
+							className="bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90 rounded-b-3xl outline-none"
 							ref={formRef}
 						>
 							<button type="submit" className="px-7 py-5">
@@ -275,9 +275,9 @@ function AdminDropdown() {
 					to="/users"
 					// this is for progressive enhancement
 					onClick={e => e.preventDefault()}
-					className="flex items-center gap-2 rounded-full bg-night-500 py-3 px-4 outline-none hover:bg-night-400 focus:bg-night-400 radix-state-open:bg-night-400"
+					className="flex items-center gap-2 rounded-full py-3 px-4 outline-none bg-primary hover:bg-primary/90 text-primary-foreground focus:bg-primary/90 radix-state-open:bg-primary/90"
 				>
-					<span className="text-body-sm font-bold text-white">
+					<span className="text-body-sm font-bold">
             Admin
           </span>
 				</Link>
@@ -286,13 +286,13 @@ function AdminDropdown() {
 				<DropdownMenu.Content
 					sideOffset={8}
 					align="start"
-					className="flex flex-col rounded-3xl bg-[#323232]"
+					className="flex flex-col rounded-3xl text-primary-foreground"
 				>
 					<DropdownMenu.Item asChild>
 						<Link
 							prefetch="intent"
 							to={`/users`}
-							className="rounded-t-3xl px-4 py-5 outline-none hover:bg-night-500 radix-highlighted:bg-night-500"
+							className="rounded-t-3xl px-4 py-5 outline-none bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90"
 						>
 							Users
 						</Link>
@@ -301,7 +301,7 @@ function AdminDropdown() {
 						<Link
 							prefetch="intent"
 							to={`/horses`}
-							className="rounded-b-3xl px-4 py-5 outline-none hover:bg-night-500 radix-highlighted:bg-night-500"
+							className="rounded-b-3xl px-4 py-5 outline-none bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90"
 						>
 							Horses
 						</Link>

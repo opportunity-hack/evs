@@ -330,7 +330,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
           {isSubmitting ? <div>Processing...</div> :
            isRegistered ? 
             <Button type="submit" name="_action" value="unregister" variant="destructive"> Unregister</Button>
-            : <Button type="submit" name="_action" value="register">Register</Button>}
+            : <Button className="" type="submit" name="_action" value="register">Register</Button>}
         </DialogFooter>
         </registrationFetcher.Form>
       </DialogContent>

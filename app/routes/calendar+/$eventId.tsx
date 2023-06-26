@@ -182,7 +182,7 @@ export function VolunteerSection({ volunteerTypeIdx, event }: volunteerSectionPr
   }
 
   return (
-    <Card className="px-4 py-6 w-full">
+    <Card className="px-4 py-6 w-full max-w-sm">
       <div className="flex justify-between">
         <h3 className="uppercase font-bold">{vts[idx].displayName}</h3>
         <h4 className="text-muted-foreground text-xs">{volunteers.length} registered of {volunteersRequired} required</h4>

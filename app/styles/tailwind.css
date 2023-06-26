@@ -23,22 +23,22 @@
     --color-primary: 222.2 47.4% 11.2%;
     --color-primary-foreground: 210 40% 98%;
 
-    --color-secondary: 210 40% 96.1%;
-    --color-secondary-foreground: 222.2 47.4% 11.2%;
+    --color-secondary: 240 3.7% 15.9%;
+    --color-secondary-foreground: 0 0% 98%
 
     --color-accent: 210 40% 96.1%;
     --color-accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 100% 50%;
-    --destructive-foreground: 210 40% 98%;
+    --color-destructive: 0 63% 31%;
+    --color-destructive-foreground: 210 40% 98%;
 
     --color-ring: 215 20.2% 65.1%;
 
 
     --radius: 0.5rem;
 
-		--color-brand-primary: 252 100% 63%;
-		--color-brand-primary-muted: 252 100% 69%;
+		--color-brand-primary: 217 91% 60%;
+		--color-brand-primary-muted: 208 56% 44%;
 		--color-brand-secondary: 40 100% 62%;
 		--color-brand-secondary-muted: 43 100% 69%;
 		--color-brand-tertiary: 293 100% 76%;
@@ -78,8 +78,8 @@
     --color-border: 216 34% 17%;
     --color-input: 216 34% 17%;
 
-    --color-primary: 210 40% 98%;
-    --color-primary-foreground: 222.2 47.4% 1.2%;
+    --color-primary: 0 0% 98%;
+    --color-primary-foreground: 240 5.9% 10%;
 
     --color-secondary: 222.2 47.4% 11.2%;
     --color-secondary-foreground: 210 40% 98%;
