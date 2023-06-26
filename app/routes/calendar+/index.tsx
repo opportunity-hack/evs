@@ -252,6 +252,8 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
   const user = useUser();
   const userIsAdmin = user.roles.find(role => role.name === 'admin')
 
+  const isSubmitting = registrationFetcher.state === "submitting"
+
   const calEvent = events.find(event => event.id === selectedEventId)
     if (!calEvent) {
       return null
@@ -286,8 +288,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
           </DialogDescription>
         <registrationFetcher.Form method="post" action="/resources/event-register">
           <Input type="hidden" name="eventId" value={calEvent.id}></Input>
-        {!isRegistered ?
-        <RadioGroup name="role" defaultValue={volunteerTypes[0].field} >
+        <RadioGroup name="role" defaultValue={volunteerTypes[volunteerTypeIdx].field} disabled={isRegistered}>
         <ul className="">
 
         {volunteerTypes.map((volunteerType) => {
@@ -318,15 +319,17 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
           )}
             </ul>
           </ RadioGroup>
+        {!isRegistered ? null
           : <>
-          <input type="hidden" name="role" value={registeredAs.field}/>
           <div>
+          <input type="hidden" name="role" value={registeredAs.field}/>
             You are registered to volunteer in this event as one of the {registeredAs.displayName}.
           </div>
           </>}
-        <DialogFooter>
-          {isRegistered ? 
-            <Button type="submit" name="_action" value="unregister" variant="destructive">Unregister</Button>
+        <DialogFooter> 
+          {isSubmitting ? <div>Processing...</div> :
+           isRegistered ? 
+            <Button type="submit" name="_action" value="unregister" variant="destructive"> Unregister</Button>
             : <Button type="submit" name="_action" value="register">Register</Button>}
         </DialogFooter>
         </registrationFetcher.Form>
