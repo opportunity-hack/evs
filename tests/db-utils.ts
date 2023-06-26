@@ -62,7 +62,7 @@ export function createHorse() {
 export async function createEvent(start: Date) {
     const users = await prisma.user.findMany()
     const allHorses = await prisma.horse.findMany()
-    const horses = faker.helpers.arrayElements(allHorses, { min: 1, max: 5})
+    const horses = faker.helpers.arrayElements(allHorses, { min: 3, max: 5})
     const duration = faker.helpers.arrayElement([30, 60, 90])
 
     const instructor = users.find(user => user.instructor)
@@ -84,9 +84,11 @@ export async function createEvent(start: Date) {
 				}
 			}
 		}
-    await prisma.event.create({
-      data: {
-          title: faker.lorem.sentence(5),
+
+    const eventTypes = ["Traditional Lesson", "Adaptive Lesson", "Therapy Group", "Birthday"]
+
+    return {
+          title: faker.helpers.arrayElement(eventTypes),
           start,
           end: addMinutes(start, duration),
 					instructors: {
@@ -117,5 +119,4 @@ export async function createEvent(start: Date) {
 						connect: assignments[4]
 					},
 			}
-    })
 }

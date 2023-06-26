@@ -42,6 +42,7 @@ export interface UserData {
 export interface HorseData {
   id: string
   name: string
+  imageId?: string
 }
 
 export interface HorseAssignment {

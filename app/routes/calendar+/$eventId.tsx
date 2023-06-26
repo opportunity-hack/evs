@@ -4,7 +4,7 @@ import { useLoaderData, json, useSubmit } from '~/remix.ts'
 import type { LoaderArgs, ActionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts';
 import { Button } from '~/utils/forms.tsx';
-import { getUserImgSrc } from '~/utils/misc.ts';
+import { getUserImgSrc, getHorseImgSrc } from '~/utils/misc.ts';
 
 import type { UserData, CalEvent } from '~/data.ts'
 import { volunteerTypes } from '~/data.ts';
@@ -140,14 +140,40 @@ export default function() {
    return (
     <div className="container flex flex-wrap w-full">
       <section className="md:sticky md:top-20 h-fit md:w-2/5 pr-2">
-        <h1 className="text-h2 uppercase">Event Details</h1>
-        <Card className="px-4 py-6">
-        <h1 className="">Title: {event.title}</h1>
-        <div>{format(event.start, "MMMM do, y")}</div>
-        <div>{format(event.start, "p")} - {format(event.end, "p")}</div>
-        <div>Horses: {event.horses.map(horse => { return horse.name + ', ' })}</div>
-        <div>Instructor: {event.instructors.map(instructor => { return instructor.name ? instructor.name : instructor.username })}</div>
-          <Button className="" variant="primary" size="sm">Edit</Button>
+          <h1 className="text-h2 uppercase">Event Details</h1>
+          <Card className="px-4 py-6">
+          <div className="flex justify-between items-center">
+            <h2 className="font-bold text-2xl">{event.title}</h2>
+            <Button className="" variant="primary" size="sm">Edit</Button>
+          </div>
+          <div className="flex gap-x-4 flex-wrap">
+            <div className="text-lg">{format(event.start, "MMMM do, y")}</div>
+            <div className="text-lg"> {format(event.start, "p")} - {format(event.end, "p")}</div>
+          </div>
+          <div className="mt-4">
+            Instructor{event.instructors.length > 1 ? "s" : null}: {event.instructors.map(instructor => {
+            return <div className="flex items-center gap-2">
+            <img 
+            className="h-8 w-8 rounded-full object-cover"
+            alt={instructor.name ?? instructor.username}
+            src={getUserImgSrc(instructor.imageId)}
+            />
+              <div>{instructor.name ? instructor.name : instructor.username}</div>
+            </div>
+            })}
+          </div>
+          <div className="flex flex-col gap-2 mt-4">
+            Horses: {event.horses.map(horse => {
+            return <div className="flex items-center gap-2">
+            <img 
+            className="h-8 w-8 rounded-full object-cover"
+            alt={horse.name}
+            src={getHorseImgSrc(horse.imageId)}
+            />
+              <div>{horse.name}</div>
+            </div>
+            })}
+          </div>
         </Card>
       </section>
       <section className="md:w-3/5 flex flex-col">
@@ -217,10 +243,19 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
   const isPlaceholder = user.id === "placeholder"
   const assignmentFetcher = useFetcher()
 
-  let assignedHorse = "none"
+  let assignedHorseId = "none"
+  let assignedHorseImageId = ""
   for (const assignment of event.horseAssignments) {
     if (assignment.userId === user.id) {
-      assignedHorse = assignment.horseId
+      assignedHorseId = assignment.horseId
+    }
+  }
+
+  if (assignedHorseId != "none") {
+    for (const horse of event.horses) {
+      if (horse.id === assignedHorseId && (horse.imageId)) {
+        assignedHorseImageId = horse.imageId 
+      }
     }
   }
 
@@ -249,9 +284,9 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
       <div className="flex gap-2 items-center">
         { isSubmitting ? <span className="inline-block animate-spin">🌀</span> :
         <img 
-          className="h-8 w-8 object-cover"
+          className="h-8 w-8 object-cover rounded-full"
           alt="horse"
-          src="/img/horse.png"
+          src={getHorseImgSrc(assignedHorseImageId)}
           />
         }
         <assignmentFetcher.Form method="post" action={`/calendar/${event.id}`} >
@@ -259,7 +294,7 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
         <select className="rounded-md pl-2"
                 disabled={isPlaceholder}
                 name="horse"
-                defaultValue={assignedHorse}
+                defaultValue={assignedHorseId}
                 onChange={handleChange}>
           <option value="none">None</option>
           {event.horses.map(horse => <option key={horse.id} value={horse.id}>{horse.name}</option>)}

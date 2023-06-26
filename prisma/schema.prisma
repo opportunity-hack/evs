@@ -27,6 +27,7 @@ model Image {
   updatedAt DateTime @updatedAt
 
   user User?
+  horse Horse?
 }
 
 model Role {
@@ -141,6 +142,9 @@ model Horse {
   notes     String?
   status    String?
   updatedAt DateTime @updatedAt
+
+  image   Image?  @relation(fields: [imageId], references: [fileId])
+  imageId String? @unique
 
   events          Event[]
   HorseAssignment HorseAssignment[]

@@ -184,6 +184,18 @@ async function seed() {
 			const horse = await prisma.horse.create({
 				data: {
 					...horseData,
+					image: {
+						create: {
+							contentType: 'image/jpeg',
+							file: {
+								create: {
+									blob: await fs.promises.readFile(
+										`./tests/fixtures/images/horse/horse${index % 10}.jpg`,
+									),
+								},
+							},
+						},
+					},
 				},
 			})
 			return horse
@@ -191,20 +203,26 @@ async function seed() {
 	)
 	console.timeEnd(`🐴 Created ${totalHorses} horses...`)
 
-	console.time(
-		`📅 Created a few events in the current month`,
-	)
+  const totalEvents = 18
   const today = new Date()
   const year = today.getFullYear()
   const month = today.getMonth()
-  const eventOne = new Date(year, month, 7, 13)
-  const eventTwo = new Date(year, month, 16, 16)
-  const eventThree = new Date(year, month, 22, 9)
-
-	createEvent(eventOne)
-	createEvent(eventTwo)
-	createEvent(eventThree)
-
+	console.time(
+		`📅 Created a few events in the current month`,
+	)
+  const events = await Promise.all(
+      Array.from({ length: totalEvents }, async (_, index) => {
+          const eventData = await createEvent(faker.date.soon({
+            days: 30, refDate: new Date(year, month, 0) 
+          }))
+          const event = await prisma.event.create({
+              data: {
+                  ...eventData,
+              },
+          })
+          return event
+      }),
+  )
 	console.timeEnd(
 		`📅 Created a few events in the current month`,
 	)
