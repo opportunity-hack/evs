@@ -71,12 +71,14 @@ model User {
 
   instructor Boolean @default(false)
 
-  Instructor Event[] @relation("instructor")
-  barnCrew Event[] @relation("barnCrew")
-  pastureCrew Event[] @relation("pastureCrew")
+  Instructor      Event[] @relation("instructor")
+  barnCrew        Event[] @relation("barnCrew")
+  pastureCrew     Event[] @relation("pastureCrew")
   lessonAssistant Event[] @relation("lessonAssistant")
-  sideWalker Event[] @relation("sideWalker")
-  horseLeader Event[] @relation("horseLeader")
+  sideWalker      Event[] @relation("sideWalker")
+  horseLeader     Event[] @relation("horseLeader")
+
+  horseAssignments HorseAssignment[]
 }
 
 model Password {
@@ -134,38 +136,53 @@ model Note {
 }
 
 model Horse {
-  id        String @id @unique @default(cuid())
+  id        String   @id @unique @default(cuid())
   name      String
   notes     String?
   status    String?
   updatedAt DateTime @updatedAt
 
-  events Event[]
+  events          Event[]
+  HorseAssignment HorseAssignment[]
 }
 
 model Event {
-  id                     String @id @unique @default(cuid())
-  title                  String
+  id    String @id @unique @default(cuid())
+  title String
 
-  start                  DateTime
-  end                    DateTime
+  start DateTime
+  end   DateTime
 
   instructors User[] @relation("instructor")
 
-  barnCrew User[] @relation("barnCrew")
-  barnCrewReq Int @default(0)
+  barnCrew    User[] @relation("barnCrew")
+  barnCrewReq Int    @default(0)
 
-  pastureCrew User[] @relation("pastureCrew")
-  pastureCrewReq Int @default(0)
+  pastureCrew    User[] @relation("pastureCrew")
+  pastureCrewReq Int    @default(0)
 
-  lessonAssistants User[] @relation("lessonAssistant")
-  lessonAssistantsReq Int @default(0)
+  lessonAssistants    User[] @relation("lessonAssistant")
+  lessonAssistantsReq Int    @default(0)
 
-  sideWalkers User[] @relation("sideWalker")
-  sideWalkersReq Int @default(0)
+  sideWalkers    User[] @relation("sideWalker")
+  sideWalkersReq Int    @default(0)
 
-  horseLeaders User[] @relation("horseLeader")
-  horseLeadersReq Int @default(0)
+  horseLeaders    User[] @relation("horseLeader")
+  horseLeadersReq Int    @default(0)
 
   horses Horse[]
+
+  horseAssignments HorseAssignment[]
+}
+
+model HorseAssignment {
+  id        String @id @unique @default(cuid())
+  event     Event  @relation(fields: [eventId], references: [id])
+  volunteer User   @relation(fields: [userId], references: [id])
+  horse     Horse  @relation(fields: [horseId], references: [id])
+  eventId   String
+  userId    String
+  horseId   String
+
+  @@unique([eventId, userId])
 }

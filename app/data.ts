@@ -44,6 +44,11 @@ export interface HorseData {
   name: string
 }
 
+export interface HorseAssignment {
+  userId: string
+  horseId: string
+}
+
 export interface CalEvent {
   id: string
   title: string
@@ -64,5 +69,7 @@ export interface CalEvent {
   lessonAssistants: UserData[]
   horseLeaders: UserData[]
   sideWalkers: UserData[]
+
+  horseAssignments: HorseAssignment[]
 }
 

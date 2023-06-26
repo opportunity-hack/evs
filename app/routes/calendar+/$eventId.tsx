@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { Card } from '~/components/ui/card.tsx';
-import { useLoaderData, json } from '~/remix.ts'
-import type { LoaderArgs } from '~/remix.ts'
+import { useLoaderData, json, useSubmit } from '~/remix.ts'
+import type { LoaderArgs, ActionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts';
 import { Button } from '~/utils/forms.tsx';
 import { getUserImgSrc } from '~/utils/misc.ts';
@@ -10,6 +10,12 @@ import type { UserData, CalEvent } from '~/data.ts'
 import { volunteerTypes } from '~/data.ts';
 import { ArrowRight, Check } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useFetcher } from '@remix-run/react';
+import { z } from 'zod'
+import { useState } from 'react';
+import { parse } from '@conform-to/zod';
+import { requireAdmin } from '~/utils/permissions.server.ts';
+import invariant from 'tiny-invariant';
 
 export async function loader({ params }: LoaderArgs) {
   const id = params.eventId;
@@ -32,12 +38,99 @@ export async function loader({ params }: LoaderArgs) {
       lessonAssistants: true,
       horseLeaders: true,
       sideWalkers: true,
+      horseAssignments: {
+        select: {
+          userId: true,
+          horseId: true,
+        },
+      },
     }
   })
   if (!event) {
     throw new Response('not found', { status: 404 })
   }
   return json({ event })
+}
+
+const assignHorseSchema = z.object({
+  user: z.string(),
+  horse: z.string(),
+})
+
+export const action = async ({ request, params }: ActionArgs) => {
+  requireAdmin(request)
+  const formData = await request.formData()
+  const submission = parse(formData, { schema: () => { return assignHorseSchema } })
+
+  if (!submission.value) {
+    return json(
+    {
+      status: 'error',
+      submission,
+    } as const,
+    { status: 400},
+    )
+  }
+
+  invariant(params.eventId, "Expected params.eventId")
+  const eventId = params.eventId
+  const userId = submission.value.user
+  const horseId = submission.value.horse
+
+  if (horseId === "none") {
+    await prisma.horseAssignment.delete({
+        where: {
+          eventId_userId: {
+            eventId,
+            userId,
+          }
+        }
+    })
+    return json(
+      {
+        status: 'ok',
+        submission,
+      } as const,
+      {
+        status: 200
+      }
+    )
+  }
+
+  await prisma.horseAssignment.upsert({
+    where: {
+      eventId_userId: {
+        eventId,
+        userId,
+      }
+    },
+    update: {
+      horse: {
+        connect: { id: horseId }
+      },
+    },
+    create: {
+      event: {
+        connect: { id: eventId }
+      },
+      volunteer: {
+        connect: { id: userId }
+      },
+      horse: {
+        connect: { id: horseId }
+      },
+    }
+  })
+
+  return json(
+    {
+      status: 'ok',
+      submission,
+    } as const,
+    {
+      status: 200
+    }
+  )
 }
 
 export default function() {
@@ -48,7 +141,7 @@ export default function() {
     <div className="container flex flex-wrap w-full">
       <section className="md:sticky md:top-20 h-fit md:w-2/5 pr-2">
         <h1 className="text-h2 uppercase">Event Details</h1>
-        <Card className="px-4 py-6 max-w-sm min-w-sm">
+        <Card className="px-4 py-6">
         <h1 className="">Title: {event.title}</h1>
         <div>{format(event.start, "MMMM do, y")}</div>
         <div>{format(event.start, "p")} - {format(event.end, "p")}</div>
@@ -89,7 +182,7 @@ export function VolunteerSection({ volunteerTypeIdx, event }: volunteerSectionPr
   }
 
   return (
-    <Card className="px-4 py-6 max-w-sm w-full">
+    <Card className="px-4 py-6 w-full">
       <div className="flex justify-between">
         <h3 className="uppercase font-bold">{vts[idx].displayName}</h3>
         <h4 className="text-muted-foreground text-xs">{volunteers.length} registered of {volunteersRequired} required</h4>
@@ -122,6 +215,27 @@ const placeHolderUser: UserData = {
 
 function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemProps) {
   const isPlaceholder = user.id === "placeholder"
+  const assignmentFetcher = useFetcher()
+
+  let assignedHorse = "none"
+  for (const assignment of event.horseAssignments) {
+    if (assignment.userId === user.id) {
+      assignedHorse = assignment.horseId
+    }
+  }
+
+  const isSubmitting = assignmentFetcher.state === "submitting"
+
+  const handleChange = (e: React.SyntheticEvent) => {
+    const target = e.target as typeof e.target & {
+      value: string
+    }
+    assignmentFetcher.submit({
+      user: user.id,
+      horse: target.value
+    }, { method: 'post' })
+  }
+
   return ( 
     <div className={clsx("flex justify-between items-center w-full p-1 rounded-md",
       isPlaceholder && "border border-1 border-dashed border-primary opacity-50 dark:bg-slate-800")}>
@@ -133,16 +247,24 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
       <ArrowRight />
       
       <div className="flex gap-2 items-center">
+        { isSubmitting ? <span className="inline-block animate-spin">🌀</span> :
         <img 
           className="h-8 w-8 object-cover"
           alt="horse"
           src="/img/horse.png"
           />
-        <select className="rounded-md pl-2" disabled={isPlaceholder}>
-          <option>None</option>
-          {event.horses.map(horse => <option key={horse.id}>{horse.name}</option>)}
+        }
+        <assignmentFetcher.Form method="post" action={`/calendar/${event.id}`} >
+        <input type="hidden" value={user.id} name="user"/>
+        <select className="rounded-md pl-2"
+                disabled={isPlaceholder}
+                name="horse"
+                defaultValue={assignedHorse}
+                onChange={handleChange}>
+          <option value="none">None</option>
+          {event.horses.map(horse => <option key={horse.id} value={horse.id}>{horse.name}</option>)}
         </select>
-        <Check className="text-emerald-500 justify-self-end"/>
+        </assignmentFetcher.Form>
       </div>
     </div>
   )
