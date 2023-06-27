@@ -22,7 +22,7 @@ export default function Index() {
 									className="block uppercase text-brand-secondary drop-shadow-md"
 									href="https://www.thebarnaz.com"
 								>
-									Girard Training Stables
+									The Barn: Volunteer Portal
 								</a>
 							</h1>
 							<p className="mx-auto mt-6 max-w-lg text-center text-xl text-white sm:max-w-3xl font-semibold bg-slate-500">
@@ -34,11 +34,8 @@ export default function Index() {
               </ButtonLink>
               :
               <div className="flex justify-center gap-2">
-              <ButtonLink className="px-4 max-w-[100px] mt-4" to="/login" size="sm" variant="primary">
-                Log In
-              </ButtonLink>
-              <ButtonLink className="px-4 max-w-[100px] mt-4" to="/signup" size="sm" variant="primary">
-                Sign Up
+              <ButtonLink className="px-4 max-w-[350px] mt-4" to="/signup" size="md-wide" variant="primary">
+                Sign up to Volunteer
               </ButtonLink>
               </div>
               }
@@ -47,7 +44,7 @@ export default function Index() {
 				</div>
 
 				<div className="mx-auto mt-8 max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
-					<div className="flex flex-wrap justify-center gap-8 rounded-3xl bg-day-300 py-4">
+					<div className="flex flex-col flex-wrap items-center justify-center gap-8 rounded-3xl bg-day-300 py-4">
               <div className='text-black'>Built by:</div>
 							<a
 								key="ohack.dev"
