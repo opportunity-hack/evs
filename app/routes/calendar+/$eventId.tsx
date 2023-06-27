@@ -1,21 +1,25 @@
 import { format } from 'date-fns'
 import { Card } from '~/components/ui/card.tsx';
-import { useLoaderData, json, useSubmit } from '~/remix.ts'
-import type { LoaderArgs, ActionArgs, DataFunctionArgs } from '~/remix.ts'
+import { useLoaderData, json } from '~/remix.ts'
+import type { ActionArgs, DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts';
 import { Button } from '~/utils/forms.tsx';
 import { getUserImgSrc, getHorseImgSrc } from '~/utils/misc.ts';
 
-import type { UserData, CalEvent } from '~/data.ts'
+import type { UserData, HorseData, CalEvent } from '~/data.ts'
 import { volunteerTypes } from '~/data.ts';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useFetcher } from '@remix-run/react';
 import { z } from 'zod'
-import { useState } from 'react';
 import { parse } from '@conform-to/zod';
 import { requireAdmin } from '~/utils/permissions.server.ts';
 import invariant from 'tiny-invariant';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover.tsx"
 
 export async function loader({ request, params }: DataFunctionArgs) {
   await requireAdmin(request)
@@ -163,15 +167,20 @@ export default function() {
             </div>
             })}
           </div>
-          <div className="flex flex-col gap-2 mt-4">
-            Horses: {event.horses.map(horse => {
-            return <div className="flex items-center gap-2">
-            <img 
-            className="h-14 w-14 rounded-full object-cover"
-            alt={horse.name}
-            src={getHorseImgSrc(horse.imageId)}
-            />
+          <div className="font-bold uppercase mt-4">Horses:</div>
+          <div className="flex gap-4 flex-wrap">
+            {event.horses.map(horse => {
+            return <div className="">
+            <HorseInfoPopover horse={horse}>
+            <div className="flex flex-col items-center gap-2">
+              <img 
+              className="h-14 w-14 rounded-full object-cover"
+              alt={horse.name}
+              src={getHorseImgSrc(horse.imageId)}
+              />
               <div>{horse.name}</div>
+            </div>
+              </HorseInfoPopover>
             </div>
             })}
           </div>
@@ -306,3 +315,28 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
   )
 }
 
+interface HorseInfoPopoverProps {
+  children: React.ReactNode
+  horse: HorseData
+}
+
+
+function HorseInfoPopover({ children, horse }: HorseInfoPopoverProps) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild className="cursor-pointer">
+        {children}
+      </PopoverTrigger>
+        <PopoverContent side="bottom">
+        <div className="text-xl">{horse.name}</div>
+        <img 
+          className="h-52 w-52 object-cover rounded-full"
+          alt="horse"
+          src={getHorseImgSrc(horse.imageId)}
+        />
+       <div><span className="text-xs uppercase font-bold">Status: </span>{horse.status}</div>
+       <div><span className="text-xs uppercase font-bold">Notes: </span>{horse.notes}</div>
+        </PopoverContent>
+    </Popover>
+  )
+}
