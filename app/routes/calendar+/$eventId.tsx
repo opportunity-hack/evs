@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { differenceInYears, format } from 'date-fns'
 import { Card } from '~/components/ui/card.tsx';
 import { useLoaderData, json } from '~/remix.ts'
 import type { ActionArgs, DataFunctionArgs } from '~/remix.ts'
@@ -255,6 +255,7 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
 
   let assignedHorseId = "none"
   let assignedHorseImageId = ""
+  let assignedHorse = null
   for (const assignment of event.horseAssignments) {
     if (assignment.userId === user.id) {
       assignedHorseId = assignment.horseId
@@ -265,6 +266,7 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
     for (const horse of event.horses) {
       if (horse.id === assignedHorseId && (horse.imageId)) {
         assignedHorseImageId = horse.imageId 
+        assignedHorse = horse
       }
     }
   }
@@ -284,15 +286,26 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
   return ( 
     <div className={clsx("flex justify-between items-center w-full p-1 rounded-md",
       isPlaceholder && "border border-1 border-dashed border-primary opacity-50 dark:bg-slate-800")}>
+      <VolunteerInfoPopover volunteer={user}>
       <div className="flex items-center gap-2 w-1/3"><img 
         className="h-14 w-14 rounded-full object-cover"
         alt={user.name ?? user.username}
         src={getUserImgSrc(user.imageId)}
         />{user.name}</div>
+      </VolunteerInfoPopover>
       <ArrowRight />
       
       <div className="flex gap-2 items-center">
         { isSubmitting ? <span className="inline-block animate-spin">🌀</span> :
+        assignedHorse ?
+        <HorseInfoPopover horse={assignedHorse}>
+        <img 
+          className="h-14 w-14 object-cover rounded-full"
+          alt="horse"
+          src={getHorseImgSrc(assignedHorseImageId)}
+          />
+         </HorseInfoPopover>
+         : 
         <img 
           className="h-14 w-14 object-cover rounded-full"
           alt="horse"
@@ -339,4 +352,29 @@ function HorseInfoPopover({ children, horse }: HorseInfoPopoverProps) {
         </PopoverContent>
     </Popover>
   )
+}
+
+interface VolunteerInfoPopoverProps {
+  children: React.ReactNode
+  volunteer: UserData
+}
+
+function VolunteerInfoPopover({ children, volunteer }: VolunteerInfoPopoverProps) {
+    return (<Popover>
+      <PopoverTrigger asChild className="cursor-pointer">
+        {children}
+      </PopoverTrigger>
+        <PopoverContent side="bottom">
+        <div className="text-xl">{volunteer.name ?? volunteer.username}</div>
+        <img 
+          className="h-52 w-52 object-cover rounded-full"
+          alt="horse"
+          src={getHorseImgSrc(volunteer.imageId)}
+        />
+       <div><span className="text-xs uppercase font-bold">Age: </span>{volunteer.birthdate ? differenceInYears(new Date(), volunteer.birthdate) : null}</div>
+       <div><span className="text-xs uppercase font-bold">Height (in): </span>{volunteer.height}</div>
+       <div><span className="text-xs uppercase font-bold">Years of Experience: </span>{volunteer.yearsOfExperience}</div>
+       <div><span className="text-xs uppercase font-bold">Notes: </span>{volunteer.info}</div>
+        </PopoverContent>
+    </Popover>)
 }

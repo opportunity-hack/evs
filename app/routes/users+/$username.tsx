@@ -2,8 +2,10 @@ import {
 	json,
 	type DataFunctionArgs,
 	type V2_MetaFunction,
-} from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+  useLoaderData,
+  Form
+} from '~/remix.ts'
+import { differenceInYears } from 'date-fns'
 import invariant from 'tiny-invariant'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
 import { Spacer } from '~/components/spacer.tsx'
@@ -20,6 +22,9 @@ export async function loader({ params }: DataFunctionArgs) {
 			id: true,
 			username: true,
 			name: true,
+      birthdate: true,
+      height: true,
+      yearsOfExperience: true,
 			imageId: true,
 			createdAt: true,
 		},
@@ -36,6 +41,12 @@ export default function UsernameIndex() {
 	const userDisplayName = user.name ?? user.username
 	const loggedInUser = useOptionalUser()
 	const isLoggedInUser = data.user.id === loggedInUser?.id
+
+  let age = null
+  if (data.user.birthdate) {
+    age = differenceInYears(new Date(), data.user.birthdate)
+  }
+  console.log(age)
 
 	return (
 		<div className="container mx-auto mb-48 mt-36 flex flex-col items-center justify-center">
@@ -58,11 +69,20 @@ export default function UsernameIndex() {
 
 				<div className="flex flex-col items-center">
 					<div className="flex flex-wrap items-center justify-center gap-4">
-						<h1 className="text-center text-h2">{userDisplayName}</h1>
+						<h1 className="text-center text-h2 text-white">{userDisplayName}</h1>
 					</div>
 					<p className="mt-2 text-center text-night-200">
 						Joined {data.userJoinedDisplay}
 					</p>
+          <p className="text-white">
+          {age ? `Age: ${age}` : null}
+          </p>
+          <p className="text-white">
+          {data.user.height ? `Height: ${data.user.height}` : null}
+          </p>
+          <p className="text-white">
+          { data.user.yearsOfExperience !== null ? `Years of experience: ${data.user.yearsOfExperience}` : null}
+          </p>
 					{isLoggedInUser ? (
 						<Form action="/logout" method="POST" className="mt-3">
 							<Button type="submit" variant="secondary" size="pill">

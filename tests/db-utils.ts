@@ -19,11 +19,23 @@ export function createUser() {
 		})
 		.slice(0, 20)
 		.replace(/[^a-z0-9_]/g, '_')
+
+  const notes = [
+    "Great with horses. A real horse whisperer.",
+    "Very enthusiastic, does well with more active horses.",
+    "Very gentle, works well with timid horses. ",
+    "Still a bit afraid of horses, needs some support from others.",
+  ]
+
 	return {
 		username,
 		name: `${firstName} ${lastName}`,
 		email: `${username}@example.com`,
     instructor: faker.datatype.boolean(),
+    birthdate: faker.date.birthdate(),
+    height: faker.number.int({ min: 60, max: 80 }),
+    yearsOfExperience: faker.number.int({ min: 1, max: 10 }),
+    info: faker.helpers.arrayElement(notes)
 	}
 }
 
@@ -37,16 +49,19 @@ export function createHorse() {
     const name = faker.person.firstName()
 
     const exampleStatuses = [
+      "Seems very happy",
       "Ready and raring to go",
-      "Ok",
-      "Unwell",
-      "Tired",
+      "Doing ok",
+      "Unwell, needs rest.",
+      "Restless, lots of energy.",
+      "Tired. Don't schedule for consecutive events.",
     ]
     const exampleNotes = [
       "A little ornery; needs experienced, careful riders and handlers.",
       "Very easy going. Good for beginner handlers and riders.",
       "Easily spooked, riders and handlers need to be aware of their surroundings.",
-      "Very social. Needs a firm handler",
+      "Very social. Needs a firm handler.",
+      "Is a very big and active horse.",
     ]
 
     const notes = exampleNotes[Math.floor(Math.random() * exampleNotes.length)]

@@ -1,6 +1,6 @@
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
+import { json, redirect, type DataFunctionArgs } from '~/remix.ts'
 import {
 	Form,
 	Link,
@@ -9,7 +9,7 @@ import {
 	useFormAction,
 	useLoaderData,
 	useNavigation,
-} from '@remix-run/react'
+} from '~/remix.ts'
 import { z } from 'zod'
 import {
 	authenticator,
@@ -28,10 +28,15 @@ import {
 } from '~/utils/user-validation.ts'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 
+import { format } from 'date-fns';
+
 const profileFormSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
 	email: emailSchema.optional(),
+  birthdate: z.coerce.date().optional(),
+  height: z.coerce.number().min(0).optional(),
+  yearsOfExperience: z.coerce.number().min(0).optional(),
 	currentPassword: z
 		.union([passwordSchema, z.string().min(0).max(0)])
 		.optional(),
@@ -46,6 +51,9 @@ export async function loader({ request }: DataFunctionArgs) {
 			id: true,
 			name: true,
 			username: true,
+      birthdate: true,
+      height: true,
+      yearsOfExperience: true,
 			email: true,
 			imageId: true,
 		},
@@ -100,7 +108,7 @@ export async function action({ request }: DataFunctionArgs) {
 			{ status: 400 },
 		)
 	}
-	const { name, username, email, newPassword } = submission.value
+	const { name, username, email, birthdate, height, yearsOfExperience, newPassword } = submission.value
 
 	if (email) {
 		// TODO: send a confirmation email
@@ -112,6 +120,9 @@ export async function action({ request }: DataFunctionArgs) {
 		data: {
 			name,
 			username,
+      birthdate,
+      height,
+      yearsOfExperience,
 			password: newPassword
 				? {
 						update: {
@@ -136,6 +147,11 @@ export default function EditUserProfile() {
 		navigation.formAction === formAction &&
 		navigation.formMethod === 'POST'
 
+  let formattedBirthdate = null
+  if (data.user.birthdate) {
+    formattedBirthdate = format(data.user.birthdate, "yyyy-MM-dd")
+  }
+
 	const [form, fields] = useForm({
 		id: 'edit-profile',
 		constraint: getFieldsetConstraint(profileFormSchema),
@@ -147,6 +163,9 @@ export default function EditUserProfile() {
 			username: data.user.username,
 			name: data.user.name ?? '',
 			email: data.user.email,
+      birthdate: formattedBirthdate ?? '',
+      height: data.user.height ?? '',
+      yearsOfExperience: data.user.yearsOfExperience ?? '',
 		},
 		shouldRevalidate: 'onBlur',
 	})
@@ -205,6 +224,35 @@ export default function EditUserProfile() {
 								disabled: true,
 							}}
 							errors={fields.email.errors}
+						/>
+            <div className="col-span-3">
+            </div>
+						<Field
+							className="col-span-3"
+							labelProps={{ htmlFor: fields.birthdate.id, children: 'Birthdate' }}
+							inputProps={{
+								...conform.input(fields.birthdate),
+                type: "date"
+							}}
+							errors={fields.birthdate.errors}
+						/>
+						<Field
+							className="col-span-3"
+							labelProps={{ htmlFor: fields.height.id, children: 'Height (inches)' }}
+							inputProps={{
+								...conform.input(fields.height),
+                type: "number"
+							}}
+							errors={fields.height.errors}
+						/>
+						<Field
+							className="col-span-3"
+							labelProps={{ htmlFor: fields.yearsOfExperience.id, children: 'Years of experience with horses' }}
+							inputProps={{
+								...conform.input(fields.yearsOfExperience),
+                type: "number"
+							}}
+							errors={fields.yearsOfExperience.errors}
 						/>
 
 						<div className="col-span-6 mb-12 mt-6 h-1 border-b-[1.5px] border-night-500" />

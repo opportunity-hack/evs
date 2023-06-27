@@ -37,12 +37,19 @@ export interface UserData {
   name: string | null
   username: string
   imageId: string | null
+
+  info: string | null
+  birthdate: Date | null
+  height: number | null
+  yearsOfExperience: number | null
 }
 
 export interface HorseData {
   id: string
   name: string
-  imageId?: string
+  imageId: string | null
+  status: string | null
+  notes: string | null
 }
 
 export interface HorseAssignment {
