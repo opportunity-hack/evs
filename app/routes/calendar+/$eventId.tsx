@@ -154,7 +154,7 @@ export default function() {
             Instructor{event.instructors.length > 1 ? "s" : null}: {event.instructors.map(instructor => {
             return <div className="flex items-center gap-2">
             <img 
-            className="h-8 w-8 rounded-full object-cover"
+            className="h-14 w-14 rounded-full object-cover"
             alt={instructor.name ?? instructor.username}
             src={getUserImgSrc(instructor.imageId)}
             />
@@ -166,7 +166,7 @@ export default function() {
             Horses: {event.horses.map(horse => {
             return <div className="flex items-center gap-2">
             <img 
-            className="h-8 w-8 rounded-full object-cover"
+            className="h-14 w-14 rounded-full object-cover"
             alt={horse.name}
             src={getHorseImgSrc(horse.imageId)}
             />
@@ -275,7 +275,7 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
     <div className={clsx("flex justify-between items-center w-full p-1 rounded-md",
       isPlaceholder && "border border-1 border-dashed border-primary opacity-50 dark:bg-slate-800")}>
       <div className="flex items-center gap-2 w-1/3"><img 
-        className="h-8 w-8 rounded-full object-cover"
+        className="h-14 w-14 rounded-full object-cover"
         alt={user.name ?? user.username}
         src={getUserImgSrc(user.imageId)}
         />{user.name}</div>
@@ -284,7 +284,7 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
       <div className="flex gap-2 items-center">
         { isSubmitting ? <span className="inline-block animate-spin">🌀</span> :
         <img 
-          className="h-8 w-8 object-cover rounded-full"
+          className="h-14 w-14 object-cover rounded-full"
           alt="horse"
           src={getHorseImgSrc(assignedHorseImageId)}
           />
