@@ -148,7 +148,7 @@ const createEventSchema = z.object({
 });
 
 export async function action({ request }: ActionArgs) {
-  requireAdmin(request)
+  await requireAdmin(request)
   const body = await request.formData();
   const submission = formParse(body, { schema: () => {return createEventSchema} })
   if (!submission.value) {

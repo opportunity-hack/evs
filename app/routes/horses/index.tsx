@@ -23,7 +23,7 @@ const horseFormSchema = z.object({
 })
 
 export const loader = async ({ request }: DataFunctionArgs) => {
-  requireAdmin(request)
+  await requireAdmin(request)
   return json(
     await prisma.horse.findMany()
   );
@@ -43,7 +43,7 @@ export default function Horses() {
 }
 
 export const action = async({ request }: ActionArgs) => {
-  requireAdmin(request)
+  await requireAdmin(request)
   const formData = await request.formData();
   const submission = parse(formData, { schema: horseFormSchema })
   if (!submission.value) {

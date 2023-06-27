@@ -6,7 +6,7 @@ import { DataTable } from "~/components/ui/data_table.tsx";
 import { columns } from "./columns.tsx";
 
 export const loader = async ({ request }: LoaderArgs) => {
-  requireAdmin(request)
+  await requireAdmin(request)
   return json(
     await prisma.user.findMany()
   );

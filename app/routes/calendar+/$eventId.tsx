@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { Card } from '~/components/ui/card.tsx';
 import { useLoaderData, json, useSubmit } from '~/remix.ts'
-import type { LoaderArgs, ActionArgs } from '~/remix.ts'
+import type { LoaderArgs, ActionArgs, DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts';
 import { Button } from '~/utils/forms.tsx';
 import { getUserImgSrc, getHorseImgSrc } from '~/utils/misc.ts';
@@ -17,7 +17,8 @@ import { parse } from '@conform-to/zod';
 import { requireAdmin } from '~/utils/permissions.server.ts';
 import invariant from 'tiny-invariant';
 
-export async function loader({ params }: LoaderArgs) {
+export async function loader({ request, params }: DataFunctionArgs) {
+  await requireAdmin(request)
   const id = params.eventId;
   const event = await prisma.event.findUnique({
     where: {
@@ -58,7 +59,7 @@ const assignHorseSchema = z.object({
 })
 
 export const action = async ({ request, params }: ActionArgs) => {
-  requireAdmin(request)
+  await requireAdmin(request)
   const formData = await request.formData()
   const submission = parse(formData, { schema: () => { return assignHorseSchema } })
 
