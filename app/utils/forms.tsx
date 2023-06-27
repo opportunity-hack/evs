@@ -49,7 +49,7 @@ export function Field({
 				aria-describedby={errorId}
 				placeholder=" "
 				{...inputProps}
-				className="h-16 w-full rounded-lg border border-night-400 dark:bg-night-700 px-4 pt-4 text-body-xs dark:caret-white outline-none focus:border-brand-primary dark:disabled:bg-night-400 bg-background"
+				className="h-16 w-full rounded-lg border border-night-400 dark:bg-night-700 px-4 pt-4 text-body-xs dark:caret-white outline-none focus:border-brand-primary disabled:bg-night-400 bg-background"
 			/>
 			{/* the label comes after the input so we can use the sibling selector in the CSS to give us animated label control in CSS only */}
 			<label className="text-muted-foreground" htmlFor={id} {...labelProps} />
@@ -177,7 +177,7 @@ export function getButtonClassName({
 	const baseClassName =
 		'flex justify-center items-center rounded-full font-bold outline-none transition-[background-color,color] duration-200 disabled:bg-night-500 disabled:text-night-200'
 	const primaryClassName =
-		'bg-brand-primary hover:bg-brand-secondary hover:text-night-700 focus:bg-brand-secondary focus:text-night-700 active:bg-brand-secondary-muted text-white'
+		'bg-brand-primary hover:bg-brand-secondary hover:text-night-700 focus:bg-brand-secondary focus:text-night-700 active:bg-brand-secondary-muted text-black'
 	const secondaryClassName =
 		'border-[1.5px] border-night-400 bg-night-700 hover:border-brand-primary focus:border-brand-primary active:border-brand-primary-muted text-white'
 	const extraSmallClassName = 'py-2 px-3 text-body-xs'
