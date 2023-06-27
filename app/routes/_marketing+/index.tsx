@@ -33,9 +33,14 @@ export default function Index() {
                 Go to Calendar
               </ButtonLink>
               :
-              <ButtonLink className="px-4 max-w-[100px] mx-auto mt-4" to="/login" size="sm" variant="primary">
+              <div className="flex justify-center gap-2">
+              <ButtonLink className="px-4 max-w-[100px] mt-4" to="/login" size="sm" variant="primary">
                 Log In
               </ButtonLink>
+              <ButtonLink className="px-4 max-w-[100px] mt-4" to="/signup" size="sm" variant="primary">
+                Sign Up
+              </ButtonLink>
+              </div>
               }
 						</div>
 					</div>
