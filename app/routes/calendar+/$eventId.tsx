@@ -1,6 +1,6 @@
 import { differenceInYears, format } from 'date-fns'
 import { Card } from '~/components/ui/card.tsx';
-import { useLoaderData, json } from '~/remix.ts'
+import { useLoaderData, json, Link } from '~/remix.ts'
 import type { ActionArgs, DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts';
 import { Button } from '~/utils/forms.tsx';
@@ -35,6 +35,9 @@ export async function loader({ request, params }: DataFunctionArgs) {
           name: true,
           username: true,
           imageId: true,
+          height: true,
+          birthdate: true,
+          yearsOfExperience: true,
         }
       },
       horses: true,
@@ -157,14 +160,18 @@ export default function() {
           </div>
           <div className="mt-4">
             Instructor{event.instructors.length > 1 ? "s" : null}: {event.instructors.map(instructor => {
-            return <div className="flex items-center gap-2">
-            <img 
-            className="h-14 w-14 rounded-full object-cover"
-            alt={instructor.name ?? instructor.username}
-            src={getUserImgSrc(instructor.imageId)}
-            />
+            return (
+            <VolunteerInfoPopover volunteer={instructor} >
+            <div className="flex items-center gap-2">
+              <img 
+              className="h-14 w-14 rounded-full object-cover"
+              alt={instructor.name ?? instructor.username}
+              src={getUserImgSrc(instructor.imageId)}
+              />
               <div>{instructor.name ? instructor.name : instructor.username}</div>
             </div>
+            </VolunteerInfoPopover>
+            )
             })}
           </div>
           <div className="font-bold uppercase mt-4">Horses:</div>
@@ -247,6 +254,9 @@ const placeHolderUser: UserData = {
   name: "No one yet",
   username: "placeholder",
   imageId: '',
+  height: null,
+  birthdate: null,
+  yearsOfExperience: null,
 }
 
 function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemProps) {
@@ -365,7 +375,10 @@ function VolunteerInfoPopover({ children, volunteer }: VolunteerInfoPopoverProps
         {children}
       </PopoverTrigger>
         <PopoverContent side="bottom">
+        <div className="flex justify-between">
         <div className="text-xl">{volunteer.name ?? volunteer.username}</div>
+        <Link className="hover:underline" to={`/users/${volunteer.username}`} >Profile</Link>
+        </div>
         <img 
           className="h-52 w-52 object-cover rounded-full"
           alt="horse"
