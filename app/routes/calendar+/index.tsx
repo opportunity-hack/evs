@@ -1,4 +1,5 @@
-import type { ActionArgs } from '~/remix.ts'
+import { Form, json , useLoaderData , useActionData } from '~/remix.ts';
+import type { ActionArgs , LoaderArgs } from '~/remix.ts'
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
 import format from 'date-fns/format'
 import parse from 'date-fns/parse'
@@ -7,11 +8,9 @@ import getDay from 'date-fns/getDay'
 import enUS from 'date-fns/locale/en-US'
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
-import { volunteerTypes, UserData, HorseData, CalEvent } from '~/data.ts'
+import { volunteerTypes, type UserData, type HorseData, type CalEvent } from '~/data.ts'
 import { useState } from 'react'
 
-import { Form, LoaderArgs, json } from "~/remix.ts";
-import { useLoaderData } from "~/remix.ts";
 import { prisma } from "~/utils/db.server.ts";
 import { requireUserId } from '~/utils/auth.server.ts'
 import { useUser } from '~/utils/user.ts'
@@ -42,7 +41,6 @@ import { z } from 'zod'
 import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
 import { addMinutes } from 'date-fns'
 import { useFetcher } from '@remix-run/react'
-import { useActionData } from '~/remix.ts'
 import { useResetCallback } from '~/lib/utils.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
@@ -64,61 +62,22 @@ const localizer = dateFnsLocalizer({
 export const loader = async ({ request }: LoaderArgs) => {
   await requireUserId(request)
   const instructors = await prisma.user.findMany({ 
-    select: {id: true, name: true, username: true,},
     where: { instructor: true, }
   })
   return json({
    events: await prisma.event.findMany({ include:
    { 
-     horses: {
-      select: {
-        name: true,
-      }
-     }, 
-     instructors: {
-      select: {
-        name: true,
-        username: true,
-      }
-     },  
-     barnCrew: {
-      select: {
-        id: true,
-        name: true,
-        username: true,
-      }
-     },  
-     pastureCrew: {
-      select: {
-        id: true,
-        name: true,
-        username: true,
-      }
-     },  
-     lessonAssistants: {
-      select: {
-        id: true,
-        name: true,
-        username: true,
-      }
-     },  
-     sideWalkers: {
-      select: {
-        id: true,
-        name: true,
-        username: true,
-      }
-     },  
-     horseLeaders: {
-      select: {
-        id: true,
-        name: true,
-        username: true,
-      }
-     },  
+     horses: true, 
+     instructors: true,  
+     barnCrew: true,  
+     pastureCrew: true,  
+     lessonAssistants: true,  
+     sideWalkers: true,  
+     horseLeaders: true,  
+     horseAssignments: true,
    } 
    }),
-   horses: await prisma.horse.findMany({ select: { id: true, name: true } }),
+   horses: await prisma.horse.findMany(),
    instructors,
   });
 }

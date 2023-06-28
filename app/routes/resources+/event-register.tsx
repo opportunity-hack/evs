@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { requireUserId } from '~/utils/auth.server.ts'
 import { parse } from '@conform-to/zod'
-import { json, DataFunctionArgs } from '~/remix.ts'
+import { json, type DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
 
 const actions = [

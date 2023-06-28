@@ -1,5 +1,4 @@
-import { LoaderArgs, json } from "~/remix.ts";
-import { useLoaderData } from "~/remix.ts";
+import { type LoaderArgs, json, useLoaderData } from "~/remix.ts";
 import { prisma } from "~/utils/db.server.ts";
 import { requireAdmin } from "~/utils/permissions.server.ts";
 import { DataTable } from "~/components/ui/data_table.tsx";

@@ -29,17 +29,7 @@ export async function loader({ request, params }: DataFunctionArgs) {
       id,
     },
     include: {
-      instructors: {
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          imageId: true,
-          height: true,
-          birthdate: true,
-          yearsOfExperience: true,
-        }
-      },
+      instructors: true,
       horses: true,
       barnCrew: true,
       pastureCrew: true,
@@ -161,7 +151,7 @@ export default function() {
           <div className="mt-4">
             Instructor{event.instructors.length > 1 ? "s" : null}: {event.instructors.map(instructor => {
             return (
-            <VolunteerInfoPopover volunteer={instructor} >
+            <VolunteerInfoPopover key={instructor.id} volunteer={instructor} >
             <div className="flex items-center gap-2">
               <img 
               className="h-14 w-14 rounded-full object-cover"
@@ -177,8 +167,7 @@ export default function() {
           <div className="font-bold uppercase mt-4">Horses:</div>
           <div className="flex gap-4 flex-wrap">
             {event.horses.map(horse => {
-            return <div className="">
-            <HorseInfoPopover horse={horse}>
+            return <HorseInfoPopover key={horse.id} horse={horse}>
             <div className="flex flex-col items-center gap-2">
               <img 
               className="h-14 w-14 rounded-full object-cover"
@@ -188,7 +177,6 @@ export default function() {
               <div>{horse.name}</div>
             </div>
               </HorseInfoPopover>
-            </div>
             })}
           </div>
         </Card>
@@ -234,7 +222,7 @@ export function VolunteerSection({ volunteerTypeIdx, event }: volunteerSectionPr
       {
         event[volunteerTypes[idx].field].map(user => {
           return (
-            <VolunteerListItem user={user} event={event} />
+            <VolunteerListItem key={user.id} user={user} event={event} />
           )
         })
       }
@@ -257,6 +245,7 @@ const placeHolderUser: UserData = {
   height: null,
   birthdate: null,
   yearsOfExperience: null,
+  notes: null,
 }
 
 function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemProps) {

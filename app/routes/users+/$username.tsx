@@ -131,11 +131,10 @@ export function ErrorBoundary() {
 	)
 }
 
-export const meta: V2_MetaFunction<typeof loader> = ({ data, params }) => {
-  // FIXME: typescript is angry here because TypedMetaFunction from remix-typedjson 
-  // relies on the old V1_HtmlMetaDescriptor type.
-  // See: https://github.com/kiliman/remix-typedjson/issues/26
-	const displayName = data?.user.name ?? params.username
+export const meta: V2_MetaFunction = ({ params }) => {
+  // Can't use type TypedMetaFunction from remix-typedjson here to load the user's name
+  // because it relies on the old V1_HtmlMetaDescriptor type.
+	const displayName = params.username
 	return [
 		{ title: `${displayName} | ${siteName}` },
 		{

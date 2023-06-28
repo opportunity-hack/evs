@@ -1,5 +1,5 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { User } from "@prisma/client";
+import { type ColumnDef } from "@tanstack/react-table";
+import { type User } from "@prisma/client";
 import { formatRelative } from 'date-fns'
 
 export const columns: ColumnDef<User>[] = [
