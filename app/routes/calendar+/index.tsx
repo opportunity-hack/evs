@@ -192,7 +192,7 @@ export default function Schedule() {
     </div>
 
     <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
-      <RegistrationDialogue selectedEventId={selectedEvent.id} events={events} />      
+      <RegistrationDialogue selectedEventId={selectedEvent?.id} events={events} />      
     </Dialog>
 
     { userIsAdmin ? <CreateEventDialog horses={horses} instructors={instructors} />
