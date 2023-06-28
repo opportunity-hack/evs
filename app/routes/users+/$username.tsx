@@ -53,7 +53,7 @@ export default function UsernameIndex() {
 		<div className="container mx-auto mb-48 mt-36 flex flex-col items-center justify-center">
 			<Spacer size="4xs" />
 
-			<div className="container mx-auto flex flex-col items-center rounded-3xl bg-night-500 p-12">
+			<div className="container mx-auto flex flex-col items-center rounded-3xl bg-muted p-12">
 				<div className="relative w-52">
 					<div className="absolute -top-40">
 						<div className="relative">
@@ -72,18 +72,24 @@ export default function UsernameIndex() {
 					<div className="flex flex-wrap items-center justify-center gap-4">
 						<h1 className="text-center text-h2 text-white">{userDisplayName}</h1>
 					</div>
-					<p className="mt-2 text-center text-night-200">
+					<p className="mt-2 text-center muted-foreground">
 						Joined {data.userJoinedDisplay}
 					</p>
+          {age ? 
           <p className="text-white">
-          {age ? `Age: ${age}` : null}
-          </p>
+          `Age: ${age}`
+          </p> 
+          : null}
+          {data.user.height ? 
           <p className="text-white">
-          {data.user.height ? `Height: ${data.user.height}` : null}
+          `Height: ${data.user.height}`
           </p>
+         : null}
+          { data.user.yearsOfExperience !== null ? 
           <p className="text-white">
-          { data.user.yearsOfExperience !== null ? `Years of experience: ${data.user.yearsOfExperience}` : null}
-          </p>
+          `Years of experience: ${data.user.yearsOfExperience}`
+          </p> 
+          : null}
 					{isLoggedInUser ? (
 						<Form action="/logout" method="POST" className="mt-3">
 							<Button type="submit" variant="secondary" size="pill">

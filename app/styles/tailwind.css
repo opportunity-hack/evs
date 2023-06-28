@@ -5,35 +5,35 @@
 @layer base {
 	:root {
 		color-scheme: light;
-		--color-background: 240 51% 91%; /* day-300 */
-		--color-foreground: 0 0% 0%; /* black */
+		--color-background: 0 0% 100%;
+		--color-foreground: 222.2 84% 4.9%;
 
     --color-muted: 210 40% 96.1%;
     --color-muted-foreground: 215.4 16.3% 46.9%;
 
     --color-popover: 0 0% 100%;
-    --color-popover-foreground: 222.2 47.4% 11.2%;
+    --color-popover-foreground: 222.2 84% 4.9%;
 
     --color-card: 0 0% 100%;
-    --color-card-foreground: 222.2 47.4% 11.2%;
+    --color-card-foreground: 222.2 84% 4.9%;
 
     --color-border: 214.3 31.8% 91.4%;
-    --color-input: 214.3 31.8% 81.4%;
+    --color-input: 214.3 31.8% 91.4%;
+    --color-input-invalid: 0 84.2% 60.2%;
 
     --color-primary: 222.2 47.4% 11.2%;
     --color-primary-foreground: 210 40% 98%;
 
-    --color-secondary: 240 3.7% 15.9%;
-    --color-secondary-foreground: 0 0% 98%
+    --color-secondary: 210 40% 96.1%;
+    --color-secondary-foreground: 222.2 47.4% 11.2%;
 
-    --color-accent: 210 40% 96.1%;
+    --color-accent: 210 40% 90.1%;
     --color-accent-foreground: 222.2 47.4% 11.2%;
 
-    --color-destructive: 0 63% 31%;
+    --color-destructive: 0 84.2% 60.2%;
     --color-destructive-foreground: 210 40% 98%;
 
     --color-ring: 215 20.2% 65.1%;
-
 
     --radius: 0.5rem;
 
@@ -63,11 +63,13 @@
 
 	.dark {
 		color-scheme: dark;
-		--color-background: 0 0% 4%; /* night-700 */
-		--color-foreground: 0 0% 100%; /* white */
+		--color-background: 222.2 84% 4.9%;
+		--color-foreground: 210 40% 98%;
 
-    --color-muted: 223 47% 11%;
-    --color-muted-foreground: 215.4 16.3% 56.9%;
+    --color-foreground-danger: -4 84% 60%;
+
+    --color-muted: 217.2 32.6% 17.5%;
+    --color-muted-foreground: 215 20.2% 65.1%;
 
     --color-popover: 224 71% 4%;
     --color-popover-foreground: 215 20.2% 65.1%;
@@ -78,19 +80,19 @@
     --color-border: 216 34% 17%;
     --color-input: 216 34% 17%;
 
-    --color-primary: 0 0% 98%;
-    --color-primary-foreground: 240 5.9% 10%;
+    --color-primary: 210 40% 98%;
+    --color-primary-foreground: 222 47.4% 11.2%;
 
-    --color-secondary: 222.2 47.4% 11.2%;
+    --color-secondary: 217.2 32.6% 10.0%;
     --color-secondary-foreground: 210 40% 98%;
 
-    --color-accent: 216 34% 17%;
+    --color-accent: 217.2 32.6% 10%;
     --color-accent-foreground: 210 40% 98%;
 
-    --color-destructive: 0 63% 31%;
-    --color-destructive-foreground: 210 40% 98%;
+    --color-destructive: 0 62.8% 30.6%;
+    --color-destructive-foreground: 0 85.7% 97.3%;
 
-    --color-ring: 216 34% 17%;
+    --color-ring: 217 32.6% 17.5%;
 
     --radius: 0.5rem;
 

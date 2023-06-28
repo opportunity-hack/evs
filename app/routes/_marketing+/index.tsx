@@ -44,7 +44,7 @@ export default function Index() {
 				</div>
 
 				<div className="mx-auto mt-8 max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
-					<div className="flex flex-col flex-wrap items-center justify-center gap-8 rounded-3xl bg-day-300 py-4">
+					<div className="flex flex-col flex-wrap items-center justify-center gap-8 rounded-3xl bg-slate-100 dark:bg-slate-200 py-4">
               <div className='text-black'>Built by:</div>
 							<a
 								key="ohack.dev"
