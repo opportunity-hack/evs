@@ -1,6 +1,7 @@
 import { type ReactElement } from 'react'
 import { renderAsync } from '@react-email/components'
 import { z } from 'zod'
+import { siteEmailAddress } from '~/data.ts'
 
 const resendErrorSchema = z.union([
 	z.object({
@@ -31,7 +32,8 @@ export async function sendEmail({
 	| { html: string; text: string; react?: never }
 	| { react: ReactElement; html?: never; text?: never }
 )) {
-	const from = 'hello@epicstack.dev'
+  // TODO: find out what email address to use here
+	const from = siteEmailAddress
 
 	const email = {
 		from,

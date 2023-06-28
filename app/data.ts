@@ -1,3 +1,4 @@
+export const siteEmailAddress = "SITE_EMAIL_ADDRESS"
 export const siteName = "The Barn: Volunteer Portal"
 
 // TODO: get accurate descriptions of each role
