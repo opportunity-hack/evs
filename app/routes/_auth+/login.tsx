@@ -1,3 +1,4 @@
+import { siteName } from '~/data.ts'
 import {
 	json,
 	type DataFunctionArgs,
@@ -30,7 +31,7 @@ export async function loader({ request }: DataFunctionArgs) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: 'Login to Epic Notes' }]
+	return [{ title: `Login to ${siteName}` }]
 }
 
 export default function LoginPage() {

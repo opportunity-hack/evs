@@ -1,3 +1,4 @@
+import { siteName } from '~/data.ts'
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import {
@@ -133,7 +134,7 @@ async function validate(request: Request, body: FormData | URLSearchParams) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: 'Verify Password Recovery for Epic Notes' }]
+	return [{ title: `Verify Password Recovery for ${siteName}` }]
 }
 
 export default function ForgotPasswordVerifyRoute() {

@@ -1,3 +1,4 @@
+import { siteName } from '~/data.ts'
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import {
@@ -94,7 +95,7 @@ export async function action({ request }: DataFunctionArgs) {
 
 		await sendEmail({
 			to: user.email,
-			subject: `Epic Notes Password Reset`,
+			subject: `${siteName} Password Reset`,
 			react: (
 				<ForgotPasswordEmail
 					onboardingUrl={resetPasswordUrl.toString()}
@@ -108,7 +109,7 @@ export async function action({ request }: DataFunctionArgs) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: 'Password Recovery for Epic Notes' }]
+	return [{ title: `Password Recovery for ${siteName}` }]
 }
 
 export default function ForgotPasswordRoute() {

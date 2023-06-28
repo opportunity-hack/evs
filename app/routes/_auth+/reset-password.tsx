@@ -1,3 +1,4 @@
+import { siteName } from '~/data.ts'
 import {
 	json,
 	redirect,
@@ -88,7 +89,7 @@ export async function action({ request }: DataFunctionArgs) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: 'Reset Password | Epic Notes' }]
+	return [{ title: `Reset Password | ${siteName}` }]
 }
 
 export default function ResetPasswordPage() {

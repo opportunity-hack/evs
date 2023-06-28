@@ -1,3 +1,5 @@
+export const siteName = "The Barn: Volunteer Portal"
+
 // TODO: get accurate descriptions of each role
 export const volunteerTypes = [
   {

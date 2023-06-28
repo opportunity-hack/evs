@@ -1,3 +1,4 @@
+import { siteName } from '~/data.ts'
 import {
 	json,
 	type DataFunctionArgs,
@@ -130,10 +131,10 @@ export const meta: V2_MetaFunction<typeof loader> = ({ data, params }) => {
   // See: https://github.com/kiliman/remix-typedjson/issues/26
 	const displayName = data?.user.name ?? params.username
 	return [
-		{ title: `${displayName} | Epic Notes` },
+		{ title: `${displayName} | ${siteName}` },
 		{
 			name: 'description',
-			content: `Profile of ${displayName} on Epic Notes`,
+			content: `Profile of ${displayName} on ${siteName}`,
 		},
 	]
 }
