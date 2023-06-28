@@ -1,8 +1,8 @@
 import { Form, json , useLoaderData , useActionData } from '~/remix.ts';
 import type { ActionArgs , LoaderArgs } from '~/remix.ts'
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
-import format from 'date-fns/format/index.js'
-import parse from 'date-fns/parse/index.js'
+import format from 'date-fns/format'
+import parse from 'date-fns/parse'
 import startOfWeek from 'date-fns/startOfWeek'
 import getDay from 'date-fns/getDay'
 import enUS from 'date-fns/locale/en-US'
