@@ -233,15 +233,6 @@ function UserDropdown() {
 							Profile
 						</Link>
 					</DropdownMenu.Item>
-					<DropdownMenu.Item asChild>
-						<Link
-							prefetch="intent"
-							to={`/users/${user.username}/notes`}
-							className="bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90 px-7 py-5 outline-none"
-						>
-							Notes
-						</Link>
-					</DropdownMenu.Item>
 					<DropdownMenu.Item
 						asChild
 						// this prevents the menu from closing before the form submission is completed
