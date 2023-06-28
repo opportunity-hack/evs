@@ -70,24 +70,24 @@ export default function UsernameIndex() {
 
 				<div className="flex flex-col items-center">
 					<div className="flex flex-wrap items-center justify-center gap-4">
-						<h1 className="text-center text-h2 text-white">{userDisplayName}</h1>
+						<h1 className="text-center text-h2">{userDisplayName}</h1>
 					</div>
 					<p className="mt-2 text-center muted-foreground">
 						Joined {data.userJoinedDisplay}
 					</p>
           {age ? 
-          <p className="text-white">
-          `Age: ${age}`
+          <p className="">
+          {`Age: ${age}`}
           </p> 
           : null}
           {data.user.height ? 
-          <p className="text-white">
-          `Height: ${data.user.height}`
+          <p className="">
+          {`Height: ${data.user.height}`}
           </p>
          : null}
           { data.user.yearsOfExperience !== null ? 
-          <p className="text-white">
-          `Years of experience: ${data.user.yearsOfExperience}`
+          <p className="">
+          {`Years of experience: ${data.user.yearsOfExperience}`}
           </p> 
           : null}
 					{isLoggedInUser ? (
