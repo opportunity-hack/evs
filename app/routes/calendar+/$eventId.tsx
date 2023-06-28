@@ -387,7 +387,7 @@ function VolunteerInfoPopover({ children, volunteer }: VolunteerInfoPopoverProps
        <div><span className="text-xs uppercase font-bold">Age: </span>{volunteer.birthdate ? differenceInYears(new Date(), volunteer.birthdate) : null}</div>
        <div><span className="text-xs uppercase font-bold">Height (in): </span>{volunteer.height}</div>
        <div><span className="text-xs uppercase font-bold">Years of Experience: </span>{volunteer.yearsOfExperience}</div>
-       <div><span className="text-xs uppercase font-bold">Notes: </span>{volunteer.info}</div>
+       <div><span className="text-xs uppercase font-bold">Notes: </span>{volunteer.notes}</div>
         </PopoverContent>
     </Popover>)
 }

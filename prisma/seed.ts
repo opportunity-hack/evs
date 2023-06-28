@@ -47,14 +47,6 @@ async function seed() {
 							},
 						},
 					},
-					notes: {
-						create: Array.from({
-							length: faker.number.int({ min: 0, max: 10 }),
-						}).map(() => ({
-							title: faker.lorem.sentence(),
-							content: faker.lorem.paragraphs(),
-						})),
-					},
 				},
 			})
 			return user
@@ -87,25 +79,6 @@ async function seed() {
 				create: {
 					hash: await getPasswordHash('kodylovesyou'),
 				},
-			},
-			notes: {
-				create: [
-					{
-						title: 'Basic Koala Facts',
-						content:
-							'Koalas are found in the eucalyptus forests of eastern Australia. They have grey fur with a cream-coloured chest, and strong, clawed feet, perfect for living in the branches of trees!',
-					},
-					{
-						title: 'Koalas like to cuddle',
-						content:
-							'Cuddly critters, koalas measure about 60cm to 85cm long, and weigh about 14kg.',
-					},
-					{
-						title: 'Not bears',
-						content:
-							"Although you may have heard people call them koala 'bears', these awesome animals aren’t bears at all – they are in fact marsupials. A group of mammals, most marsupials have pouches where their newborns develop.",
-					},
-				],
 			},
 		},
 	})

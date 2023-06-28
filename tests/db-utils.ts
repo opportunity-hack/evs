@@ -35,7 +35,7 @@ export function createUser() {
     birthdate: faker.date.birthdate(),
     height: faker.number.int({ min: 60, max: 80 }),
     yearsOfExperience: faker.number.int({ min: 1, max: 10 }),
-    info: faker.helpers.arrayElement(notes)
+    notes: faker.helpers.arrayElement(notes)
 	}
 }
 

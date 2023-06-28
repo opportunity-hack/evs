@@ -60,7 +60,7 @@ model User {
   birthdate          DateTime?
   height            Int?
   yearsOfExperience Int?
-  info              String?
+  notes              String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -69,7 +69,6 @@ model User {
   imageId String? @unique
 
   password Password?
-  notes    Note[]
   roles    Role[]
   session  Session[]
 
@@ -128,17 +127,6 @@ model Session {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
   expirationDate DateTime
-}
-
-model Note {
-  id        String   @id @unique @default(cuid())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  ownerId String
 }
 
 model Horse {
