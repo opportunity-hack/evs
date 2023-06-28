@@ -71,7 +71,7 @@ export async function action({ request }: DataFunctionArgs) {
 
 	const session = await prisma.session.findUnique({
 		where: { id: sessionId },
-		select: { userId: true },
+		select: { userId: true, expirationDate: true },
 	})
 	invariant(session, 'newly created session not found')
 
@@ -85,12 +85,12 @@ export async function action({ request }: DataFunctionArgs) {
 	cookieSession.set(keyToSet, sessionId)
 	const { remember, redirectTo } = submission.value
 	const responseInit = {
-		headers: {
-			'Set-Cookie': await commitSession(cookieSession, {
-				maxAge: remember
-					? 60 * 60 * 24 * 7 // 7 days
-					: undefined,
-			}),
+      headers: {
+        'Set-Cookie': await commitSession(cookieSession, {
+				expires: remember
+            ? session.expirationDate
+            : undefined
+      }),
 		},
 	}
 	if (user2FA || !redirectTo) {
