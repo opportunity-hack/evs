@@ -8,7 +8,7 @@ import { twoFAVerificationType } from '~/routes/settings+/profile.two-factor.tsx
 import { authenticator } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { Button, ErrorList, Field } from '~/utils/forms.tsx'
-import { safeRedirect } from '~/utils/misc.ts'
+import { safeRedirect } from 'remix-utils'
 import { commitSession, getSession } from '~/utils/session.server.ts'
 import { verifyTOTP } from '~/utils/totp.server.ts'
 
