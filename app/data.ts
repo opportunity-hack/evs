@@ -1,4 +1,4 @@
-export const siteEmailAddress = "placeholder@resend.dev"
+export const siteEmailAddress = "hello@example.com"
 export const siteName = "The Barn: Volunteer Portal"
 
 // TODO: get accurate descriptions of each role
