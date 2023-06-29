@@ -3,7 +3,7 @@ import { Card } from '~/components/ui/card.tsx';
 import { useLoaderData, json, Link } from '~/remix.ts'
 import type { ActionArgs, DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts';
-import { Button } from '~/utils/forms.tsx';
+import { Button } from '~/components/ui/button.tsx'
 import { getUserImgSrc, getHorseImgSrc } from '~/utils/misc.ts';
 
 import type { UserData, HorseData, CalEvent } from '~/data.ts'
@@ -144,7 +144,7 @@ export default function() {
           <Card className="px-4 py-6">
           <div className="flex justify-between items-center">
             <h2 className="font-bold text-2xl">{event.title}</h2>
-            <Button className="" variant="primary" size="sm">Edit</Button>
+            <Button className="" variant="default" size="sm">Edit</Button>
           </div>
           <div className="flex gap-x-4 flex-wrap">
             <div className="text-lg">{format(event.start, "MMMM do, y")}</div>

@@ -4,14 +4,15 @@ import {
 	type DataFunctionArgs,
 	type V2_MetaFunction,
   useLoaderData,
-  Form
+  Form,
+  Link,
 } from '~/remix.ts'
 import { differenceInYears } from 'date-fns'
 import invariant from 'tiny-invariant'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
 import { Spacer } from '~/components/spacer.tsx'
 import { prisma } from '~/utils/db.server.ts'
-import { Button, ButtonLink } from '~/utils/forms.tsx'
+import { Button } from '~/components/ui/button.tsx'
 import { getUserImgSrc } from '~/utils/misc.ts'
 import { useOptionalUser } from '~/utils/user.ts'
 
@@ -100,14 +101,11 @@ export default function UsernameIndex() {
 					<div className="mt-10 flex gap-4">
 						{isLoggedInUser ? (
 							<>
-								<ButtonLink
-									to="/settings/profile"
-									variant="secondary"
-									size="md"
-									prefetch="intent"
-								>
+								<Button asChild>
+                <Link to="/settings/profile" prefetch="intent">
 									Edit profile
-								</ButtonLink>
+                </Link>
+								</Button>
 							</>
 						) : (
 							null

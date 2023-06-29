@@ -1,4 +1,3 @@
-import { siteName } from '~/data.ts'
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import {
@@ -15,11 +14,12 @@ import {
 	useNavigation,
 	useSearchParams,
 } from '@remix-run/react'
+import { safeRedirect } from 'remix-utils'
 import { z } from 'zod'
 import { Spacer } from '~/components/spacer.tsx'
+import { StatusButton } from '~/components/ui/status-button.tsx'
 import { authenticator, requireAnonymous, signup } from '~/utils/auth.server.ts'
-import { Button, CheckboxField, ErrorList, Field } from '~/utils/forms.tsx'
-import { safeRedirect } from 'remix-utils'
+import { CheckboxField, ErrorList, Field } from '~/components/forms.tsx'
 import { commitSession, getSession } from '~/utils/session.server.ts'
 import {
 	nameSchema,
@@ -120,7 +120,7 @@ export async function action({ request }: DataFunctionArgs) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: `Setup ${siteName} Account` }]
+	return [{ title: 'Setup Epic Notes Account' }]
 }
 
 export default function OnboardingPage() {
@@ -243,10 +243,8 @@ export default function OnboardingPage() {
 					/>
 
 					<div className="flex items-center justify-between gap-6">
-						<Button
+						<StatusButton
 							className="w-full"
-							size="md"
-							variant="primary"
 							status={
 								navigation.state === 'submitting' &&
 								navigation.formAction === formAction &&
@@ -258,7 +256,7 @@ export default function OnboardingPage() {
 							disabled={navigation.state !== 'idle'}
 						>
 							Create an account
-						</Button>
+						</StatusButton>
 					</div>
 				</Form>
 			</div>

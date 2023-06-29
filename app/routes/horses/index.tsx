@@ -4,7 +4,7 @@ import { requireAdmin } from "~/utils/permissions.server.ts";
 import { DataTable } from "~/components/ui/data_table.tsx";
 import { columns } from "./columns.tsx";
 import { z } from "zod";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog.tsx";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "~/components/ui/dialog.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useState } from "react";
 import { Label } from "~/components/ui/label.tsx";
@@ -124,6 +124,7 @@ function CreateHorseDialog() {
           </Button>
         </DialogFooter>
         </Form>
+        <DialogClose />
       </DialogContent>
     </Dialog>
   )

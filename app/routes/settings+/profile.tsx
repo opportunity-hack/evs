@@ -20,7 +20,9 @@ import {
 	verifyLogin,
 } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
-import { Button, ErrorList, Field } from '~/utils/forms.tsx'
+import { ErrorList, Field } from '~/components/forms.tsx'
+import { Button } from '~/components/ui/button.tsx'
+import { StatusButton } from '~/components/ui/status-button.tsx'
 import { getUserImgSrc } from '~/utils/misc.ts'
 import {
 	emailSchema,
@@ -29,6 +31,7 @@ import {
 	usernameSchema,
 } from '~/utils/user-validation.ts'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
+import { Icon } from '~/components/ui/icon.tsx'
 
 import { format } from 'date-fns';
 
@@ -178,7 +181,7 @@ export default function EditUserProfile() {
 				<Link className="text-muted-foreground" to={`/users/${data.user.username}`}>
 					Profile
 				</Link>
-				<span className="text-muted-foreground">▶️</span>
+				<span className="text-muted-foreground flex items-center"><Icon className="text-body-md" name="arrow-right" /></span>
 				<span>Edit Profile</span>
 			</div>
 			<div className="mt-16 flex flex-col gap-12">
@@ -189,19 +192,27 @@ export default function EditUserProfile() {
 							alt={data.user.username}
 							className="h-full w-full rounded-full object-cover"
 						/>
-						<Link
-							preventScrollReset
-							to="photo"
-							className="absolute -right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full border-4 border-night-700 bg-night-500 p-5"
-							title="Change profile photo"
-							aria-label="Change profile photo"
-						>
-							📷
-						</Link>
+            <Button
+                asChild
+                variant="outline"
+                className="absolute -right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full p-0"
+            >
+              <Link
+                preventScrollReset
+                to="photo"
+                title="Change profile photo"
+                aria-label="Change profile photo"
+              >
+                <Icon name="camera" className="h-4 w-4" />
+              </Link>
+            </Button>
 					</div>
 				</div>
 				<Form method="POST" {...form.props}>
 					<div className="grid grid-cols-6 gap-x-10">
+            <legend className="col-span-6 pb-6 text-lg text-night-200">
+              Account
+            </legend>
 						<Field
 							className="col-span-3"
 							labelProps={{
@@ -229,6 +240,11 @@ export default function EditUserProfile() {
 						/>
             <div className="col-span-3">
             </div>
+
+						<div className="col-span-6 mb-6 mt-6 h-1 border-b-[1.5px]" />
+            <legend className="col-span-6 pb-6 text-lg text-night-200">
+              Additional Information
+            </legend>
 						<Field
 							className="col-span-3"
 							labelProps={{ htmlFor: fields.birthdate.id, children: 'Birthdate' }}
@@ -257,7 +273,7 @@ export default function EditUserProfile() {
 							errors={fields.yearsOfExperience.errors}
 						/>
 
-						<div className="col-span-6 mb-12 mt-6 h-1 border-b-[1.5px]" />
+						<div className="col-span-6 mb-6 mt-6 h-1 border-b-[1.5px]" />
 						<fieldset className="col-span-6">
 							<legend className="pb-6 text-lg text-night-200">
 								Change password
@@ -291,22 +307,33 @@ export default function EditUserProfile() {
 								/>
 							</div>
 						</fieldset>
-						<Link preventScrollReset to="two-factor" className="col-span-full">
-							{data.isTwoFactorEnabled ? '🔒 2FA is enabled' : '🔓 Enable 2FA'}
+						<Link
+							preventScrollReset
+							to="two-factor"
+							className="col-span-full flex gap-1"
+						>
+							{data.isTwoFactorEnabled ? (
+								<>
+									<Icon name="lock-closed" /> 2FA is enabled
+								</>
+							) : (
+								<>
+									<Icon name="lock-open-1" /> Enable 2FA
+								</>
+							)}
 						</Link>
 					</div>
 
 					<ErrorList errors={form.errors} id={form.errorId} />
 
 					<div className="mt-8 flex justify-center">
-						<Button
+						<StatusButton
 							type="submit"
-							size="md-wide"
-							variant="primary"
+							size="wide"
 							status={isSubmitting ? 'pending' : actionData?.status ?? 'idle'}
 						>
 							Save changes
-						</Button>
+						</StatusButton>
 					</div>
 				</Form>
 			</div>

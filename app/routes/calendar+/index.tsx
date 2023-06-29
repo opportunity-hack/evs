@@ -1,4 +1,4 @@
-import { Form, json , useLoaderData , useActionData } from '~/remix.ts';
+import { Link, Form, json , useLoaderData , useActionData } from '~/remix.ts';
 import type { ActionArgs , LoaderArgs } from '~/remix.ts'
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
 import format from 'date-fns/format/index.js'
@@ -24,6 +24,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogClose,
 } from "~/components/ui/dialog.tsx"
 import { Input } from '~/components/ui/input.tsx'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group.tsx'
@@ -46,7 +47,6 @@ import { useResetCallback } from '~/utils/misc.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { Info } from 'lucide-react'
-import { ButtonLink } from '~/utils/forms.tsx'
 
 const locales = {
   'en-US': enUS,
@@ -240,7 +240,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
         <DialogTitle className="text-h4">{calEvent.title} - Volunteer Registration</DialogTitle>
         <div className="flex items-center justify-between">
         <p>{calEvent.start.toLocaleDateString()}, {format(calEvent.start, "p")} - {format(calEvent.end, "p")}</p>
-        {userIsAdmin ? <ButtonLink size="sm" variant="primary" to={`/calendar/${calEvent.id}`}>Manage Event</ButtonLink> : null}
+        {userIsAdmin ? <Button size="sm"><Link to={`/calendar/${calEvent.id}`}>Manage Event</Link></Button> : null}
         </div>
       </DialogHeader>
           <DialogDescription>
@@ -291,6 +291,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
            isRegistered ? 
             <Button type="submit" name="_action" value="unregister" variant="destructive"> Unregister</Button>
             : <Button className="" type="submit" name="_action" value="register">Register</Button>}
+        <DialogClose />
         </DialogFooter>
         </registrationFetcher.Form>
       </DialogContent>

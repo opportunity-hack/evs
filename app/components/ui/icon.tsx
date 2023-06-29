@@ -72,6 +72,7 @@ type IconName =
   | "cross-1"
   | "exit"
   | "gear"
+  | "horse"
   | "laptop"
   | "lock-closed"
   | "lock-open-1"

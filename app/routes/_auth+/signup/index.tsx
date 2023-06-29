@@ -17,7 +17,8 @@ import { z } from 'zod'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
 import { prisma } from '~/utils/db.server.ts'
 import { sendEmail } from '~/utils/email.server.ts'
-import { Button, ErrorList, Field } from '~/utils/forms.tsx'
+import { ErrorList, Field } from '~/components/forms.tsx'
+import { StatusButton } from '~/components/ui/status-button.tsx'
 import { getDomainUrl } from '~/utils/misc.server.ts'
 import { generateTOTP } from '~/utils/totp.server.ts'
 import { emailSchema } from '~/utils/user-validation.ts'
@@ -157,16 +158,14 @@ export default function SignupRoute() {
 					errors={fields.email.errors}
 				/>
 				<ErrorList errors={form.errors} id={form.errorId} />
-				<Button
+				<StatusButton
 					className="w-full"
-					size="md"
-					variant="primary"
 					status={isSubmitting ? 'pending' : actionData?.status ?? 'idle'}
 					type="submit"
 					disabled={isSubmitting}
 				>
 					Submit
-				</Button>
+				</StatusButton>
 			</Form>
 		</div>
 	)

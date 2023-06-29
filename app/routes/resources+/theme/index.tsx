@@ -3,10 +3,10 @@ import { parse } from '@conform-to/zod'
 import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
 import { useFetcher } from '@remix-run/react'
 import * as React from 'react'
+import { safeRedirect } from 'remix-utils'
 import { z } from 'zod'
 import { useHints } from '~/utils/client-hints.tsx'
-import { ErrorList } from '~/utils/forms.tsx'
-import { safeRedirect } from 'remix-utils'
+import { ErrorList } from '~/components/forms.tsx'
 import { useRequestInfo } from '~/utils/request-info.ts'
 import {
 	commitSession,
@@ -14,6 +14,7 @@ import {
 	getSession,
 	setTheme,
 } from './theme-session.server.ts'
+import { Icon } from '~/components/ui/icon.tsx'
 
 const ROUTE_PATH = '/resources/theme'
 
@@ -84,19 +85,19 @@ export function ThemeSwitch({
 		mode === 'system' ? 'light' : mode === 'light' ? 'dark' : 'system'
 	const modeLabel = {
 		light: (
-			<>
-				🔆 <span className="sr-only">Light</span>
-			</>
+			<Icon name="sun">
+				<span className="sr-only">Light</span>
+			</Icon>
 		),
 		dark: (
-			<>
-				🌕 <span className="sr-only">Dark</span>
-			</>
+			<Icon name="moon">
+				<span className="sr-only">Dark</span>
+			</Icon>
 		),
 		system: (
-			<>
-				💻 <span className="sr-only">System</span>
-			</>
+			<Icon name="laptop">
+				<span className="sr-only">System</span>
+			</Icon>
 		),
 	}
 

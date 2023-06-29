@@ -1,4 +1,5 @@
-import { siteName } from '~/data.ts'
+import { conform, useForm } from '@conform-to/react'
+import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import {
 	json,
 	redirect,
@@ -14,14 +15,13 @@ import {
 } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
+import { ErrorList, Field } from '~/components/forms.tsx'
+import { StatusButton } from '~/components/ui/status-button.tsx'
 import {
 	authenticator,
 	requireAnonymous,
 	resetUserPassword,
 } from '~/utils/auth.server.ts'
-import { Button, ErrorList, Field } from '~/utils/forms.tsx'
-import { conform, useForm } from '@conform-to/react'
-import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { commitSession, getSession } from '~/utils/session.server.ts'
 import { passwordSchema } from '~/utils/user-validation.ts'
 
@@ -89,7 +89,7 @@ export async function action({ request }: DataFunctionArgs) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: `Reset Password | ${siteName}` }]
+	return [{ title: 'Reset Password | Epic Notes' }]
 }
 
 export default function ResetPasswordPage() {
@@ -146,10 +146,8 @@ export default function ResetPasswordPage() {
 
 				<ErrorList errors={form.errors} id={form.errorId} />
 
-				<Button
+				<StatusButton
 					className="w-full"
-					size="md"
-					variant="primary"
 					status={
 						navigation.state === 'submitting' &&
 						navigation.formAction === formAction &&
@@ -161,7 +159,7 @@ export default function ResetPasswordPage() {
 					disabled={navigation.state !== 'idle'}
 				>
 					Reset password
-				</Button>
+				</StatusButton>
 			</Form>
 		</div>
 	)

@@ -17,10 +17,19 @@ export default {
 		extend: {
 			colors: {
         border: "hsl(var(--color-border))",
-        input: "hsl(var(--color-input))",
-        ring: "hsl(var(--color-ring))",
+        input: {
+          DEFAULT: "hsl(var(--color-input))",
+          invalid: "hsl(var(--color-input-invalid))",
+        },
+        ring: {
+          DEFAULT: "hsl(var(--color-ring))",
+          invalid: "hsl(var(--color-foreground-danger))",
+        },
 				background: 'hsl(var(--color-background))',
-				foreground: 'hsl(var(--color-foreground))',
+				foreground: {
+          DEFAULT: 'hsl(var(--color-foreground))',
+          danger: 'hsl(var(--foreground-danger))',
+        },
 				brand: {
 					primary: {
 						DEFAULT: 'hsl(var(--color-brand-primary))',

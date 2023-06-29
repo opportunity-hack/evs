@@ -1,4 +1,3 @@
-import { siteName } from '~/data.ts'
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import {
@@ -10,9 +9,10 @@ import {
 import { Link, useFetcher } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
+import { ErrorList, Field } from '~/components/forms.tsx'
+import { StatusButton } from '~/components/ui/status-button.tsx'
 import { prisma } from '~/utils/db.server.ts'
 import { sendEmail } from '~/utils/email.server.ts'
-import { Button, ErrorList, Field } from '~/utils/forms.tsx'
 import { getDomainUrl } from '~/utils/misc.server.ts'
 import { generateTOTP } from '~/utils/totp.server.ts'
 import { emailSchema, usernameSchema } from '~/utils/user-validation.ts'
@@ -95,7 +95,7 @@ export async function action({ request }: DataFunctionArgs) {
 
 		await sendEmail({
 			to: user.email,
-			subject: `${siteName} Password Reset`,
+			subject: `Epic Notes Password Reset`,
 			react: (
 				<ForgotPasswordEmail
 					onboardingUrl={resetPasswordUrl.toString()}
@@ -109,7 +109,7 @@ export async function action({ request }: DataFunctionArgs) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: `Password Recovery for ${siteName}` }]
+	return [{ title: 'Password Recovery for Epic Notes' }]
 }
 
 export default function ForgotPasswordRoute() {
@@ -155,10 +155,8 @@ export default function ForgotPasswordRoute() {
 					<ErrorList errors={form.errors} id={form.errorId} />
 
 					<div className="mt-6">
-						<Button
+						<StatusButton
 							className="w-full"
-							size="md"
-							variant="primary"
 							status={
 								forgotPassword.state === 'submitting'
 									? 'pending'
@@ -168,7 +166,7 @@ export default function ForgotPasswordRoute() {
 							disabled={forgotPassword.state !== 'idle'}
 						>
 							Recover password
-						</Button>
+						</StatusButton>
 					</div>
 				</forgotPassword.Form>
 				<Link to="/login" className="mt-11 text-center text-body-sm font-bold">

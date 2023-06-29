@@ -1,6 +1,7 @@
 import type { V2_MetaFunction } from '@remix-run/node'
 import { horseMountains, ohack} from './logos/logos.ts'
-import { ButtonLink } from '~/utils/forms.tsx'
+import { Link } from '@remix-run/react'
+import { Button } from '~/components/ui/button.tsx'
 import { useOptionalUser } from '~/utils/user.ts'
 
 export const meta: V2_MetaFunction = () => [{ title: 'Girard Training Stables' }]
@@ -16,7 +17,7 @@ export default function Index() {
 							<img className="h-full w-full object-cover" src={horseMountains} alt="" />
 							<div className="absolute inset-0 bg-[color:rgba(27,167,254,0.5)] mix-blend-multiply" />
 						</div>
-						<div className="lg:pt-18 relative px-4 pb-8 pt-8 sm:px-6 sm:pb-14 sm:pt-16 lg:px-8 lg:pb-20">
+						<div className="lg:pt-18 relative px-4 pb-8 pt-8 sm:px-6 sm:pb-14 sm:pt-16 lg:px-8 lg:pb-20 flex flex-col items-center">
 							<h1 className="text-center text-mega font-extrabold tracking-tight sm:text-8xl lg:text-9xl">
 								<a
 									className="block uppercase text-brand-secondary drop-shadow-md"
@@ -25,20 +26,24 @@ export default function Index() {
 									The Barn: Volunteer Portal
 								</a>
 							</h1>
-							<p className="mx-auto mt-6 max-w-lg text-center text-xl text-white sm:max-w-3xl font-semibold bg-slate-500">
+							<p className="mx-auto mt-6 max-w-lg text-center text-xl text-white sm:max-w-3xl font-semibold bg-slate-500 px-5">
 								Equestrian Volunteer Scheduling Application
 							</p>
+              <div className="flex justify-center mt-8">
               { user ? 
-              <ButtonLink className="px-4 max-w-[200px] mx-auto mt-4" to="/calendar" size="sm" variant="primary">
+              <Button asChild size="wide" variant="default" className="font-bold">
+                <Link to="/calendar">
                 Go to Calendar
-              </ButtonLink>
+                </Link>
+              </Button>
               :
-              <div className="flex justify-center gap-2">
-              <ButtonLink className="px-4 max-w-[350px] mt-4" to="/signup" size="md-wide" variant="primary">
+              <Button asChild size="wide" variant="default">
+                <Link to="/signup">
                 Sign up to Volunteer
-              </ButtonLink>
-              </div>
+                </Link>
+              </Button>
               }
+              </div>
 						</div>
 					</div>
 				</div>

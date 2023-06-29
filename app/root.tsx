@@ -1,4 +1,10 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import {
+  DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuPortal,
+	DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu.tsx'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import {
 	json,
@@ -28,7 +34,7 @@ import { authenticator, getUserId } from './utils/auth.server.ts'
 import { ClientHintCheck, getHints } from './utils/client-hints.tsx'
 import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
-import { ButtonLink } from './utils/forms.tsx'
+import { Button } from '~/components/ui/button.tsx'
 import { getDomainUrl } from './utils/misc.server.ts'
 import { getUserImgSrc } from './utils/misc.ts'
 import { useNonce } from './utils/nonce-provider.ts'
@@ -135,16 +141,18 @@ function App() {
   const userIsAdmin = user?.roles.find(role => role.name === 'admin')
 
 
-  let nav = (<ButtonLink to="/login" size="sm" variant="primary">
-        Log In
-      </ButtonLink>) 
+  let nav = (<Button asChild size="sm" variant="default">
+        <Link to="/login">Log In</Link>
+      </Button>) 
   if (user) {
     nav = (
     <div className="flex items-center gap-5">
-      <ButtonLink className="px-4 flex gap-2" to="/calendar" size="sm" variant="primary">
+      <Button className="px-4" size="sm" variant="default">
+        <Link to="/calendar" className="flex gap-2 pr-1">
         <Icon className="text-body-md" name="calendar" />
         Calendar
-      </ButtonLink>
+        </Link>
+      </Button>
       {userIsAdmin ? <AdminDropdown /> : null}
       <UserDropdown />
     </div>
@@ -204,42 +212,41 @@ function UserDropdown() {
 	const submit = useSubmit()
 	const formRef = useRef<HTMLFormElement>(null)
 	return (
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger asChild>
-				<Link
-					to={`/users/${user.username}`}
-					// this is for progressive enhancement
-					onClick={e => e.preventDefault()}
-					className="bg-primary hover:bg-primary/90 focus:bg-primary/90 radix-state-open:bg-primary/90 flex items-center gap-2 rounded-full py-2 pl-2 pr-4 outline-none text-primary-foreground"
-				>
-					<img
-						className="h-8 w-8 rounded-full object-cover"
-						alt={user.name ?? user.username}
-						src={getUserImgSrc(user.imageId)}
-					/>
-					<span className="text-body-sm font-bold">
-						{user.name ?? user.username}
-					</span>
-				</Link>
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Portal>
-				<DropdownMenu.Content
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+        <Button asChild variant="secondary" className="min-w-[8rem]">
+          <Link
+            to={`/users/${user.username}`}
+            // this is for progressive enhancement
+            onClick={e => e.preventDefault()}
+          >
+            <img
+              className="h-8 w-8 rounded-full object-cover"
+              alt={user.name ?? user.username}
+              src={getUserImgSrc(user.imageId)}
+            />
+            <span className="text-body-sm font-bold">
+              {user.name ?? user.username}
+            </span>
+          </Link>
+        </ Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuPortal>
+				<DropdownMenuContent
 					sideOffset={8}
 					align="start"
-					className="flex flex-col rounded-3xl text-primary-foreground"
 				>
-					<DropdownMenu.Item asChild>
+					<DropdownMenuItem asChild>
 						<Link
 							prefetch="intent"
 							to={`/users/${user.username}`}
-							className="bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90 rounded-t-3xl px-7 py-5 outline-none"
 						>
               <Icon className="text-body-md" name="avatar">
 							Profile
               </Icon>
 						</Link>
-					</DropdownMenu.Item>
-					<DropdownMenu.Item
+					</DropdownMenuItem>
+					<DropdownMenuItem
 						asChild
 						// this prevents the menu from closing before the form submission is completed
 						onSelect={event => {
@@ -250,67 +257,66 @@ function UserDropdown() {
 						<Form
 							action="/logout"
 							method="POST"
-							className="bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90 rounded-b-3xl outline-none"
 							ref={formRef}
 						>
-							<button type="submit" className="px-7 py-5">
+              <button type="submit">
                 <Icon className="text-body-md" name="exit">
 								Logout
                 </Icon>
-							</button>
+              </button>
 						</Form>
-					</DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Portal>
-		</DropdownMenu.Root>
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenuPortal>
+		</DropdownMenu>
 	)
 }
 
 function AdminDropdown() {
 	return (
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger asChild>
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+        <Button asChild variant="secondary" className="min-w-[8rem]">
 				<Link
 					to="/users"
 					// this is for progressive enhancement
 					onClick={e => e.preventDefault()}
-					className="flex items-center gap-2 rounded-full py-3 px-4 outline-none bg-primary hover:bg-primary/90 text-primary-foreground focus:bg-primary/90 radix-state-open:bg-primary/90"
 				>
           <Icon className="text-body-md" name="gear" />
 					<span className="text-body-sm font-bold">
             Admin
           </span>
 				</Link>
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Portal>
-				<DropdownMenu.Content
+        </Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuPortal>
+				<DropdownMenuContent
 					sideOffset={8}
 					align="start"
-					className="flex flex-col rounded-3xl text-primary-foreground"
 				>
-					<DropdownMenu.Item asChild>
+					<DropdownMenuItem asChild>
 						<Link
 							prefetch="intent"
 							to={`/users`}
-							className="rounded-t-3xl px-4 py-5 outline-none bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90"
 						>
               <Icon className="text-body-md" name="person">
 							Users
               </Icon>
 						</Link>
-					</DropdownMenu.Item>
-					<DropdownMenu.Item asChild>
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
 						<Link
 							prefetch="intent"
 							to={`/horses`}
-							className="rounded-b-3xl px-4 py-5 outline-none bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90"
 						>
-							 🐎 Horses
+              <Icon className="text-body-md" name="horse">
+							Horses
+              </Icon>
 						</Link>
-					</DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Portal>
-		</DropdownMenu.Root>
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenuPortal>
+		</DropdownMenu>
 	)
 }
 
