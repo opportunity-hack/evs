@@ -11,9 +11,9 @@ import { Label } from "~/components/ui/label.tsx";
 import { Input } from "~/components/ui/input.tsx";
 import { Textarea } from "~/components/ui/textarea.tsx";
 import { parse } from '@conform-to/zod'
-import { useResetCallback } from "~/lib/utils.ts"
+import { useResetCallback } from "~/utils/misc.ts"
 import { useToast } from "~/components/ui/use-toast.ts";
-import { Plus } from "lucide-react";
+import { Icon } from "~/components/ui/icon.tsx";
 
 const horseFormSchema = z.object({
   name: z.string(),
@@ -97,8 +97,9 @@ function CreateHorseDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mt-5">
-          <Plus size="20"/>Register new horse
+        <Button className="mt-5 flex gap-2">
+          <Icon className="text-body-md" name="plus" />
+          Register new horse
         </Button>
       </DialogTrigger>
       <DialogContent>

@@ -36,9 +36,12 @@ import { makeTimings, time } from './utils/timing.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
 import { useRef } from 'react'
 import { Toaster } from './components/ui/toaster.tsx'
+import { Icon, href as iconsHref } from './components/ui/icon.tsx'
 
 export const links: LinksFunction = () => {
 	return [
+    // Preload svg sprite as a resource to avoid render blocking
+    { rel: 'preload', href: iconsHref, as: 'image' },
 		// Preload CSS as a resource to avoid render blocking
 		{ rel: 'preload', href: fontStylestylesheetUrl, as: 'style' },
 		{ rel: 'preload', href: tailwindStylesheetUrl, as: 'style' },
@@ -138,7 +141,8 @@ function App() {
   if (user) {
     nav = (
     <div className="flex items-center gap-5">
-      <ButtonLink className="px-4" to="/calendar" size="sm" variant="primary">
+      <ButtonLink className="px-4 flex gap-2" to="/calendar" size="sm" variant="primary">
+        <Icon className="text-body-md" name="calendar" />
         Calendar
       </ButtonLink>
       {userIsAdmin ? <AdminDropdown /> : null}
@@ -230,7 +234,9 @@ function UserDropdown() {
 							to={`/users/${user.username}`}
 							className="bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90 rounded-t-3xl px-7 py-5 outline-none"
 						>
+              <Icon className="text-body-md" name="avatar">
 							Profile
+              </Icon>
 						</Link>
 					</DropdownMenu.Item>
 					<DropdownMenu.Item
@@ -248,7 +254,9 @@ function UserDropdown() {
 							ref={formRef}
 						>
 							<button type="submit" className="px-7 py-5">
+                <Icon className="text-body-md" name="exit">
 								Logout
+                </Icon>
 							</button>
 						</Form>
 					</DropdownMenu.Item>
@@ -268,6 +276,7 @@ function AdminDropdown() {
 					onClick={e => e.preventDefault()}
 					className="flex items-center gap-2 rounded-full py-3 px-4 outline-none bg-primary hover:bg-primary/90 text-primary-foreground focus:bg-primary/90 radix-state-open:bg-primary/90"
 				>
+          <Icon className="text-body-md" name="gear" />
 					<span className="text-body-sm font-bold">
             Admin
           </span>
@@ -285,7 +294,9 @@ function AdminDropdown() {
 							to={`/users`}
 							className="rounded-t-3xl px-4 py-5 outline-none bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90"
 						>
+              <Icon className="text-body-md" name="person">
 							Users
+              </Icon>
 						</Link>
 					</DropdownMenu.Item>
 					<DropdownMenu.Item asChild>
@@ -294,7 +305,7 @@ function AdminDropdown() {
 							to={`/horses`}
 							className="rounded-b-3xl px-4 py-5 outline-none bg-primary hover:bg-primary/90 radix-highlighted:bg-primary/90"
 						>
-							Horses
+							 🐎 Horses
 						</Link>
 					</DropdownMenu.Item>
 				</DropdownMenu.Content>

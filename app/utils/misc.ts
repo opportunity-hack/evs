@@ -1,4 +1,6 @@
 import React from 'react'
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function getUserImgSrc(imageId?: string | null) {
 	return imageId ? `/resources/file/${imageId}` : `/img/user.png`
@@ -81,3 +83,16 @@ export function useDoubleCheck() {
 
 	return { doubleCheck, getButtonProps }
 }
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+export function useResetCallback(initialValue: any, resetFn: () => any) {
+    const [prevValue, setPrevValue] = React.useState(initialValue)
+    if (prevValue !== initialValue) {
+        resetFn()
+        setPrevValue(initialValue)
+    }
+}
+

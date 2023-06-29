@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
-import { CheckIcon, ChevronsUpDown } from 'lucide-react'
+import { Icon } from '~/components/ui/icon.tsx'
 
 const listboxButtonClassName = "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 
@@ -26,10 +26,7 @@ export function HorseListbox({horses, name}: HorseListboxProps) {
           <Listbox.Button className={listboxButtonClassName}>
               <span className="block truncate">{selected.map((horse) => horse.name).join(', ')}</span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <ChevronsUpDown
-                className="h-5 w-5 text-primary"
-                aria-hidden="true"
-              />
+              <Icon className="text-body-md" name="caret-sort" />
               </span>
             </Listbox.Button>
           </div>
@@ -65,7 +62,7 @@ export function HorseListbox({horses, name}: HorseListboxProps) {
                               active ? 'text-white' : 'text-teal-600'
                             }`}
                           >
-                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                          <Icon className="text-body-md" name="check" />
                         </span>
                       ) : null}
                     </>
@@ -99,10 +96,7 @@ export function InstructorListbox({instructors, name}: InstructorListboxProps) {
           <Listbox.Button className={listboxButtonClassName}>
             <span className="block truncate">{selected.name}</span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <ChevronsUpDown
-                className="h-5 w-5 text-primary"
-                aria-hidden="true"
-              />
+              <Icon className="text-body-md" name="caret-sort" />
             </span>
           </Listbox.Button>
           <Transition
@@ -137,7 +131,7 @@ export function InstructorListbox({instructors, name}: InstructorListboxProps) {
                               active ? 'text-white' : 'text-teal-600'
                             }`}
                           >
-                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                          <Icon className="text-body-md" name="check" />
                         </span>
                       ) : null}
                     </>

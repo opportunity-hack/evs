@@ -8,7 +8,6 @@ import { getUserImgSrc, getHorseImgSrc } from '~/utils/misc.ts';
 
 import type { UserData, HorseData, CalEvent } from '~/data.ts'
 import { volunteerTypes } from '~/data.ts';
-import { ArrowRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useFetcher } from '@remix-run/react';
 import { z } from 'zod'
@@ -20,6 +19,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover.tsx"
+import {
+  Icon
+} from "~/components/ui/icon.tsx"
 
 export async function loader({ request, params }: DataFunctionArgs) {
   await requireAdmin(request)
@@ -292,7 +294,7 @@ function VolunteerListItem({user = placeHolderUser, event}: VolunteerListItemPro
         src={getUserImgSrc(user.imageId)}
         />{user.name}</div>
       </VolunteerInfoPopover>
-      <ArrowRight />
+      <Icon className="text-body-xl" name="arrow-right" />
       
       <div className="flex gap-2 items-center">
         { isSubmitting ? <span className="inline-block animate-spin">🌀</span> :

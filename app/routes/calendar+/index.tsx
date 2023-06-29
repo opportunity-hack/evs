@@ -7,6 +7,7 @@ import startOfWeek from 'date-fns/startOfWeek/index.js'
 import getDay from 'date-fns/getDay/index.js'
 import enUS from 'date-fns/locale/en-US/index.js'
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { Icon } from '~/components/ui/icon.tsx';
 
 import { volunteerTypes, type UserData, type HorseData, type CalEvent } from '~/data.ts'
 import { useState } from 'react'
@@ -41,7 +42,7 @@ import { z } from 'zod'
 import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
 import { addMinutes } from 'date-fns'
 import { useFetcher } from '@remix-run/react'
-import { useResetCallback } from '~/lib/utils.ts'
+import { useResetCallback } from '~/utils/misc.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { Info } from 'lucide-react'
@@ -308,7 +309,9 @@ function CreateEventDialog({horses, instructors}: CreateEventDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="mt-5">
+          <Icon className="text-body-md" name="plus">
           Create New Event
+          </Icon>
         </Button>
       </DialogTrigger>
       <DialogContent className="">
