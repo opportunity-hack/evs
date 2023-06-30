@@ -70,6 +70,7 @@ type IconName =
   | "caret-sort"
   | "check"
   | "cross-1"
+  | "dots-vertical"
   | "exit"
   | "gear"
   | "horse"

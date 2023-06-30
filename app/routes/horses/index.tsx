@@ -34,7 +34,7 @@ export default function Horses() {
   <div className="container">
     <h1 className="text-5xl text-center">Horses</h1>
     <CreateHorseDialog />
-    <div className="pt-2 max-h-[80vh] overflow-scroll">
+    <div className="pt-2">
       <DataTable columns={columns} data={data}/>
     </div>
   </div>
