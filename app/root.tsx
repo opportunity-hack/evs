@@ -35,14 +35,16 @@ import { ClientHintCheck, getHints } from './utils/client-hints.tsx'
 import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
 import { Button } from '~/components/ui/button.tsx'
-import { getDomainUrl } from './utils/misc.server.ts'
-import { getUserImgSrc } from './utils/misc.ts'
+import { combineHeaders, getDomainUrl, getUserImgSrc } from './utils/misc.ts'
 import { useNonce } from './utils/nonce-provider.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { useOptionalUser, useUser } from './utils/user.ts'
 import { useRef } from 'react'
-import { Toaster } from './components/ui/toaster.tsx'
 import { Icon, href as iconsHref } from './components/ui/icon.tsx'
+import { Confetti } from './components/confetti.tsx'
+import { getFlashSession } from './utils/flash-session.server.ts'
+import { useToast } from './utils/useToast.tsx'
+import { Toaster } from './components/ui/toaster.tsx'
 
 export const links: LinksFunction = () => {
 	return [
@@ -104,6 +106,7 @@ export async function loader({ request }: DataFunctionArgs) {
 		// them in the database. Maybe they were deleted? Let's log them out.
 		await authenticator.logout(request, { redirectTo: '/' })
 	}
+	const { flash, headers: flasHeaders } = await getFlashSession(request)
 
 	return json(
 		{
@@ -117,12 +120,14 @@ export async function loader({ request }: DataFunctionArgs) {
 				},
 			},
 			ENV: getEnv(),
+      flash,
 		},
 		{
-			headers: {
-				'Server-Timing': timings.toString(),
-			},
-		},
+    headers: combineHeaders(
+				new Headers({ 'Server-Timing': timings.toString() }),
+				flasHeaders,
+			),
+    },
 	)
 }
 
@@ -138,6 +143,8 @@ function App() {
 	const nonce = useNonce()
 	const user = useOptionalUser()
 	const theme = useTheme()
+  useToast(data.flash?.toast)
+
   const userIsAdmin = user?.roles.find(role => role.name === 'admin')
 
 
@@ -181,7 +188,6 @@ function App() {
 
 				<div className="flex-1">
 					<Outlet />
-          <Toaster />
 				</div>
 
 				<div className="container mx-auto flex justify-between">
@@ -192,6 +198,8 @@ function App() {
 					<ThemeSwitch userPreference={data.requestInfo.session.theme} />
 				</div>
 				<div className="h-5" />
+				<Confetti confetti={data.flash?.confetti} />
+        <Toaster />
 				<ScrollRestoration nonce={nonce} />
 				<Scripts nonce={nonce} />
 				<script
