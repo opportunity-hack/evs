@@ -153,7 +153,7 @@ function App() {
       </Button>) 
   if (user) {
     nav = (
-    <div className="flex items-center gap-5">
+    <div className="flex items-center gap-1">
       <Button className="px-4" size="sm" variant="default">
         <Link to="/calendar" className="flex gap-2 pr-1">
         <Icon className="text-body-md" name="calendar" />
