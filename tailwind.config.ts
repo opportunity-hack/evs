@@ -28,7 +28,7 @@ export default {
 				background: 'hsl(var(--color-background))',
 				foreground: {
           DEFAULT: 'hsl(var(--color-foreground))',
-          danger: 'hsl(var(--foreground-danger))',
+          danger: 'hsl(var(--color-foreground-danger))',
         },
 				brand: {
 					primary: {
