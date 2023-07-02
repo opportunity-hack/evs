@@ -125,7 +125,7 @@ export default function PromotionModal() {
 
   const userIsAdmin = data.user?.roles.find((role) => role.name == 'admin')
 
-  const [form, fields] = useForm({
+  const [form] = useForm({
     id: 'promote-user',
     shouldRevalidate: "onSubmit",
   })
