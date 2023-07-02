@@ -1,11 +1,9 @@
-import { type ActionArgs, type DataFunctionArgs, Form, json, useActionData , useLoaderData } from "~/remix.ts";
+import { type ActionArgs, type DataFunctionArgs, Form, json, useActionData , useLoaderData, Outlet, Link } from "~/remix.ts";
 import { prisma } from "~/utils/db.server.ts";
 import { requireAdmin } from "~/utils/permissions.server.ts";
 import { DataTable } from "~/components/ui/data_table.tsx";
-import { columns } from "./columns.tsx";
 import { z } from "zod";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "~/components/ui/dialog.tsx";
-import { Button } from "~/components/ui/button.tsx";
 import { useState } from "react";
 import { Label } from "~/components/ui/label.tsx";
 import { Input } from "~/components/ui/input.tsx";
@@ -13,12 +11,25 @@ import { Textarea } from "~/components/ui/textarea.tsx";
 import { parse } from '@conform-to/zod'
 import { useResetCallback } from "~/utils/misc.ts"
 import { useToast } from "~/components/ui/use-toast.ts";
-import { Icon } from "~/components/ui/icon.tsx";
 
-const horseFormSchema = z.object({
-  name: z.string(),
-  notes: z.string(),
-  status: z.string(),
+import { type ColumnDef } from "@tanstack/react-table";
+import { type Horse } from "@prisma/client";
+import { formatRelative } from 'date-fns'
+import { Icon } from '~/components/ui/icon.tsx';
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '~/components/ui/dropdown-menu.tsx';
+import { Button } from '~/components/ui/button.tsx';
+
+export const horseFormSchema = z.object({
+  name: z.string().min(1, {message: 'Name is required'}),
+  notes: z.string().optional(),
+  status: z.string().optional(),
 })
 
 export const loader = async ({ request }: DataFunctionArgs) => {
@@ -37,6 +48,7 @@ export default function Horses() {
     <div className="pt-2">
       <DataTable columns={columns} data={data}/>
     </div>
+    < Outlet />
   </div>
   )
 }
@@ -129,3 +141,59 @@ function CreateHorseDialog() {
     </Dialog>
   )
 }
+
+export const columns: ColumnDef<Horse>[] = [
+  {
+    accessorKey: "name",
+    header: "name",
+  },
+  {
+    accessorKey: "notes",
+    header: "notes",
+  },
+  {
+    accessorKey: "status",
+    header: "status",
+  },
+  {
+    accessorKey: "updatedAt",
+    header: "last updated",
+    cell: ({ row }) => {
+      const timeStamp = new Date(row.getValue("updatedAt"))
+      const formatted = formatRelative(timeStamp, new Date())
+      return <div>{formatted}</div>
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      return (
+         <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <Icon className="h-4 w-4" name="dots-vertical" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem asChild
+            >
+              <Link
+                to={`/horses/edit/${row.original.id}`}
+                preventScrollReset
+              >
+                <Icon name="pencil-1">Edit</Icon>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className=""
+              onClick={() => alert("unimplemented!")}
+            >
+            <Icon name="trash">Delete</Icon>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu> )
+    }
+  },
+]
