@@ -1,10 +1,10 @@
-import { type LoaderArgs, json, useLoaderData } from "~/remix.ts";
+import { type LoaderArgs, json, useLoaderData, Outlet, Link } from "~/remix.ts";
 import { prisma } from "~/utils/db.server.ts";
 import { requireAdmin } from "~/utils/permissions.server.ts";
 import { DataTable } from "~/components/ui/data_table.tsx";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { type User } from "@prisma/client";
+import { type User, type Role } from "@prisma/client";
 import { formatRelative } from 'date-fns'
 import { Icon } from '~/components/ui/icon.tsx';
 import { 
@@ -20,7 +20,7 @@ import { Button } from '~/components/ui/button.tsx';
 export const loader = async ({ request }: LoaderArgs) => {
   await requireAdmin(request)
   return json(
-    await prisma.user.findMany()
+    await prisma.user.findMany({ include: { roles: true } })
   );
 };
 
@@ -32,11 +32,14 @@ export default function Users() {
     <div className="container pt-10">
       <DataTable columns={columns} data={data}/>
     </div>
+    <Outlet />
   </div>
   )
 }
 
-export const columns: ColumnDef<User>[] = [
+type UserWithRole = User & { roles: Role[] }
+
+export const columns: ColumnDef<UserWithRole>[] = [
   {
     accessorKey: "email",
     header: "email",
@@ -52,6 +55,14 @@ export const columns: ColumnDef<User>[] = [
       const timeStamp = new Date(row.getValue("lastLogin"))
       const formatted = formatRelative(timeStamp, new Date())
       return <div>{formatted}</div>
+    },
+  },
+  {
+    accessorKey: "roles",
+    header: "admin",
+    cell: ({ row }) => {
+      const isAdmin = row.original.roles.find(r => r.name == "admin")
+      return <div>{isAdmin ? "Yes" : "No"}</div>
     },
   },
   {
@@ -72,11 +83,20 @@ export const columns: ColumnDef<User>[] = [
             >
               <Icon name="pencil-1">Edit</Icon>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem 
               onClick={() => alert("unimplemented!")}
             >
             <Icon name="trash">Delete</Icon>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="mt-4 border" />
+            <DropdownMenuItem 
+            >
+            <Link
+              to={`/admin/users/promote/${row.original.id}`}
+              preventScrollReset
+            >
+              <Icon name="lock-closed">Promote to Admin</Icon>
+            </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu> )
