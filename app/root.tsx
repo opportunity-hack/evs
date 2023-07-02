@@ -286,7 +286,7 @@ function AdminDropdown() {
 			<DropdownMenuTrigger asChild>
         <Button asChild variant="secondary" className="min-w-[8rem]">
 				<Link
-					to="/users"
+					to="/admin/users"
 					// this is for progressive enhancement
 					onClick={e => e.preventDefault()}
 				>
@@ -315,7 +315,7 @@ function AdminDropdown() {
 					<DropdownMenuItem asChild>
 						<Link
 							prefetch="intent"
-							to={`/horses`}
+							to={`/admin/horses`}
 						>
               <Icon className="text-body-md" name="horse">
 							Horses

@@ -180,7 +180,7 @@ export const columns: ColumnDef<Horse>[] = [
             <DropdownMenuItem asChild
             >
               <Link
-                to={`/horses/edit/${row.original.id}`}
+                to={`edit/${row.original.id}`}
                 preventScrollReset
               >
                 <Icon name="pencil-1">Edit</Icon>
