@@ -1,3 +1,8 @@
+import { type LoaderArgs, json, useLoaderData } from "~/remix.ts";
+import { prisma } from "~/utils/db.server.ts";
+import { requireAdmin } from "~/utils/permissions.server.ts";
+import { DataTable } from "~/components/ui/data_table.tsx";
+
 import { type ColumnDef } from "@tanstack/react-table";
 import { type User } from "@prisma/client";
 import { formatRelative } from 'date-fns'
@@ -11,6 +16,25 @@ import {
   DropdownMenuSeparator,
 } from '~/components/ui/dropdown-menu.tsx';
 import { Button } from '~/components/ui/button.tsx';
+
+export const loader = async ({ request }: LoaderArgs) => {
+  await requireAdmin(request)
+  return json(
+    await prisma.user.findMany()
+  );
+};
+
+export default function Users() {
+ const data = useLoaderData<typeof loader>()
+ return ( 
+  <div>
+    <h1 className="text-5xl text-center">Users</h1>
+    <div className="container pt-10">
+      <DataTable columns={columns} data={data}/>
+    </div>
+  </div>
+  )
+}
 
 export const columns: ColumnDef<User>[] = [
   {

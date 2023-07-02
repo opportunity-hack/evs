@@ -305,7 +305,7 @@ function AdminDropdown() {
 					<DropdownMenuItem asChild>
 						<Link
 							prefetch="intent"
-							to={`/users`}
+							to={`/admin/users`}
 						>
               <Icon className="text-body-md" name="person">
 							Users
