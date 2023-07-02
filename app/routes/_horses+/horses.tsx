@@ -109,7 +109,7 @@ function CreateHorseDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mt-5 flex gap-2">
+        <Button className="mt-5 flex gap-2" variant="outline">
           <Icon className="text-body-md" name="plus" />
           Register new horse
         </Button>
