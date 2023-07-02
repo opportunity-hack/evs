@@ -68,6 +68,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
+      const isAdmin = row.original.roles.find(r => r.name == "admin")
       return (
        <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -95,7 +96,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
               to={`/admin/users/promote/${row.original.id}`}
               preventScrollReset
             >
-              <Icon name="lock-closed">Promote to Admin</Icon>
+              <Icon name="lock-closed">{isAdmin ? "Demote from Admin" : "Promote to Admin"}</Icon>
             </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
