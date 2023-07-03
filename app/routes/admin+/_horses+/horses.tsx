@@ -45,7 +45,9 @@ export default function Horses() {
   return ( 
   <div className="container">
     <h1 className="text-5xl text-center">Horses</h1>
+    <div className="flex flex-row-reverse">
     <CreateHorseDialog />
+    </div>
     <div className="pt-2">
       <DataTable columns={columns} data={data}/>
     </div>
