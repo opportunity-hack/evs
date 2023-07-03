@@ -84,10 +84,13 @@ export const columns: ColumnDef<UserWithRole>[] = [
             >
               <Icon name="pencil-1">Edit</Icon>
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => alert("unimplemented!")}
-            >
+            <DropdownMenuItem asChild>
+              <Link
+                to={`delete/${row.original.id}`}
+                preventScrollReset
+              >
             <Icon name="trash">Delete</Icon>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="mt-4 border" />
             <DropdownMenuItem 
