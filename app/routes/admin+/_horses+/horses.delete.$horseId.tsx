@@ -91,7 +91,7 @@ export async function action({ request, params }: DataFunctionArgs) {
   })
 }
 
-export default function EditHorse() {
+export default function DeleteHorse() {
   const data = useLoaderData<typeof loader>() || {}
   const actionData = useActionData<typeof action>()
   const [open, setOpen] = useState(true)
