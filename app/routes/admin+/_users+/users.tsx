@@ -58,6 +58,13 @@ export const columns: ColumnDef<UserWithRole>[] = [
     },
   },
   {
+    accessorKey: "instructor",
+    header: "instructor",
+    cell: ({ row }) => {
+      return <div>{ row.original.instructor ? "Yes" : "No"}</div>
+    },
+  },
+  {
     accessorKey: "roles",
     header: "admin",
     cell: ({ row }) => {
@@ -79,10 +86,13 @@ export const columns: ColumnDef<UserWithRole>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => alert("unimplemented!")}
-            >
-              <Icon name="pencil-1">Edit</Icon>
+            <DropdownMenuItem asChild>
+              <Link
+                to={`edit/${row.original.id}`}
+                preventScrollReset
+              >
+            <Icon name="pencil-1">Edit</Icon>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link
