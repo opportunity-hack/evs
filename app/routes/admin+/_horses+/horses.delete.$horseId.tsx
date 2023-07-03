@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from "~/components/ui/dialog.tsx"
 import { Icon } from "~/components/ui/icon.tsx"
-import { Field, TextareaField } from "~/components/forms.tsx"
+import { Field } from "~/components/forms.tsx"
 import { Form, useLoaderData, useNavigate, useActionData, useNavigation, useFormAction } from "@remix-run/react"
 import { json, type DataFunctionArgs } from "@remix-run/node"
 import { requireAdmin } from "~/utils/permissions.server.ts"
@@ -17,9 +17,11 @@ import { prisma } from "~/utils/db.server.ts"
 import invariant from "tiny-invariant"
 import { conform, useForm } from '@conform-to/react'
 import { parse } from '@conform-to/zod'
-import { horseFormSchema } from "./horses.tsx"
 import { redirectWithToast } from "~/utils/flash-session.server.ts"
 import { StatusButton } from "~/components/ui/status-button.tsx"
+import { Button } from "~/components/ui/button.tsx"
+import { z } from "zod"
+
 
 export const loader = async({ request, params }: DataFunctionArgs) => {
   await requireAdmin(request)
@@ -31,14 +33,30 @@ export const loader = async({ request, params }: DataFunctionArgs) => {
   return json({ horse })
 };
 
+export const deleteHorseFormSchema = z.object({
+  name: z.string().min(1, {message: 'You must enter the name of this horse to delete it from the database.'})
+})
+
 export async function action({ request, params }: DataFunctionArgs) {
   await requireAdmin(request)
   invariant(params.horseId, "Missing horse id")
   const formData = await request.formData()
+  const horse = await prisma.horse.findUnique({ where: { id: params.horseId }}) 
+  if (!horse) {
+      throw new Response('not found', { status: 404 })
+  }
   const submission = await parse(formData, {
     async: true,
-    schema: horseFormSchema,
-    acceptMultipleErrors: () => true,
+    schema: deleteHorseFormSchema.superRefine(
+      async({ name }, ctx) => {
+        if (horse.name != name) {
+          ctx.addIssue({
+            path: ['name'],
+            code: 'custom',
+            message: 'That is not the correct name.',
+          })
+        }
+      }),
   })
 
   if (submission.intent !== 'submit') {
@@ -54,30 +72,22 @@ export async function action({ request, params }: DataFunctionArgs) {
 		)
 	}
 
-  const { name, notes, status }  = submission.value
-
-  const updatedHorse = await prisma.horse.update({
-    where: { id: params.horseId },
-    data: {
-      name,
-      status,
-      notes,
-    }
-  })
-
-  if (!updatedHorse) {
-    return redirectWithToast(`/admin/horses`, 
-    { 
-      title: `Error`,
+  let deletedHorse;
+  try {
+    deletedHorse = await prisma.horse.delete({
+      where: { id: params.horseId }
+    })
+  } catch {
+    return redirectWithToast("/admin/horses", { 
+      title: "Error", 
       variant: "destructive",
-      description: `Failed to update horse`,
+      description: "Failed to delete horse",
     })
   }
 
-  return redirectWithToast(`/admin/horses`, 
-  { 
-    title: `Success`,
-    description: `Updated ${updatedHorse.name}`
+  return redirectWithToast("/admin/horses", { 
+    title: "Success", 
+    description: `Deleted horse ${deletedHorse.name}`,
   })
 }
 
@@ -92,7 +102,7 @@ export default function EditHorse() {
   const isSubmitting = 
     navigation.state === 'submitting' &&
     navigation.formAction === formAction &&
-    navigation.formMethod === "PUT"
+    navigation.formMethod === "DELETE"
 
   const navigate = useNavigate()
 	const dismissModal = () => {
@@ -102,13 +112,7 @@ export default function EditHorse() {
   const [form, fields] = useForm({
     id: 'edit-horse',
     lastSubmission: actionData?.submission,
-    defaultValue: {
-      name: data.horse?.name,
-      status: data.horse?.status,
-      notes: data.horse?.notes,
-    },
     shouldRevalidate: 'onSubmit',
-    onSubmit: dismissModal
   })
 
   return (
@@ -118,48 +122,42 @@ export default function EditHorse() {
 				onPointerDownOutside={dismissModal}
       >
         <DialogHeader>
-        <DialogTitle>Edit Horse: {data.horse?.name}</DialogTitle>
+        <DialogTitle>Delete Horse</DialogTitle>
         <DialogDescription>
-          Edit this horse using this form. Click save to save your changes.
+          Are you sure you want to remove {data.horse?.name} from the database? This will affect all associated events and assignments.
         </DialogDescription>
-        </DialogHeader>
-        <Form method="PUT" {...form.props}>
-          <input type="hidden" name="_action" value="update" />
-          <Field
-            labelProps={{
-              htmlFor: fields.name.id,
-              children: 'Name'
-            }}
-            inputProps={conform.input(fields.name)}
-            errors={fields.name.errors}
-          />
-          <Field
-            labelProps={{
-              htmlFor: fields.status.id,
-              children: 'Status'
-            }}
-            inputProps={conform.input(fields.status)}
-            errors={fields.status.errors}
-          />
 
-          <TextareaField
-            labelProps={{
-              htmlFor: fields.notes.id,
-              children: 'Notes'
-            }}
-            textareaProps={conform.textarea(fields.notes)}
-            errors={fields.notes.errors}
-          />
-        <DialogFooter className="mt-4">
-          <StatusButton
-            type="submit"
-            status={isSubmitting ? 'pending' : actionData?.status ?? 'idle'}>
-            Save
-          </StatusButton>
+        <Form method="DELETE" {...form.props}>
+            <Field
+              labelProps={{
+                htmlFor: fields.name.id,
+                children: `To confirm, type "${data.horse?.name}" into the box.`,
+              }}
+              inputProps={{
+                ...conform.input(fields.name)
+              }}
+              errors={fields.name.errors}
+            />
+        <DialogFooter className="gap-2 sm:justify-center">
+            <StatusButton
+              type="submit"
+              status={isSubmitting ? 'pending' : actionData?.status ?? 'idle'}
+              variant="destructive"
+            >
+            Confirm Deletion
+            </StatusButton>
+          <Button
+            type="button"
+            onClick={dismissModal}
+          >
+            Cancel
+          </Button>
         </DialogFooter>
-        </Form>
+          </Form>
+        </DialogHeader>
 				<DialogClose asChild>
 					<button
+            type="button"
             onClick={dismissModal}
 						aria-label="Close"
 						className="absolute right-10 top-10"
@@ -169,5 +167,5 @@ export default function EditHorse() {
 				</DialogClose>
       </DialogContent>
     </Dialog>
-  )
+    )
 }

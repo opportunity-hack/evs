@@ -27,6 +27,7 @@ import {
 import { Button } from '~/components/ui/button.tsx';
 
 export const horseFormSchema = z.object({
+  _action: z.enum(["create", "update"]),
   name: z.string().min(1, {message: 'Name is required'}),
   notes: z.string().optional(),
   status: z.string().optional(),
@@ -98,11 +99,13 @@ function CreateHorseDialog() {
         })
         setOpen(false)
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error creating horse",
-          description: "Failed to create horse. There was an unexpected error."
-        })
+        if (actionData.submission.value?._action == "create") {
+          toast({
+            variant: "destructive",
+            title: "Error creating horse",
+            description: "Failed to create horse. There was an unexpected error."
+          })
+        }
       }
   })
 
@@ -122,6 +125,7 @@ function CreateHorseDialog() {
         </DialogDescription>
         </DialogHeader>
         <Form method="post">
+          <input type="hidden" name="_action" value="create" />
           <Label htmlFor="name">Name</Label>
           <Input type="text" name="name" required></Input>
 
@@ -187,10 +191,13 @@ export const columns: ColumnDef<Horse>[] = [
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className=""
-              onClick={() => alert("unimplemented!")}
-            >
+            <DropdownMenuItem asChild>
+              <Link
+                to={`delete/${row.original.id}`}
+                preventScrollReset
+              >
             <Icon name="trash">Delete</Icon>
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu> )
