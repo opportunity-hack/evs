@@ -240,7 +240,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
         <DialogTitle className="text-h4">{calEvent.title} - Volunteer Registration</DialogTitle>
         <div className="flex items-center justify-between">
         <p>{calEvent.start.toLocaleDateString()}, {format(calEvent.start, "p")} - {format(calEvent.end, "p")}</p>
-        {userIsAdmin ? <Button size="sm"><Link to={`/calendar/${calEvent.id}`}>Manage Event</Link></Button> : null}
+        {userIsAdmin ? <Button asChild size="sm"><Link to={`/calendar/${calEvent.id}`}>Manage Event</Link></Button> : null}
         </div>
       </DialogHeader>
           <DialogDescription>
