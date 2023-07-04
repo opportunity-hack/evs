@@ -174,9 +174,9 @@ model Event {
 
 model HorseAssignment {
   id        String @id @unique @default(cuid())
-  event     Event  @relation(fields: [eventId], references: [id])
-  volunteer User   @relation(fields: [userId], references: [id])
-  horse     Horse  @relation(fields: [horseId], references: [id])
+  event     Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  volunteer User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  horse     Horse  @relation(fields: [horseId], references: [id], onDelete: Cascade)
   eventId   String
   userId    String
   horseId   String
