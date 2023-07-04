@@ -22,6 +22,7 @@ import {
 import {
   Icon
 } from "~/components/ui/icon.tsx"
+import { Outlet } from "@remix-run/react";
 
 export async function loader({ request, params }: DataFunctionArgs) {
   await requireAdmin(request)
@@ -144,7 +145,11 @@ export default function() {
           <Card className="px-4 py-6">
           <div className="flex justify-between items-center">
             <h2 className="font-bold text-2xl">{event.title}</h2>
-            <Button className="" variant="default" size="sm">Edit</Button>
+            <Button asChild className="" variant="default" size="sm">
+              <Link to="edit">
+                Edit
+              </Link>
+            </Button>
           </div>
           <div className="flex gap-x-4 flex-wrap">
             <div className="text-lg">{format(event.start, "MMMM do, y")}</div>
@@ -191,6 +196,7 @@ export default function() {
       }) }
       </div>
       </section>
+      <Outlet />
     </div>
   )
 }
@@ -210,7 +216,7 @@ export function VolunteerSection({ volunteerTypeIdx, event }: volunteerSectionPr
   let placeholders = []
   for (unfilled; unfilled > 0; unfilled--) {
     placeholders.push(
-      <VolunteerListItem event={event} />
+      <VolunteerListItem key={unfilled} event={event} />
     )
   }
 

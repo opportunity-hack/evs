@@ -14,10 +14,23 @@ interface HorseData {
 interface HorseListboxProps {
   horses: HorseData[]
   name: string
+  defaultValues?: HorseData[]
 }
 
-export function HorseListbox({horses, name}: HorseListboxProps) {
-  const [selected, setSelected] = useState([horses[0]])
+export function HorseListbox({horses, name, defaultValues=[]}: HorseListboxProps) {
+  const initialValues = horses.filter(horse => {
+    for (const value of defaultValues) {
+      if (value.id == horse.id) {
+        return true
+      }
+    }
+    return false
+  })
+  const [selected, setSelected] = useState(initialValues)
+
+  console.log("initial values: ", JSON.stringify(initialValues))
+  console.log("default values: ", JSON.stringify(defaultValues))
+  console.log("all horses: ", JSON.stringify(horses))
 
   return (
       <Listbox value={selected} onChange={setSelected} name={name} multiple>
@@ -85,10 +98,11 @@ interface UserData {
 interface InstructorListboxProps {
   instructors: UserData[]
   name: string
+  defaultValue?: UserData
 }
 
-export function InstructorListbox({instructors, name}: InstructorListboxProps) {
-  const [selected, setSelected] = useState(instructors[0])
+export function InstructorListbox({instructors, name, defaultValue = instructors[0]}: InstructorListboxProps) {
+  const [selected, setSelected] = useState(defaultValue)
 
   return (
       <Listbox value={selected} onChange={setSelected} name={name}>
