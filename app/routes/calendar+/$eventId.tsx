@@ -1,15 +1,16 @@
 import { differenceInYears, format } from 'date-fns'
-import { Card } from '~/components/ui/card.tsx';
 import { useLoaderData, json, Link } from '~/remix.ts'
 import type { ActionArgs, DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts';
+import { Card } from '~/components/ui/card.tsx';
 import { Button } from '~/components/ui/button.tsx'
+import { Separator } from '~/components/ui/separator.tsx'
 import { getUserImgSrc, getHorseImgSrc } from '~/utils/misc.ts';
 
 import type { UserData, HorseData, CalEvent } from '~/data.ts'
 import { volunteerTypes } from '~/data.ts';
 import { clsx } from 'clsx';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher, Outlet } from '@remix-run/react';
 import { z } from 'zod'
 import { parse } from '@conform-to/zod';
 import { requireAdmin } from '~/utils/permissions.server.ts';
@@ -22,7 +23,6 @@ import {
 import {
   Icon
 } from "~/components/ui/icon.tsx"
-import { Outlet } from "@remix-run/react";
 
 export async function loader({ request, params }: DataFunctionArgs) {
   await requireAdmin(request)
@@ -186,6 +186,16 @@ export default function() {
               </HorseInfoPopover>
             })}
           </div>
+          <Separator className="border mt-2 mb-24"/>
+          <Button
+            asChild
+            variant="destructive"
+            size="sm"
+          >
+            <Link to="delete">
+            Delete
+            </Link>
+          </Button>
         </Card>
       </section>
       <section className="md:w-3/5 flex flex-col">
