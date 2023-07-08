@@ -47,6 +47,7 @@ import { useResetCallback } from '~/utils/misc.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { Info } from 'lucide-react'
+import { Checkbox } from '~/components/ui/checkbox.tsx';
 
 const locales = {
   'en-US': enUS,
@@ -74,7 +75,6 @@ export const loader = async ({ request }: LoaderArgs) => {
      lessonAssistants: true,  
      sideWalkers: true,  
      horseLeaders: true,  
-     horseAssignments: true,
    } 
    }),
    horses: await prisma.horse.findMany(),
@@ -168,7 +168,16 @@ export default function Schedule() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(events[0]);
 
-  const handleSelectEvent = (calEvent: any) => {
+  const [filterFlag, setFilterFlag] = useState(false)
+
+  const eventsThatNeedHelp = events.filter((event: typeof events[number]) => {
+    return event.cleaningCrewReq > event.cleaningCrew.length || 
+           event.lessonAssistantsReq > event.lessonAssistants.length ||
+           event.horseLeadersReq > event.horseLeaders.length || 
+           event.sideWalkersReq > event.sideWalkers.length;
+  })
+
+  const handleSelectEvent = (calEvent: typeof events[number]) => {
     setSelectedEvent(calEvent)
     setRegisterOpen(!registerOpen)
   }
@@ -177,10 +186,20 @@ export default function Schedule() {
   return (
   <div className="grid place-items-center">
     <h1 className="text-5xl mb-5">Calendar</h1>
+      <div className="flex gap-2">
+        <Checkbox 
+          checked={filterFlag}
+          onCheckedChange={ () => setFilterFlag(!filterFlag) }
+          id="filter"
+        />
+        <Label htmlFor="filter">
+          Show only events that need more volunteers
+        </Label>
+      </div>
     <div className="container sm:h-[80vh] sm:w-[80vw] h-screen w-screen">
     <Calendar
       localizer={localizer}
-      events={events}
+      events={filterFlag ? eventsThatNeedHelp : events}
       startAccessor="start"
       endAccessor="end"
       onSelectEvent={handleSelectEvent}
@@ -248,7 +267,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
         <ul className="">
 
         {volunteerTypes.map((volunteerType) => {
-        const isFull = (calEvent[volunteerType.reqField] < calEvent[volunteerType.field].length)
+        const isFull = (calEvent[volunteerType.reqField] <= calEvent[volunteerType.field].length)
 
           return (
             <li key ={volunteerType.field} className="flex flex-col items-left m-2">

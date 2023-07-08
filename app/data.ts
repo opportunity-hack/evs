@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client"
+
 export const siteEmailAddress = "hello@email.trottrack.org"
 export const siteName = "The Barn: Volunteer Portal"
 
@@ -72,6 +74,18 @@ export interface CalEvent {
   horseLeaders: UserData[]
   sideWalkers: UserData[]
 
-  horseAssignments: HorseAssignment[]
 }
 
+const EventWithAllRelations = Prisma.validator<Prisma.EventArgs>()({
+  include: { 
+      horses: true,
+      instructors: true,
+      cleaningCrew: true,
+      lessonAssistants: true,
+      horseLeaders: true,
+      sideWalkers: true,
+      horseAssignments: true,
+  }
+})
+
+export type EventWithAllRelations = Prisma.EventGetPayload<typeof EventWithAllRelations>

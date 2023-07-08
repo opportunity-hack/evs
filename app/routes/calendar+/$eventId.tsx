@@ -7,7 +7,7 @@ import { Button } from '~/components/ui/button.tsx'
 import { Separator } from '~/components/ui/separator.tsx'
 import { getUserImgSrc, getHorseImgSrc } from '~/utils/misc.ts';
 
-import type { UserData, HorseData, CalEvent } from '~/data.ts'
+import type { UserData, HorseData, CalEvent, EventWithAllRelations } from '~/data.ts'
 import { volunteerTypes } from '~/data.ts';
 import { clsx } from 'clsx';
 import { useFetcher, Outlet } from '@remix-run/react';
@@ -23,6 +23,7 @@ import {
 import {
   Icon
 } from "~/components/ui/icon.tsx"
+import type { HorseAssignment } from '@prisma/client';
 
 export async function loader({ request, params }: DataFunctionArgs) {
   await requireAdmin(request)
@@ -38,12 +39,7 @@ export async function loader({ request, params }: DataFunctionArgs) {
       lessonAssistants: true,
       horseLeaders: true,
       sideWalkers: true,
-      horseAssignments: {
-        select: {
-          userId: true,
-          horseId: true,
-        },
-      },
+      horseAssignments: true,
     }
   })
   if (!event) {
@@ -212,8 +208,9 @@ export default function() {
 
 interface volunteerSectionProps {
   volunteerTypeIdx: number
-  event: CalEvent
+  event: EventWithAllRelations
 }
+
 
 export function VolunteerSection({ volunteerTypeIdx, event }: volunteerSectionProps) {
   const idx = volunteerTypeIdx
@@ -251,7 +248,9 @@ export function VolunteerSection({ volunteerTypeIdx, event }: volunteerSectionPr
 
 interface VolunteerListItemProps {
   user?: UserData
-  event: CalEvent
+  event: CalEvent & {
+    horseAssignments: HorseAssignment[]
+  }
 }
 
 const placeHolderUser: UserData = {
