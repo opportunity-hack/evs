@@ -252,13 +252,14 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
         <ul className="">
 
         {volunteerTypes.map((volunteerType) => {
+        const isFull = (calEvent[volunteerType.reqField] < calEvent[volunteerType.field].length)
 
           return (
-            <li key ={volunteerType.field} className="flex justify-between items-center m-2">
+            <li key ={volunteerType.field} className="flex flex-col items-left m-2">
                 <div className="flex w-[80%] justify-between">
                   <div className="flex items-center">
-                  <RadioGroupItem className="mr-2" id={volunteerType.field} value={volunteerType.field}/>
-                    <Label htmlFor={volunteerType.field}>
+                  <RadioGroupItem disabled={isFull} className="mr-2 aria-disabled:bg-muted" id={volunteerType.field} value={volunteerType.field}/>
+                    <Label htmlFor={volunteerType.field} className={isFull ? "text-muted-foreground" : ""}>
                       <span className="capitalize">{volunteerType.displayName}:</span> {calEvent[volunteerType.field].length} registered of {calEvent[`${volunteerType.field}Req`]} needed.
                     </Label>
                   </div>
@@ -273,6 +274,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
                 </Tooltip>
               </TooltipProvider>
                 </div>
+                {isFull ? <div className="text-destructive/80 ml-7">This position is full</div> : null}
             </li>
             )
             }
