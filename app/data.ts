@@ -1,37 +1,30 @@
 export const siteEmailAddress = "hello@email.trottrack.org"
 export const siteName = "The Barn: Volunteer Portal"
 
-// TODO: get accurate descriptions of each role
 export const volunteerTypes = [
   {
-    displayName: "barn crew",
-    field: "barnCrew",
-    reqField: "barnCrewReq",
-    description: "Barn Crew volunteers help with the daily care of the horses. This includes feeding, watering, and cleaning stalls. Barn Crew volunteers must be at least 16 years old."
-  },
-  {
-    displayName: "pasture crew",
-    field: "pastureCrew",
-    reqField: "pastureCrewReq",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+    displayName: "cleaning crew",
+    field: "cleaningCrew",
+    reqField: "cleaningCrewReq",
+    description: "Cleaning crew volunteers help clean all pastures and stalls in the barn, check automatic waterers, sweep the feed room and tack room, and handle other miscellaneous cleaning jobs. No prior experience with horses is required."
   },
   {
     displayName: "lesson assistants",
     field: "lessonAssistants",
     reqField: "lessonAssistantsReq",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+    description: "Lesson assistants should have 1+ years of experience with horses. They must be able to groom and tack horses, and to communicate effectively with both students and instructors."
   },
   {
     displayName: "horse leaders",
     field: "horseLeaders",
     reqField: "horseLeadersReq",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+    description: "Leads horses during lessons. Should have 1+ years of experiences with horses, and must be able to walk on uneven surfaces."
   },
   {
     displayName: "side walkers",
     field: "sideWalkers",
     reqField: "sideWalkersReq",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+    description: "Side walkers walk alongside students helping to support them during lessons.No prior experience with horses needed. Must be able to walk on uneven surfaces."
   },
 ] as const
 
@@ -69,14 +62,12 @@ export interface CalEvent {
   instructors: UserData[]
   horses: HorseData[]
 
-  barnCrewReq: number
-  pastureCrewReq: number
+  cleaningCrewReq: number
   lessonAssistantsReq: number
   horseLeadersReq: number
   sideWalkersReq: number
 
-  barnCrew: UserData[]
-  pastureCrew: UserData[]
+  cleaningCrew: UserData[]
   lessonAssistants: UserData[]
   horseLeaders: UserData[]
   sideWalkers: UserData[]

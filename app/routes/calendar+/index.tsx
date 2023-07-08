@@ -70,8 +70,7 @@ export const loader = async ({ request }: LoaderArgs) => {
    { 
      horses: true, 
      instructors: true,  
-     barnCrew: true,  
-     pastureCrew: true,  
+     cleaningCrew: true,  
      lessonAssistants: true,  
      sideWalkers: true,  
      horseLeaders: true,  
@@ -100,8 +99,7 @@ const createEventSchema = z.object({
   duration: z.coerce.number().gt(0),
   horses: z.array(horseSchema),
   instructor: instructorSchema,
-  barnCrewReq: z.coerce.number().gt(-1),
-  pastureCrewReq: z.coerce.number().gt(-1),
+  cleaningCrewReq: z.coerce.number().gt(-1),
   lessonAssistantsReq: z.coerce.number().gt(-1),
   sideWalkersReq: z.coerce.number().gt(-1),
   horseLeadersReq: z.coerce.number().gt(-1),
@@ -128,8 +126,7 @@ export async function action({ request }: ActionArgs) {
   const instructorId = submission.value.instructor.id
   const horseIds = submission.value.horses.map(e => { return {id: e.id} })
 
-  const barnCrewReq = submission.value.barnCrewReq
-  const pastureCrewReq = submission.value.pastureCrewReq
+  const cleaningCrewReq = submission.value.cleaningCrewReq
   const lessonAssistantsReq = submission.value.lessonAssistantsReq
   const sideWalkersReq = submission.value.sideWalkersReq
   const horseLeadersReq = submission.value.horseLeadersReq
@@ -145,8 +142,7 @@ export async function action({ request }: ActionArgs) {
       horses: {
         connect: horseIds
       },
-      barnCrewReq,
-      pastureCrewReq,
+      cleaningCrewReq,
       lessonAssistantsReq,
       sideWalkersReq,
       horseLeadersReq,
@@ -399,13 +395,8 @@ function CreateEventForm({ horses, instructors, doneCallback }: EventFormProps) 
           </div>
 
           <div>
-          <Label htmlFor='barnCrewReq' className="mx-auto"># Barn crew needed</Label>
-          <Input type="number" name="barnCrewReq" defaultValue={0} inputMode="numeric" required min="0"/>
-          </div>
-
-          <div>
-          <Label htmlFor='pastureCrewReq' className="mx-auto"># Pasture crew needed</Label>
-          <Input type="number" name="pastureCrewReq" defaultValue={0} inputMode="numeric" required min="0"/>
+          <Label htmlFor='cleaningCrewReq' className="mx-auto"># Cleaning crew needed</Label>
+          <Input type="number" name="cleaningCrewReq" defaultValue={0} inputMode="numeric" required min="0"/>
           </div>
 
           <div>

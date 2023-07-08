@@ -85,14 +85,14 @@ export async function createEvent(start: Date) {
 			throw new Error("no instructors in database")
 		}
 
-		const reqs: number[] = Array.from({length: 5}, (_) => faker.number.int(4))
+		const reqs: number[] = Array.from({length: 4}, (_) => faker.number.int(4))
 
     let volunteers = users.filter(user => !user.instructor).sort(
 		() => 0.5 - Math.random())
 
-		let assignments: { id: string }[][] = Array.from({length: 5}, (_) => [])
-		for (let req of reqs) {
-			for (let i = Math.floor(req/2); i > 0; i--) {
+		let assignments: { id: string }[][] = Array.from({length: 4}, (_) => [])
+		for (let req = 0; req < 4; req++) {
+			for (let i = Math.floor(reqs[req]/2); i > 0; i--) {
 				const volunteer = volunteers.pop()
 				if (volunteer != undefined) {
 				  assignments[req].push({ id: volunteer.id})
@@ -112,26 +112,22 @@ export async function createEvent(start: Date) {
           horses: {
             connect: horses.map(horse => {return {id: horse.id}}) 
           },
-					barnCrewReq: reqs[0],
-					pastureCrewReq: reqs[1],
-					lessonAssistantsReq: reqs[2],
-					horseLeadersReq: reqs[3],
-					sideWalkersReq: reqs[4],
+					cleaningCrewReq: reqs[0],
+					lessonAssistantsReq: reqs[1],
+					horseLeadersReq: reqs[2],
+					sideWalkersReq: reqs[3],
 
-					barnCrew: {
+					cleaningCrew: {
 						connect: assignments[0]
 					},
-					pastureCrew: {
+					lessonAssistants: {
 						connect: assignments[1]
 					},
-					lessonAssistants: {
+					horseLeaders: {
 						connect: assignments[2]
 					},
-					horseLeaders: {
-						connect: assignments[3]
-					},
 					sideWalkers: {
-						connect: assignments[4]
+						connect: assignments[3]
 					},
 			}
 }

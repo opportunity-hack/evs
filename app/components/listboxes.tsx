@@ -108,7 +108,7 @@ export function InstructorListbox({instructors, name, defaultValue = instructors
       <Listbox value={selected} onChange={setSelected} name={name}>
         <div className="relative mt-1">
           <Listbox.Button className={listboxButtonClassName}>
-            <span className="block truncate">{selected.name}</span>
+            <span className="block truncate">{selected?.name}</span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
               <Icon className="text-body-md" name="caret-sort" />
             </span>

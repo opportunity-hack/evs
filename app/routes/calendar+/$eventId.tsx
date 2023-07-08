@@ -34,8 +34,7 @@ export async function loader({ request, params }: DataFunctionArgs) {
     include: {
       instructors: true,
       horses: true,
-      barnCrew: true,
-      pastureCrew: true,
+      cleaningCrew: true,
       lessonAssistants: true,
       horseLeaders: true,
       sideWalkers: true,

@@ -10,8 +10,7 @@ const actions = [
 ] as const
 
 const volunteerTypes = [
-    "barnCrew",
-    "pastureCrew",
+    "cleaningCrew",
     "lessonAssistants",
     "sideWalkers",
     "horseLeaders",

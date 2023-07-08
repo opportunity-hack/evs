@@ -65,8 +65,7 @@ const editEventSchema = z.object({
   duration: z.coerce.number().gt(0),
   horses: z.array(horseSchema),
   instructor: instructorSchema,
-  barnCrewReq: z.coerce.number().gt(-1),
-  pastureCrewReq: z.coerce.number().gt(-1),
+  cleaningCrewReq: z.coerce.number().gt(-1),
   lessonAssistantsReq: z.coerce.number().gt(-1),
   sideWalkersReq: z.coerce.number().gt(-1),
   horseLeadersReq: z.coerce.number().gt(-1),
@@ -94,8 +93,7 @@ export async function action({ request, params }: DataFunctionArgs) {
   const instructorId = submission.value.instructor.id
   const horseIds = submission.value.horses.map(e => { return {id: e.id} })
 
-  const barnCrewReq = submission.value.barnCrewReq
-  const pastureCrewReq = submission.value.pastureCrewReq
+  const cleaningCrewReq = submission.value.cleaningCrewReq
   const lessonAssistantsReq = submission.value.lessonAssistantsReq
   const sideWalkersReq = submission.value.sideWalkersReq
   const horseLeadersReq = submission.value.horseLeadersReq
@@ -114,8 +112,7 @@ export async function action({ request, params }: DataFunctionArgs) {
       horses: {
         set: horseIds
       },
-      barnCrewReq,
-      pastureCrewReq,
+      cleaningCrewReq,
       lessonAssistantsReq,
       sideWalkersReq,
       horseLeadersReq,
@@ -168,8 +165,7 @@ export default function EventEditor() {
       duration: defaultDuration,
       horses: data.event?.horses,
       instructor: data.event?.instructors[0],
-      barnCrewReq: data.event?.barnCrewReq,
-      pastureCrewReq: data.event?.pastureCrewReq,
+      cleaningCrewReq: data.event?.cleaningCrewReq,
       horseLeadersReq: data.event?.horseLeadersReq,
       sideWalkersReq: data.event?.sideWalkersReq,
       lessonAssistantsReq: data.event?.lessonAssistantsReq,
@@ -235,20 +231,12 @@ export default function EventEditor() {
           </div>
           <Separator className="col-span-2 border" />
           <Field
-            labelProps={{ htmlFor: fields.barnCrewReq.id, children: 'Barn crew needed' }}
+            labelProps={{ htmlFor: fields.cleaningCrewReq.id, children: 'cleaning crew needed' }}
             inputProps={{
-              ...conform.input(fields.barnCrewReq),
+              ...conform.input(fields.cleaningCrewReq),
               type: "number"
             }}
-            errors={fields.barnCrewReq.errors}
-          />
-          <Field
-            labelProps={{ htmlFor: fields.pastureCrewReq.id, children: 'Pasture crew needed' }}
-            inputProps={{
-              ...conform.input(fields.pastureCrewReq),
-              type: "number"
-            }}
-            errors={fields.pastureCrewReq.errors}
+            errors={fields.cleaningCrewReq.errors}
           />
           <Field
             labelProps={{ htmlFor: fields.lessonAssistantsReq.id, children: 'Lesson assistants needed' }}
