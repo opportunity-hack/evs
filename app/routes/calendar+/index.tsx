@@ -249,6 +249,10 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
   }
   const registeredAs = volunteerTypes[volunteerTypeIdx]
 
+  const helpNeeded = calEvent.cleaningCrewReq > calEvent.cleaningCrew.length || 
+             calEvent.lessonAssistantsReq > calEvent.lessonAssistants.length ||
+             calEvent.horseLeadersReq > calEvent.horseLeaders.length || 
+             calEvent.sideWalkersReq > calEvent.sideWalkers.length;
   return (
   <DialogContent>
       <DialogHeader>
@@ -307,7 +311,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
           {isSubmitting ? <div>Processing...</div> :
            isRegistered ? 
             <Button type="submit" name="_action" value="unregister" variant="destructive"> Unregister</Button>
-            : <Button className="" type="submit" name="_action" value="register">Register</Button>}
+            : <Button className="" type="submit" name="_action" value="register" disabled={!helpNeeded}>Register</Button>}
         <DialogClose />
         </DialogFooter>
         </registrationFetcher.Form>
