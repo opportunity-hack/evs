@@ -89,3 +89,15 @@ const EventWithAllRelations = Prisma.validator<Prisma.EventArgs>()({
 })
 
 export type EventWithAllRelations = Prisma.EventGetPayload<typeof EventWithAllRelations>
+const EventWithVolunteers = Prisma.validator<Prisma.EventArgs>()({
+  include: { 
+      horses: true,
+      instructors: true,
+      cleaningCrew: true,
+      lessonAssistants: true,
+      horseLeaders: true,
+      sideWalkers: true,
+  }
+})
+
+export type EventWithVolunteers = Prisma.EventGetPayload<typeof EventWithVolunteers>

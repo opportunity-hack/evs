@@ -57,10 +57,10 @@ model User {
   username String  @unique
   name     String?
 
-  birthdate          DateTime?
+  birthdate         DateTime?
   height            Int?
   yearsOfExperience Int?
-  notes              String?
+  notes             String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -77,7 +77,7 @@ model User {
   instructor Boolean @default(false)
 
   Instructor      Event[] @relation("instructor")
-  cleaningCrew     Event[] @relation("cleaningCrew")
+  cleaningCrew    Event[] @relation("cleaningCrew")
   lessonAssistant Event[] @relation("lessonAssistant")
   sideWalker      Event[] @relation("sideWalker")
   horseLeader     Event[] @relation("horseLeader")
@@ -166,6 +166,8 @@ model Event {
   horses Horse[]
 
   horseAssignments HorseAssignment[]
+
+  isPrivate Boolean @default(false)
 }
 
 model HorseAssignment {

@@ -150,6 +150,9 @@ export default function() {
             <div className="text-lg">{format(event.start, "MMMM do, y")}</div>
             <div className="text-lg"> {format(event.start, "p")} - {format(event.end, "p")}</div>
           </div>
+          <div>
+            {event.isPrivate ? "Private event. (Visible only to admins on calendar)" : "Public event. (Visible to all users on the calendar)"}
+          </div>
           <div className="mt-4">
             Instructor{event.instructors.length > 1 ? "s" : null}: {event.instructors.map(instructor => {
             return (

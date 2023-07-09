@@ -20,11 +20,12 @@ import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
 import { addMinutes, differenceInMinutes, format } from "date-fns";
 import { redirectWithToast } from "~/utils/flash-session.server.ts";
 import { conform, useForm } from "@conform-to/react";
-import { Field } from "~/components/forms.tsx";
+import { CheckboxField, Field } from "~/components/forms.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import { StatusButton } from "~/components/ui/status-button.tsx";
+import { checkboxSchema } from "~/utils/zod-extensions.ts";
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
   await requireAdmin(request)
@@ -69,6 +70,7 @@ const editEventSchema = z.object({
   lessonAssistantsReq: z.coerce.number().gt(-1),
   sideWalkersReq: z.coerce.number().gt(-1),
   horseLeadersReq: z.coerce.number().gt(-1),
+  isPrivate: checkboxSchema(),
 });
 
 export async function action({ request, params }: DataFunctionArgs) {
@@ -98,6 +100,8 @@ export async function action({ request, params }: DataFunctionArgs) {
   const sideWalkersReq = submission.value.sideWalkersReq
   const horseLeadersReq = submission.value.horseLeadersReq
 
+  const isPrivate = submission.value.isPrivate
+
   const updatedEvent = await prisma.event.update({
     where: {
       id: params.eventId
@@ -116,6 +120,7 @@ export async function action({ request, params }: DataFunctionArgs) {
       lessonAssistantsReq,
       sideWalkersReq,
       horseLeadersReq,
+      isPrivate,
     }
   })
 
@@ -156,8 +161,10 @@ export default function EventEditor() {
   const defaultDuration = data.event ? differenceInMinutes(
           new Date(data.event.end), new Date(data.event.start)) : 30
 
+  const defaultIsPrivate = data.event?.isPrivate ?? false
+
   const [form, fields] = useForm({
-    id: 'edit-horse',
+    id: 'edit-event',
     lastSubmission: actionData?.submission,
     defaultValue: {
       title: data.event?.title,
@@ -262,6 +269,13 @@ export default function EventEditor() {
               type: "number"
             }}
             errors={fields.horseLeadersReq.errors}
+          />
+           <CheckboxField
+            labelProps={{ htmlFor: fields.isPrivate.id, children: 'Private (only visible to admins)' }}
+            buttonProps={{
+                ...conform.input(fields.isPrivate),
+                defaultChecked: defaultIsPrivate,
+              }}
           />
         </div>
         <DialogFooter>

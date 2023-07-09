@@ -9,7 +9,7 @@ import enUS from 'date-fns/locale/en-US/index.js'
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Icon } from '~/components/ui/icon.tsx';
 
-import { volunteerTypes, type UserData, type HorseData, type CalEvent } from '~/data.ts'
+import { volunteerTypes, type UserData, type HorseData, type EventWithVolunteers } from '~/data.ts'
 import { useState } from 'react'
 
 import { prisma } from "~/utils/db.server.ts";
@@ -42,12 +42,18 @@ import { z } from 'zod'
 
 import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
 import { addMinutes } from 'date-fns'
-import { useFetcher } from '@remix-run/react'
+import { useFetcher, useFormAction, useNavigation } from '@remix-run/react'
 import { useResetCallback } from '~/utils/misc.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
-import { requireAdmin } from '~/utils/permissions.server.ts'
+import { requireAdmin, userHasAdminPermissions } from '~/utils/permissions.server.ts'
 import { Info } from 'lucide-react'
 import { Checkbox } from '~/components/ui/checkbox.tsx';
+import { conform, useForm } from '@conform-to/react';
+import { StatusButton } from '~/components/ui/status-button.tsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select.tsx';
+import { Separator } from '~/components/ui/separator.tsx';
+import { CheckboxField, Field } from '~/components/forms.tsx';
+import { checkboxSchema } from '~/utils/zod-extensions.ts';
 
 const locales = {
   'en-US': enUS,
@@ -66,15 +72,21 @@ export const loader = async ({ request }: LoaderArgs) => {
   const instructors = await prisma.user.findMany({ 
     where: { instructor: true, }
   })
+
+  let eventsWhere: { isPrivate?: boolean } = { isPrivate: false};
+  if (await userHasAdminPermissions(request)) {
+    delete eventsWhere.isPrivate
+  }
   return json({
-   events: await prisma.event.findMany({ include:
-   { 
-     horses: true, 
-     instructors: true,  
-     cleaningCrew: true,  
-     lessonAssistants: true,  
-     sideWalkers: true,  
-     horseLeaders: true,  
+   events: await prisma.event.findMany({ 
+      where: eventsWhere,
+     include: { 
+       horses: true, 
+       instructors: true,  
+       cleaningCrew: true,  
+       lessonAssistants: true,  
+       sideWalkers: true,  
+       horseLeaders: true,  
    } 
    }),
    horses: await prisma.horse.findMany(),
@@ -95,7 +107,7 @@ const instructorSchema = z.object({
 
 const createEventSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  day: z.coerce.date(),
+  startDate: z.coerce.date(),
   duration: z.coerce.number().gt(0),
   horses: z.array(horseSchema),
   instructor: instructorSchema,
@@ -103,6 +115,7 @@ const createEventSchema = z.object({
   lessonAssistantsReq: z.coerce.number().gt(-1),
   sideWalkersReq: z.coerce.number().gt(-1),
   horseLeadersReq: z.coerce.number().gt(-1),
+  isPrivate: checkboxSchema(),
 });
 
 export async function action({ request }: ActionArgs) {
@@ -120,7 +133,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   const title = submission.value.title
-  const start = submission.value.day
+  const start = submission.value.startDate
   const end = addMinutes(start, submission.value.duration)
 
   const instructorId = submission.value.instructor.id
@@ -130,6 +143,8 @@ export async function action({ request }: ActionArgs) {
   const lessonAssistantsReq = submission.value.lessonAssistantsReq
   const sideWalkersReq = submission.value.sideWalkersReq
   const horseLeadersReq = submission.value.horseLeadersReq
+
+  const isPrivate = submission.value.isPrivate
 
   await prisma.event.create({
     data: {
@@ -146,12 +161,13 @@ export async function action({ request }: ActionArgs) {
       lessonAssistantsReq,
       sideWalkersReq,
       horseLeadersReq,
+      isPrivate,
     }
   })
 
   return json(
   {
-    status: 'ok',
+    status: 'success',
     submission,
   },
   { status: 200},
@@ -218,7 +234,7 @@ export default function Schedule() {
 }
 
 interface RegistrationProps {
-  events: CalEvent[]
+  events: EventWithVolunteers[]
   selectedEventId: string
 }
 
@@ -261,6 +277,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
         <p>{calEvent.start.toLocaleDateString()}, {format(calEvent.start, "p")} - {format(calEvent.end, "p")}</p>
         {userIsAdmin ? <Button asChild size="sm"><Link to={`/calendar/${calEvent.id}`}>Manage Event</Link></Button> : null}
         </div>
+        {userIsAdmin ? <p>This event is {calEvent.isPrivate ? "private (can only be seen by administrators)" : "public (can be seen by everyone)"}</p> : null}
       </DialogHeader>
           <DialogDescription>
             {isRegistered ? "Manage registration" : "Select a role to volunteer in"}
@@ -312,7 +329,7 @@ function RegistrationDialogue({selectedEventId, events}: RegistrationProps) {
            isRegistered ? 
             <Button type="submit" name="_action" value="unregister" variant="destructive"> Unregister</Button>
             : <Button className="" type="submit" name="_action" value="register" disabled={!helpNeeded}>Register</Button>}
-        <DialogClose />
+        <DialogClose autoFocus={false} />
         </DialogFooter>
         </registrationFetcher.Form>
       </DialogContent>
@@ -340,11 +357,18 @@ function CreateEventDialog({horses, instructors}: CreateEventDialogProps) {
         <DialogHeader>
           <DialogTitle>Create Event</DialogTitle>
           <DialogDescription>
-                Submit this form to create a new event. Volunteers will be able to see it on the calendar and be able to register to help.
+                Submit this form to create a new event. If it is public, volunteers will be able to see it on the calendar and to register to help.
           </DialogDescription>
         </DialogHeader>
         <CreateEventForm horses={horses} instructors={instructors} doneCallback={() => setOpen(false)} />
-
+       <DialogClose asChild>
+        <button
+          aria-label="Close"
+          className="absolute right-10 top-10"
+        >
+          <Icon name="cross-1" />
+        </button>
+        </DialogClose>
       </DialogContent>
     </Dialog> 
     )
@@ -358,11 +382,31 @@ function CreateEventForm({ horses, instructors, doneCallback }: EventFormProps) 
     const actionData = useActionData<typeof action>() 
     const { toast } = useToast();
 
+  const navigation = useNavigation()
+  const formAction = useFormAction()
+
+  const isSubmitting =
+    navigation.state === 'submitting' &&
+    navigation.formAction === formAction &&
+    navigation.formMethod === "POST"
+
+    const [form, fields] = useForm({
+      id: 'create-event',
+      lastSubmission: actionData?.submission,
+      defaultValue: {
+        cleaningCrewReq: 0,
+        horseLeadersReq: 0,
+        sideWalkersReq: 0,
+        lessonAssistantsReq: 0,
+      },
+      shouldRevalidate: 'onSubmit',
+    })
+
     useResetCallback(actionData, () => {
         if (!actionData) {
           return
         }
-        if (actionData.status == "ok") {
+        if (actionData.status == "success") {
           toast({
             title: "Success",
             description: `Created event "${actionData.submission?.value?.title}".`
@@ -379,68 +423,98 @@ function CreateEventForm({ horses, instructors, doneCallback }: EventFormProps) 
         }
     })
 
-    return ( <Form method="post">
-          <div className="mx-auto grid grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <Label htmlFor='title'>Event Title</Label>
-            <Input type="text" name="title" required/>
-          </div>
-
+    return ( <Form method="post" {...form.props}>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-4">
+          <Field
+            className="col-span-2"
+            labelProps={{
+              htmlFor: fields.title.id,
+              children: 'Title'
+            }}
+            inputProps={conform.input(fields.title)}
+            errors={fields.title.errors}
+          />
+          <Field
+            labelProps={{
+              htmlFor: fields.startDate.id,
+              children: 'Start Date'
+            }}
+            inputProps={{
+            ...conform.input(fields.startDate),
+            type: "datetime-local"
+            }}
+            errors={fields.startDate.errors}
+          />
           <div>
-          <Label htmlFor='day' className="mx-auto">When will the event start?</Label>
-            <Input type="datetime-local" name="day" required />
+          <Label htmlFor="duration">Duration</Label>
+          <Select name="duration" defaultValue="30">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="30">30 minutes</SelectItem>
+              <SelectItem value="60">60 minutes</SelectItem>
+              <SelectItem value="90">90 minutes</SelectItem>
+            </SelectContent>
+          </Select>
           </div>
           <div>
-          <Label htmlFor='duration' className="mx-auto">How long will it run for?</Label>
-          <RadioGroup required name="duration" className="flex flex-col space-y-1" defaultValue="30">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="30" id="30" />
-              <Label htmlFor="30">30 Minutes</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="60" id="60" />
-              <Label htmlFor="60">60 Minutes</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="90" id="90" />
-              <Label htmlFor="90">90 Minutes</Label>
-            </div>
-          </RadioGroup>
+            <Label htmlFor="horses">Horses</Label>
+            <HorseListbox name="horses" horses={horses} />
           </div>
-
           <div>
-          <Label htmlFor='horses'>Horses</Label>
-          <HorseListbox horses={horses} name="horses"/>
+            <Label htmlFor="instructor">Instructor</Label>
+            <InstructorListbox name="instructor" instructors={instructors}/>
           </div>
-
-          <div>
-          <Label htmlFor='instructor'>Instructor</Label>
-          <InstructorListbox instructors={instructors} name="instructor"/>
-          </div>
-
-          <div>
-          <Label htmlFor='cleaningCrewReq' className="mx-auto"># Cleaning crew needed</Label>
-          <Input type="number" name="cleaningCrewReq" defaultValue={0} inputMode="numeric" required min="0"/>
-          </div>
-
-          <div>
-          <Label htmlFor='lessonAssistantsReq' className="mx-auto"># Lesson Assistants needed</Label>
-          <Input type="number" name="lessonAssistantsReq" defaultValue={0} inputMode="numeric" required min="0"/>
-          </div>
-
-          <div>
-          <Label htmlFor='sideWalkersReq' className="mx-auto"># Sidewalkers needed</Label>
-          <Input type="number" name="sideWalkersReq" defaultValue={0} inputMode="numeric" required min="0"/>
-          </div>
-
-          <div>
-          <Label htmlFor='horseLeadersReq' className="mx-auto"># Horse Leaders needed</Label>
-          <Input type="number" name="horseLeadersReq" defaultValue={0} inputMode="numeric" required min="0"/>
-          </div>
-
-          </div>
-          <DialogFooter className="mt-5 mr-5">
-            <Button type="submit">Save</Button>
-          </DialogFooter>
+          <Separator className="col-span-2 border" />
+          <Field
+            labelProps={{ htmlFor: fields.cleaningCrewReq.id, children: 'cleaning crew needed' }}
+            inputProps={{
+              ...conform.input(fields.cleaningCrewReq),
+              type: "number"
+            }}
+            errors={fields.cleaningCrewReq.errors}
+          />
+          <Field
+            labelProps={{ htmlFor: fields.lessonAssistantsReq.id, children: 'Lesson assistants needed' }}
+            inputProps={{
+              ...conform.input(fields.lessonAssistantsReq),
+              type: "number"
+            }}
+            errors={fields.lessonAssistantsReq.errors}
+          />
+          <Field
+            labelProps={{ htmlFor: fields.sideWalkersReq.id, children: 'Sidewalkers needed' }}
+            inputProps={{
+              ...conform.input(fields.sideWalkersReq),
+              type: "number"
+            }}
+            errors={fields.sideWalkersReq.errors}
+          />
+          <Field
+            labelProps={{ htmlFor: fields.horseLeadersReq.id, children: 'Horse leaders needed' }}
+            inputProps={{
+              ...conform.input(fields.horseLeadersReq),
+              type: "number"
+            }}
+            errors={fields.horseLeadersReq.errors}
+          />
+           <CheckboxField
+            labelProps={{ htmlFor: fields.isPrivate.id, children: 'Private (only visible to admins)' }}
+            buttonProps={{
+                ...conform.input(fields.isPrivate),
+                defaultChecked: false,
+              }}
+          />
+        </div>
+        <DialogFooter>
+						<StatusButton
+              className="mr-5"
+							type="submit"
+							status={isSubmitting ? "pending" : actionData?.status == 'error' ? 'error' : "idle"}
+						>
+							Save
+						</StatusButton>
+        </DialogFooter>
         </Form> )
 }
