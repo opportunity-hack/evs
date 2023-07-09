@@ -187,7 +187,8 @@ export default function EventEditor() {
           Edit the event using this form. Click save to save your changes.
         </DialogDescription>
         </DialogHeader>
-        <Form className="grid grid-cols-2 gap-x-2 gap-y-4" method="PUT" {...form.props}>
+        <Form method="PUT" {...form.props}>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-4">
           <Field
             className="col-span-2"
             labelProps={{
@@ -262,16 +263,17 @@ export default function EventEditor() {
             }}
             errors={fields.horseLeadersReq.errors}
           />
+        </div>
+        <DialogFooter>
 						<StatusButton
-              className="relative top-6 max-w-[125px] mx-auto"
+              className="mr-5"
 							type="submit"
 							status={isSubmitting ? "pending" : actionData?.status ?? "idle"}
 						>
 							Save
 						</StatusButton>
-        </Form>
-        <DialogFooter>
         </DialogFooter>
+        </Form>
         <DialogClose asChild>
         <button
           onClick={dismissModal}

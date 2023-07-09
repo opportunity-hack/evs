@@ -379,7 +379,8 @@ function CreateEventForm({ horses, instructors, doneCallback }: EventFormProps) 
         }
     })
 
-    return ( <Form method="post" className="mx-auto grid grid-cols-2 gap-4">
+    return ( <Form method="post">
+          <div className="mx-auto grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <Label htmlFor='title'>Event Title</Label>
             <Input type="text" name="title" required/>
@@ -437,6 +438,9 @@ function CreateEventForm({ horses, instructors, doneCallback }: EventFormProps) 
           <Input type="number" name="horseLeadersReq" defaultValue={0} inputMode="numeric" required min="0"/>
           </div>
 
-          <Button className="relative top-6 max-w-[125px] mx-auto" type="submit">Save</Button>
+          </div>
+          <DialogFooter className="mt-5 mr-5">
+            <Button type="submit">Save</Button>
+          </DialogFooter>
         </Form> )
 }
