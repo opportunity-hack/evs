@@ -17,6 +17,7 @@ import { z } from 'zod'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
 import { ErrorList, Field } from '~/components/forms.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
+import { siteName } from '~/data.ts'
 import {
 	authenticator,
 	requireAnonymous,
@@ -89,7 +90,7 @@ export async function action({ request }: DataFunctionArgs) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: 'Reset Password | Epic Notes' }]
+	return [{ title: `Reset Password | ${siteName}` }]
 }
 
 export default function ResetPasswordPage() {

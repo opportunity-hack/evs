@@ -28,6 +28,7 @@ import {
 } from '~/utils/user-validation.ts'
 import { checkboxSchema } from '~/utils/zod-extensions.ts'
 import { redirectWithConfetti } from '~/utils/flash-session.server.ts'
+import { siteName } from '~/data.ts'
 
 export const onboardingEmailSessionKey = 'onboardingEmail'
 
@@ -121,7 +122,7 @@ export async function action({ request }: DataFunctionArgs) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: 'Setup Epic Notes Account' }]
+	return [{ title: `Setup ${siteName} Account` }]
 }
 
 export default function OnboardingPage() {

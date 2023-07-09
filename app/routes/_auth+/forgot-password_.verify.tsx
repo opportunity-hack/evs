@@ -29,6 +29,7 @@ import { resetPasswordUsernameSessionKey } from './reset-password.tsx'
 import { verifyTOTP } from '~/utils/totp.server.ts'
 import invariant from 'tiny-invariant'
 import { StatusButton } from '~/components/ui/status-button.tsx'
+import { siteName } from '~/data.ts'
 
 const verifySchema = z.object({
 	[forgotPasswordTargetQueryParam]: z.union([emailSchema, usernameSchema]),
@@ -134,7 +135,7 @@ async function validate(request: Request, body: FormData | URLSearchParams) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: 'Verify Password Recovery for Epic Notes' }]
+	return [{ title: `Verify Password Recovery for ${siteName}` }]
 }
 
 export default function ForgotPasswordVerifyRoute() {

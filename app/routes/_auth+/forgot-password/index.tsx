@@ -17,6 +17,7 @@ import { getDomainUrl } from '~/utils/misc.ts'
 import { generateTOTP } from '~/utils/totp.server.ts'
 import { emailSchema, usernameSchema } from '~/utils/user-validation.ts'
 import { ForgotPasswordEmail } from './email.server.tsx'
+import { siteName } from '~/data.ts'
 
 export const forgotPasswordOTPQueryParam = 'code'
 export const forgotPasswordTargetQueryParam = 'usernameOrEmail'
@@ -95,7 +96,7 @@ export async function action({ request }: DataFunctionArgs) {
 
 		await sendEmail({
 			to: user.email,
-			subject: `Epic Notes Password Reset`,
+			subject: `${siteName} Password Reset`,
 			react: (
 				<ForgotPasswordEmail
 					onboardingUrl={resetPasswordUrl.toString()}
@@ -109,7 +110,7 @@ export async function action({ request }: DataFunctionArgs) {
 }
 
 export const meta: V2_MetaFunction = () => {
-	return [{ title: 'Password Recovery for Epic Notes' }]
+	return [{ title: `Password Recovery for ${siteName}` }]
 }
 
 export default function ForgotPasswordRoute() {
