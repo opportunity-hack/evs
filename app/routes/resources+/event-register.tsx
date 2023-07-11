@@ -3,6 +3,8 @@ import { requireUserId } from '~/utils/auth.server.ts'
 import { parse } from '@conform-to/zod'
 import { json, type DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
+import { sendEmail } from '~/utils/email.server.ts'
+import { RegistrationEmail } from './registration-emails.server.tsx'
 
 const actions = [
   "register",
@@ -62,7 +64,15 @@ export async function action({ request }: DataFunctionArgs) {
     )
   }
 
-  await prisma.event.update({
+  const user = await prisma.user.findUnique({ 
+    where: {id: userId}, 
+    select: { email: true, username: true },
+  })
+  if (!user) {
+		throw json({ error: 'No user found' }, { status: 404 })
+  }
+
+  const event = await prisma.event.update({
     where: { 
       id: submission.value.eventId
     },
@@ -74,6 +84,25 @@ export async function action({ request }: DataFunctionArgs) {
       }
     },
   })
+  if (!event) {
+		throw json({ error: 'No event found' }, { status: 404 })
+  }
+
+  const result = await sendEmail({
+    to: user.email,
+    subject: `Event Registration Notification`,
+    react: (
+      <RegistrationEmail event={event} role={submission.value.role} />
+    ),
+  })
+
+  if (result.status == "error") {
+    // TODO: think through this case and how to handle it properly
+    console.error("There was an error sending an event registration email: ",
+    JSON.stringify(result.error))
+  }
+
+  
   return json(
     {
       status: 'success',
