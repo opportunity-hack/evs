@@ -1,9 +1,9 @@
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import {
-  json, 
-  redirect,
-  type DataFunctionArgs,
+	json,
+	redirect,
+	type DataFunctionArgs,
 	Form,
 	Link,
 	Outlet,
@@ -33,15 +33,15 @@ import {
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
 
-import { format } from 'date-fns';
+import { format } from 'date-fns'
 
 const profileFormSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
 	email: emailSchema.optional(),
-  birthdate: z.coerce.date().optional(),
-  height: z.coerce.number().min(0).optional(),
-  yearsOfExperience: z.coerce.number().min(0).optional(),
+	birthdate: z.coerce.date().optional(),
+	height: z.coerce.number().min(0).optional(),
+	yearsOfExperience: z.coerce.number().min(0).optional(),
 	currentPassword: z
 		.union([passwordSchema, z.string().min(0).max(0)])
 		.optional(),
@@ -56,9 +56,9 @@ export async function loader({ request }: DataFunctionArgs) {
 			id: true,
 			name: true,
 			username: true,
-      birthdate: true,
-      height: true,
-      yearsOfExperience: true,
+			birthdate: true,
+			height: true,
+			yearsOfExperience: true,
 			email: true,
 			imageId: true,
 		},
@@ -113,7 +113,15 @@ export async function action({ request }: DataFunctionArgs) {
 			{ status: 400 },
 		)
 	}
-	const { name, username, email, birthdate, height, yearsOfExperience, newPassword } = submission.value
+	const {
+		name,
+		username,
+		email,
+		birthdate,
+		height,
+		yearsOfExperience,
+		newPassword,
+	} = submission.value
 
 	if (email) {
 		// TODO: send a confirmation email
@@ -125,9 +133,9 @@ export async function action({ request }: DataFunctionArgs) {
 		data: {
 			name,
 			username,
-      birthdate,
-      height,
-      yearsOfExperience,
+			birthdate,
+			height,
+			yearsOfExperience,
 			password: newPassword
 				? {
 						update: {
@@ -152,10 +160,10 @@ export default function EditUserProfile() {
 		navigation.formAction === formAction &&
 		navigation.formMethod === 'POST'
 
-  let formattedBirthdate = null
-  if (data.user.birthdate) {
-    formattedBirthdate = format(data.user.birthdate, "yyyy-MM-dd")
-  }
+	let formattedBirthdate = null
+	if (data.user.birthdate) {
+		formattedBirthdate = format(data.user.birthdate, 'yyyy-MM-dd')
+	}
 
 	const [form, fields] = useForm({
 		id: 'edit-profile',
@@ -168,9 +176,9 @@ export default function EditUserProfile() {
 			username: data.user.username,
 			name: data.user.name ?? '',
 			email: data.user.email,
-      birthdate: formattedBirthdate ?? '',
-      height: data.user.height ?? '',
-      yearsOfExperience: data.user.yearsOfExperience ?? '',
+			birthdate: formattedBirthdate ?? '',
+			height: data.user.height ?? '',
+			yearsOfExperience: data.user.yearsOfExperience ?? '',
 		},
 		shouldRevalidate: 'onBlur',
 	})
@@ -178,10 +186,15 @@ export default function EditUserProfile() {
 	return (
 		<div className="container m-auto mb-36 mt-16 max-w-3xl">
 			<div className="flex gap-3">
-				<Link className="text-muted-foreground" to={`/users/${data.user.username}`}>
+				<Link
+					className="text-muted-foreground"
+					to={`/users/${data.user.username}`}
+				>
 					Profile
 				</Link>
-				<span className="text-muted-foreground flex items-center"><Icon className="text-body-md" name="arrow-right" /></span>
+				<span className="flex items-center text-muted-foreground">
+					<Icon className="text-body-md" name="arrow-right" />
+				</span>
 				<span>Edit Profile</span>
 			</div>
 			<div className="mt-16 flex flex-col gap-12">
@@ -192,27 +205,27 @@ export default function EditUserProfile() {
 							alt={data.user.username}
 							className="h-full w-full rounded-full object-cover"
 						/>
-            <Button
-                asChild
-                variant="outline"
-                className="absolute -right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full p-0"
-            >
-              <Link
-                preventScrollReset
-                to="photo"
-                title="Change profile photo"
-                aria-label="Change profile photo"
-              >
-                <Icon name="camera" className="h-4 w-4" />
-              </Link>
-            </Button>
+						<Button
+							asChild
+							variant="outline"
+							className="absolute -right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full p-0"
+						>
+							<Link
+								preventScrollReset
+								to="photo"
+								title="Change profile photo"
+								aria-label="Change profile photo"
+							>
+								<Icon name="camera" className="h-4 w-4" />
+							</Link>
+						</Button>
 					</div>
 				</div>
 				<Form method="POST" {...form.props}>
 					<div className="grid grid-cols-6 gap-x-10">
-            <legend className="col-span-6 pb-6 text-lg text-night-200">
-              Account
-            </legend>
+						<legend className="col-span-6 pb-6 text-lg text-night-200">
+							Account
+						</legend>
 						<Field
 							className="col-span-3"
 							labelProps={{
@@ -238,37 +251,45 @@ export default function EditUserProfile() {
 							}}
 							errors={fields.email.errors}
 						/>
-            <div className="col-span-3">
-            </div>
+						<div className="col-span-3"></div>
 
 						<div className="col-span-6 mb-6 mt-6 h-1 border-b-[1.5px]" />
-            <legend className="col-span-6 pb-6 text-lg text-night-200">
-              Additional Information
-            </legend>
+						<legend className="col-span-6 pb-6 text-lg text-night-200">
+							Additional Information
+						</legend>
 						<Field
 							className="col-span-3"
-							labelProps={{ htmlFor: fields.birthdate.id, children: 'Birthdate' }}
+							labelProps={{
+								htmlFor: fields.birthdate.id,
+								children: 'Birthdate',
+							}}
 							inputProps={{
 								...conform.input(fields.birthdate),
-                type: "date"
+								type: 'date',
 							}}
 							errors={fields.birthdate.errors}
 						/>
 						<Field
 							className="col-span-3"
-							labelProps={{ htmlFor: fields.height.id, children: 'Height (inches)' }}
+							labelProps={{
+								htmlFor: fields.height.id,
+								children: 'Height (inches)',
+							}}
 							inputProps={{
 								...conform.input(fields.height),
-                type: "number"
+								type: 'number',
 							}}
 							errors={fields.height.errors}
 						/>
 						<Field
 							className="col-span-3"
-							labelProps={{ htmlFor: fields.yearsOfExperience.id, children: 'Years of experience with horses' }}
+							labelProps={{
+								htmlFor: fields.yearsOfExperience.id,
+								children: 'Years of experience with horses',
+							}}
 							inputProps={{
 								...conform.input(fields.yearsOfExperience),
-                type: "number"
+								type: 'number',
 							}}
 							errors={fields.yearsOfExperience.errors}
 						/>

@@ -1,8 +1,9 @@
 # Equestrian Volunteer Scheduler 🐎
 
-EVS is a web application intended to help equestrian non-profit organizations
-to coordinate volunteers in their day-to-day operations. It is in ongoing
-development with the support and supervision of [Opportunity Hack](https://www.ohack.org/home).
+EVS is a web application intended to help equestrian non-profit organizations to
+coordinate volunteers in their day-to-day operations. It is in ongoing
+development with the support and supervision of
+[Opportunity Hack](https://www.ohack.org/home).
 
 ## Development
 

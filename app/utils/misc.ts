@@ -1,6 +1,6 @@
 import React from 'react'
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 export function getUserImgSrc(imageId?: string | null) {
 	return imageId ? `/resources/file/${imageId}` : `/img/user.png`
@@ -25,15 +25,15 @@ export function getErrorMessage(error: unknown) {
 }
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+	return twMerge(clsx(inputs))
 }
 
 export function useResetCallback(initialValue: any, resetFn: () => any) {
-    const [prevValue, setPrevValue] = React.useState(initialValue)
-    if (prevValue !== initialValue) {
-        resetFn()
-        setPrevValue(initialValue)
-    }
+	const [prevValue, setPrevValue] = React.useState(initialValue)
+	if (prevValue !== initialValue) {
+		resetFn()
+		setPrevValue(initialValue)
+	}
 }
 
 export function getDomainUrl(request: Request) {

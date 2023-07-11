@@ -9,34 +9,34 @@
 		--color-foreground: 222.2 84% 4.9%;
 		--color-foreground-danger: 345 82.7% 40.8%;
 
-    --color-muted: 210 40% 96.1%;
-    --color-muted-foreground: 215.4 16.3% 46.9%;
+		--color-muted: 210 40% 96.1%;
+		--color-muted-foreground: 215.4 16.3% 46.9%;
 
-    --color-popover: 0 0% 100%;
-    --color-popover-foreground: 222.2 84% 4.9%;
+		--color-popover: 0 0% 100%;
+		--color-popover-foreground: 222.2 84% 4.9%;
 
-    --color-card: 0 0% 100%;
-    --color-card-foreground: 222.2 84% 4.9%;
+		--color-card: 0 0% 100%;
+		--color-card-foreground: 222.2 84% 4.9%;
 
-    --color-border: 214.3 31.8% 91.4%;
-    --color-input: 214.3 31.8% 87.4%;
-    --color-input-invalid: 0 84.2% 60.2%;
+		--color-border: 214.3 31.8% 91.4%;
+		--color-input: 214.3 31.8% 87.4%;
+		--color-input-invalid: 0 84.2% 60.2%;
 
-    --color-primary: 222.2 47.4% 11.2%;
-    --color-primary-foreground: 210 40% 98%;
+		--color-primary: 222.2 47.4% 11.2%;
+		--color-primary-foreground: 210 40% 98%;
 
-    --color-secondary: 210 40% 96.1%;
-    --color-secondary-foreground: 222.2 47.4% 11.2%;
+		--color-secondary: 210 40% 96.1%;
+		--color-secondary-foreground: 222.2 47.4% 11.2%;
 
-    --color-accent: 210 40% 90.1%;
-    --color-accent-foreground: 222.2 47.4% 11.2%;
+		--color-accent: 210 40% 90.1%;
+		--color-accent-foreground: 222.2 47.4% 11.2%;
 
-    --color-destructive: 0 84.2% 60.2%;
-    --color-destructive-foreground: 210 40% 98%;
+		--color-destructive: 0 84.2% 60.2%;
+		--color-destructive-foreground: 210 40% 98%;
 
-    --color-ring: 215 20.2% 65.1%;
+		--color-ring: 215 20.2% 65.1%;
 
-    --radius: 0.5rem;
+		--radius: 0.5rem;
 
 		--color-brand-primary: 217 91% 60%;
 		--color-brand-primary-muted: 208 56% 44%;
@@ -44,7 +44,6 @@
 		--color-brand-secondary-muted: 43 100% 69%;
 		--color-brand-tertiary: 293 100% 76%;
 		--color-danger: 0 82% 65%;
-
 
 		--color-day-100: 252 100% 98%; /* day-100 */
 		--color-day-200: 240 74% 94%; /* day-200 */
@@ -67,43 +66,42 @@
 		--color-background: 222.2 84% 4.9%;
 		--color-foreground: 210 40% 98%;
 
-    --color-foreground-danger: -4 84% 60%;
+		--color-foreground-danger: -4 84% 60%;
 
-    --color-muted: 217.2 32.6% 17.5%;
-    --color-muted-foreground: 215 20.2% 65.1%;
+		--color-muted: 217.2 32.6% 17.5%;
+		--color-muted-foreground: 215 20.2% 65.1%;
 
-    --color-popover: 224 71% 4%;
-    --color-popover-foreground: 215 20.2% 65.1%;
+		--color-popover: 224 71% 4%;
+		--color-popover-foreground: 215 20.2% 65.1%;
 
-    --color-card: 224 71% 4%;
-    --color-card-foreground: 213 31% 91%;
+		--color-card: 224 71% 4%;
+		--color-card-foreground: 213 31% 91%;
 
-    --color-border: 216 34% 17%;
-    --color-input: 216 34% 17%;
+		--color-border: 216 34% 17%;
+		--color-input: 216 34% 17%;
 
-    --color-primary: 210 40% 98%;
-    --color-primary-foreground: 222 47.4% 11.2%;
+		--color-primary: 210 40% 98%;
+		--color-primary-foreground: 222 47.4% 11.2%;
 
-    --color-secondary: 217.2 32.6% 10.0%;
-    --color-secondary-foreground: 210 40% 98%;
+		--color-secondary: 217.2 32.6% 10%;
+		--color-secondary-foreground: 210 40% 98%;
 
-    --color-accent: 217.2 32.6% 10%;
-    --color-accent-foreground: 210 40% 98%;
+		--color-accent: 217.2 32.6% 10%;
+		--color-accent-foreground: 210 40% 98%;
 
-    --color-destructive: 0 62.8% 30.6%;
-    --color-destructive-foreground: 0 85.7% 97.3%;
+		--color-destructive: 0 62.8% 30.6%;
+		--color-destructive-foreground: 0 85.7% 97.3%;
 
-    --color-ring: 217 32.6% 17.5%;
-
+		--color-ring: 217 32.6% 17.5%;
 	}
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
+	* {
+		@apply border-border;
+	}
+	body {
+		@apply bg-background text-foreground;
+		font-feature-settings: 'rlig' 1, 'calt' 1;
+	}
 }

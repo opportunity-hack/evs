@@ -23,7 +23,7 @@ export async function requireAdmin(request: Request) {
 export async function userHasPermissions(name: string, request: Request) {
 	const userId = await requireUserId(request)
 	const user = await prisma.user.findFirst({
-		where: { id: userId, roles: { some: { permissions: {some: { name } } }}}
+		where: { id: userId, roles: { some: { permissions: { some: { name } } } } },
 	})
 	if (!user) {
 		return false

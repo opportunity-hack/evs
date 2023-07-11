@@ -1,5 +1,5 @@
 import {
-  DropdownMenu,
+	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuPortal,
@@ -48,8 +48,8 @@ import { Toaster } from './components/ui/toaster.tsx'
 
 export const links: LinksFunction = () => {
 	return [
-    // Preload svg sprite as a resource to avoid render blocking
-    { rel: 'preload', href: iconsHref, as: 'image' },
+		// Preload svg sprite as a resource to avoid render blocking
+		{ rel: 'preload', href: iconsHref, as: 'image' },
 		// Preload CSS as a resource to avoid render blocking
 		{ rel: 'preload', href: fontStylestylesheetUrl, as: 'style' },
 		{ rel: 'preload', href: tailwindStylesheetUrl, as: 'style' },
@@ -95,7 +95,13 @@ export async function loader({ request }: DataFunctionArgs) {
 				() =>
 					prisma.user.findUnique({
 						where: { id: userId },
-						select: { id: true, name: true, username: true, imageId: true, roles: true },
+						select: {
+							id: true,
+							name: true,
+							username: true,
+							imageId: true,
+							roles: true,
+						},
 					}),
 				{ timings, type: 'find user', desc: 'find user in root' },
 		  )
@@ -120,14 +126,14 @@ export async function loader({ request }: DataFunctionArgs) {
 				},
 			},
 			ENV: getEnv(),
-      flash,
+			flash,
 		},
 		{
-    headers: combineHeaders(
+			headers: combineHeaders(
 				new Headers({ 'Server-Timing': timings.toString() }),
 				flasHeaders,
 			),
-    },
+		},
 	)
 }
 
@@ -143,28 +149,29 @@ function App() {
 	const nonce = useNonce()
 	const user = useOptionalUser()
 	const theme = useTheme()
-  useToast(data.flash?.toast)
+	useToast(data.flash?.toast)
 
-  const userIsAdmin = user?.roles.find(role => role.name === 'admin')
+	const userIsAdmin = user?.roles.find(role => role.name === 'admin')
 
-
-  let nav = (<Button asChild size="sm" variant="default">
-        <Link to="/login">Log In</Link>
-      </Button>) 
-  if (user) {
-    nav = (
-    <div className="flex items-center gap-1">
-      <Button asChild className="mx-auto pr-4" size="sm" variant="default">
-        <Link to="/calendar" className="flex gap-2 pr-1">
-        <Icon className="text-body-md" name="calendar" />
-        Calendar
-        </Link>
-      </Button>
-      {userIsAdmin ? <AdminDropdown /> : null}
-      <UserDropdown />
-    </div>
-    )
-  }
+	let nav = (
+		<Button asChild size="sm" variant="default">
+			<Link to="/login">Log In</Link>
+		</Button>
+	)
+	if (user) {
+		nav = (
+			<div className="flex items-center gap-1">
+				<Button asChild className="mx-auto pr-4" size="sm" variant="default">
+					<Link to="/calendar" className="flex gap-2 pr-1">
+						<Icon className="text-body-md" name="calendar" />
+						Calendar
+					</Link>
+				</Button>
+				{userIsAdmin ? <AdminDropdown /> : null}
+				<UserDropdown />
+			</div>
+		)
+	}
 
 	return (
 		<html lang="en" className={`${theme} h-full`}>
@@ -199,7 +206,7 @@ function App() {
 				</div>
 				<div className="h-5" />
 				<Confetti confetti={data.flash?.confetti} />
-        <Toaster />
+				<Toaster />
 				<ScrollRestoration nonce={nonce} />
 				<Scripts nonce={nonce} />
 				<script
@@ -222,36 +229,30 @@ function UserDropdown() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-        <Button asChild variant="secondary" className="min-w-[8rem]">
-          <Link
-            to={`/users/${user.username}`}
-            // this is for progressive enhancement
-            onClick={e => e.preventDefault()}
-          >
-            <img
-              className="h-8 w-8 rounded-full object-cover"
-              alt={user.name ?? user.username}
-              src={getUserImgSrc(user.imageId)}
-            />
-            <span className="text-body-sm font-bold">
-              {user.name ?? user.username}
-            </span>
-          </Link>
-        </ Button>
+				<Button asChild variant="secondary" className="min-w-[8rem]">
+					<Link
+						to={`/users/${user.username}`}
+						// this is for progressive enhancement
+						onClick={e => e.preventDefault()}
+					>
+						<img
+							className="h-8 w-8 rounded-full object-cover"
+							alt={user.name ?? user.username}
+							src={getUserImgSrc(user.imageId)}
+						/>
+						<span className="text-body-sm font-bold">
+							{user.name ?? user.username}
+						</span>
+					</Link>
+				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuPortal>
-				<DropdownMenuContent
-					sideOffset={8}
-					align="start"
-				>
+				<DropdownMenuContent sideOffset={8} align="start">
 					<DropdownMenuItem asChild>
-						<Link
-							prefetch="intent"
-							to={`/users/${user.username}`}
-						>
-              <Icon className="text-body-md" name="avatar">
-							Profile
-              </Icon>
+						<Link prefetch="intent" to={`/users/${user.username}`}>
+							<Icon className="text-body-md" name="avatar">
+								Profile
+							</Icon>
 						</Link>
 					</DropdownMenuItem>
 					<DropdownMenuItem
@@ -262,16 +263,12 @@ function UserDropdown() {
 							submit(formRef.current)
 						}}
 					>
-						<Form
-							action="/logout"
-							method="POST"
-							ref={formRef}
-						>
-              <button type="submit">
-                <Icon className="text-body-md" name="exit">
-								Logout
-                </Icon>
-              </button>
+						<Form action="/logout" method="POST" ref={formRef}>
+							<button type="submit">
+								<Icon className="text-body-md" name="exit">
+									Logout
+								</Icon>
+							</button>
 						</Form>
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -284,42 +281,31 @@ function AdminDropdown() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-        <Button asChild variant="secondary" className="min-w-[8rem]">
-				<Link
-					to="/admin/users"
-					// this is for progressive enhancement
-					onClick={e => e.preventDefault()}
-				>
-          <Icon className="text-body-md" name="gear" />
-					<span className="text-body-sm font-bold">
-            Admin
-          </span>
-				</Link>
-        </Button>
+				<Button asChild variant="secondary" className="min-w-[8rem]">
+					<Link
+						to="/admin/users"
+						// this is for progressive enhancement
+						onClick={e => e.preventDefault()}
+					>
+						<Icon className="text-body-md" name="gear" />
+						<span className="text-body-sm font-bold">Admin</span>
+					</Link>
+				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuPortal>
-				<DropdownMenuContent
-					sideOffset={8}
-					align="start"
-				>
+				<DropdownMenuContent sideOffset={8} align="start">
 					<DropdownMenuItem asChild>
-						<Link
-							prefetch="intent"
-							to={`/admin/users`}
-						>
-              <Icon className="text-body-md" name="person">
-							Users
-              </Icon>
+						<Link prefetch="intent" to={`/admin/users`}>
+							<Icon className="text-body-md" name="person">
+								Users
+							</Icon>
 						</Link>
 					</DropdownMenuItem>
 					<DropdownMenuItem asChild>
-						<Link
-							prefetch="intent"
-							to={`/admin/horses`}
-						>
-              <Icon className="text-body-md" name="horse">
-							Horses
-              </Icon>
+						<Link prefetch="intent" to={`/admin/horses`}>
+							<Icon className="text-body-md" name="horse">
+								Horses
+							</Icon>
 						</Link>
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -327,4 +313,3 @@ function AdminDropdown() {
 		</DropdownMenu>
 	)
 }
-

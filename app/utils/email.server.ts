@@ -32,7 +32,7 @@ export async function sendEmail({
 	| { html: string; text: string; react?: never }
 	| { react: ReactElement; html?: never; text?: never }
 )) {
-  // TODO: find out what email address to use here
+	// TODO: find out what email address to use here
 	const from = siteEmailAddress
 
 	const email = {

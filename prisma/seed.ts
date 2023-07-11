@@ -1,6 +1,11 @@
 import fs from 'fs'
 import { faker } from '@faker-js/faker'
-import { createPassword, createUser, createHorse, createEvent } from 'tests/db-utils.ts'
+import {
+	createPassword,
+	createUser,
+	createHorse,
+	createEvent,
+} from 'tests/db-utils.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { deleteAllData } from 'tests/setup/utils.ts'
 import { getPasswordHash } from '~/utils/auth.server.ts'
@@ -115,7 +120,6 @@ async function seed() {
 	})
 	console.timeEnd(
 		`🙍 Created user "Bob" with the password "bobnotadmin" and no role`,
-
 	)
 	console.time(
 		`👩 Created user "Isabelle" with the password "isabelleinstructor" as an instructor`,
@@ -142,7 +146,7 @@ async function seed() {
 					hash: await getPasswordHash('isabelleinstructor'),
 				},
 			},
-      instructor: true
+			instructor: true,
 		},
 	})
 	console.timeEnd(
@@ -176,29 +180,28 @@ async function seed() {
 	)
 	console.timeEnd(`🐴 Created ${totalHorses} horses...`)
 
-  const totalEvents = 18
-  const today = new Date()
-  const year = today.getFullYear()
-  const month = today.getMonth()
-	console.time(
-		`📅 Created a few events in the current month`,
+	const totalEvents = 18
+	const today = new Date()
+	const year = today.getFullYear()
+	const month = today.getMonth()
+	console.time(`📅 Created a few events in the current month`)
+	const events = await Promise.all(
+		Array.from({ length: totalEvents }, async (_, index) => {
+			const eventData = await createEvent(
+				faker.date.soon({
+					days: 30,
+					refDate: new Date(year, month, 0),
+				}),
+			)
+			const event = await prisma.event.create({
+				data: {
+					...eventData,
+				},
+			})
+			return event
+		}),
 	)
-  const events = await Promise.all(
-      Array.from({ length: totalEvents }, async (_, index) => {
-          const eventData = await createEvent(faker.date.soon({
-            days: 30, refDate: new Date(year, month, 0) 
-          }))
-          const event = await prisma.event.create({
-              data: {
-                  ...eventData,
-              },
-          })
-          return event
-      }),
-  )
-	console.timeEnd(
-		`📅 Created a few events in the current month`,
-	)
+	console.timeEnd(`📅 Created a few events in the current month`)
 	console.timeEnd(`🌱 Database has been seeded`)
 }
 

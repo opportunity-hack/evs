@@ -6,108 +6,104 @@ import { prisma } from '~/utils/db.server.ts'
 import { sendEmail } from '~/utils/email.server.ts'
 import { RegistrationEmail } from './registration-emails.server.tsx'
 
-const actions = [
-  "register",
-  "unregister",
-] as const
+const actions = ['register', 'unregister'] as const
 
 const volunteerTypes = [
-    "cleaningCrew",
-    "lessonAssistants",
-    "sideWalkers",
-    "horseLeaders",
+	'cleaningCrew',
+	'lessonAssistants',
+	'sideWalkers',
+	'horseLeaders',
 ] as const
 
 const EventRegistrationSchema = z.object({
-  _action: z.enum(actions),
-  eventId: z.string(),
-  role: z.enum(volunteerTypes)
+	_action: z.enum(actions),
+	eventId: z.string(),
+	role: z.enum(volunteerTypes),
 })
 
 export async function action({ request }: DataFunctionArgs) {
-  const userId = await requireUserId(request)
-  const formData = await request.formData()
-  const submission = parse(formData, {
-    schema: EventRegistrationSchema,
-    acceptMultipleErrors: () => true,
-  })
+	const userId = await requireUserId(request)
+	const formData = await request.formData()
+	const submission = parse(formData, {
+		schema: EventRegistrationSchema,
+		acceptMultipleErrors: () => true,
+	})
 
-  if (!submission.value || submission.intent !== 'submit') {
-    return json(
-      {
-        status: 'error',
-        submission,
-      } as const,
-      { status: 400 },
-    )
-  }
+	if (!submission.value || submission.intent !== 'submit') {
+		return json(
+			{
+				status: 'error',
+				submission,
+			} as const,
+			{ status: 400 },
+		)
+	}
 
-  if (submission.value._action === "unregister") {
-    await prisma.event.update({
-      where: { 
-        id: submission.value.eventId
-      },
-      data: {
-        [submission.value.role]: {
-          disconnect: {
-            id: userId
-          }
-        }
-      },
-    })
-    return json(
-      {
-        status: 'successfully unregistered',
-        submission,
-      } as const,
-      { status: 200 },
-    )
-  }
+	if (submission.value._action === 'unregister') {
+		await prisma.event.update({
+			where: {
+				id: submission.value.eventId,
+			},
+			data: {
+				[submission.value.role]: {
+					disconnect: {
+						id: userId,
+					},
+				},
+			},
+		})
+		return json(
+			{
+				status: 'successfully unregistered',
+				submission,
+			} as const,
+			{ status: 200 },
+		)
+	}
 
-  const user = await prisma.user.findUnique({ 
-    where: {id: userId}, 
-    select: { email: true, username: true },
-  })
-  if (!user) {
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		select: { email: true, username: true },
+	})
+	if (!user) {
 		throw json({ error: 'No user found' }, { status: 404 })
-  }
+	}
 
-  const event = await prisma.event.update({
-    where: { 
-      id: submission.value.eventId
-    },
-    data: {
-      [submission.value.role]: {
-        connect: {
-          id: userId
-        }
-      }
-    },
-  })
-  if (!event) {
+	const event = await prisma.event.update({
+		where: {
+			id: submission.value.eventId,
+		},
+		data: {
+			[submission.value.role]: {
+				connect: {
+					id: userId,
+				},
+			},
+		},
+	})
+	if (!event) {
 		throw json({ error: 'No event found' }, { status: 404 })
-  }
+	}
 
-  const result = await sendEmail({
-    to: user.email,
-    subject: `Event Registration Notification`,
-    react: (
-      <RegistrationEmail event={event} role={submission.value.role} />
-    ),
-  })
+	const result = await sendEmail({
+		to: user.email,
+		subject: `Event Registration Notification`,
+		react: <RegistrationEmail event={event} role={submission.value.role} />,
+	})
 
-  if (result.status == "error") {
-    // TODO: think through this case and how to handle it properly
-    console.error("There was an error sending an event registration email: ",
-    JSON.stringify(result.error))
-  }
+	if (result.status == 'error') {
+		// TODO: think through this case and how to handle it properly
+		console.error(
+			'There was an error sending an event registration email: ',
+			JSON.stringify(result.error),
+		)
+	}
 
-  
-  return json(
-    {
-      status: 'success',
-      submission,
-    } as const,
-    { status: 200 },
-  )
+	return json(
+		{
+			status: 'success',
+			submission,
+		} as const,
+		{ status: 200 },
+	)
 }
