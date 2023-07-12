@@ -85,19 +85,19 @@ export async function action({ request }: DataFunctionArgs) {
 		throw json({ error: 'No event found' }, { status: 404 })
 	}
 
-	const result = await sendEmail({
+	sendEmail({
 		to: user.email,
 		subject: `Event Registration Notification`,
 		react: <RegistrationEmail event={event} role={submission.value.role} />,
+	}).then(result => {
+		if (result.status == 'error') {
+			// TODO: think through this case and how to handle it properly
+			console.error(
+				'There was an error sending an event registration email: ',
+				JSON.stringify(result.error),
+			)
+		}
 	})
-
-	if (result.status == 'error') {
-		// TODO: think through this case and how to handle it properly
-		console.error(
-			'There was an error sending an event registration email: ',
-			JSON.stringify(result.error),
-		)
-	}
 
 	return json(
 		{
