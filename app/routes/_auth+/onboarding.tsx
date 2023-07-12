@@ -29,6 +29,7 @@ import {
 import { checkboxSchema } from '~/utils/zod-extensions.ts'
 import { redirectWithConfetti } from '~/utils/flash-session.server.ts'
 import { siteName } from '~/data.ts'
+import { prisma } from '~/utils/db.server.ts'
 
 export const onboardingEmailSessionKey = 'onboardingEmail'
 
@@ -82,9 +83,25 @@ export async function action({ request }: DataFunctionArgs) {
 	}
 
 	const formData = await request.formData()
-	const submission = parse(formData, {
-		schema: onboardingFormSchema,
+	const submission = await parse(formData, {
+		schema: () => {
+			return onboardingFormSchema.superRefine(async (data, ctx) => {
+				const existingUser = await prisma.user.findUnique({
+					where: { username: data.username },
+					select: { id: true },
+				})
+				if (existingUser) {
+					ctx.addIssue({
+						path: ['username'],
+						code: z.ZodIssueCode.custom,
+						message: 'A user already exists with this username',
+					})
+					return
+				}
+			})
+		},
 		acceptMultipleErrors: () => true,
+		async: true,
 	})
 	if (submission.intent !== 'submit') {
 		return json({ status: 'idle', submission } as const)
@@ -145,7 +162,7 @@ export default function OnboardingPage() {
 	const redirectTo = searchParams.get('redirectTo') || '/'
 
 	return (
-		<div className="container mx-auto flex min-h-full flex-col justify-center pb-32 pt-20">
+		<div className="container flex min-h-full flex-col justify-center pb-32 pt-20">
 			<div className="mx-auto w-full max-w-lg">
 				<div className="flex flex-col gap-3 text-center">
 					<h1 className="text-h1">Welcome aboard!</h1>
