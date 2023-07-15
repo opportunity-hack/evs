@@ -297,7 +297,8 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 	if (!isRegistered) {
 		volunteerTypeIdx = 0
 	}
-	const registeredAs = volunteerTypes[volunteerTypeIdx]
+	const registeredAs = volunteerTypes[volunteerTypeIdx]	
+	
 
 	const helpNeeded =
 		calEvent.cleaningCrewReq > calEvent.cleaningCrew.length ||
@@ -345,6 +346,8 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 				>
 					<ul className="">
 						{volunteerTypes.map(volunteerType => {
+							const spotsLeft = calEvent[`${volunteerType.field}Req`]-calEvent[volunteerType.field].length
+
 							const isFull =
 								calEvent[volunteerType.reqField] <=
 								calEvent[volunteerType.field].length
@@ -369,12 +372,12 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 												<span className="capitalize">
 													{volunteerType.displayName}:
 												</span>{' '}
-												{calEvent[volunteerType.field].length} registered of{' '}
-												{calEvent[`${volunteerType.field}Req`]} needed.
+												{spotsLeft} spot{ spotsLeft == 0 || spotsLeft > 1 ? "s" : ""} left
+												
 											</Label>
 										</div>
 										<TooltipProvider>
-											<Tooltip>
+											<Tooltip delayDuration={0}>
 												<TooltipTrigger asChild>
 													<Info size="20" className="mr-1" />
 												</TooltipTrigger>
@@ -387,7 +390,7 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 										</TooltipProvider>
 									</div>
 									{isFull ? (
-										<div className="ml-7 text-destructive/80">
+										<div className="ml-7 text-foreground">
 											This position is full
 										</div>
 									) : null}
