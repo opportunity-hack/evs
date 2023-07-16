@@ -18,3 +18,13 @@ To run this application locally:
 - In the project root, copy `.env.example` to `.env`
 - Run `npm i`, and then `npm run setup` to perform initial setup
 - Start a dev server using `npm run dev`
+
+## Admin Setup
+To do this, it's easiest to use the Prisma UI to give yourself admin
+1. `npx prisma studio`
+2. Head over to http://localhost:5555/
+3. Select the `User` table
+4. Look for the `roles[]` column and the row for your user
+5. Click the `[0|Role]` button, then select the admin role checkbox
+6. Click the Green save button to save changes
+7. Profit
