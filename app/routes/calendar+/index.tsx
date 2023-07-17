@@ -565,6 +565,7 @@ function CreateEventForm({
 							<SelectItem value="30">30 minutes</SelectItem>
 							<SelectItem value="60">60 minutes</SelectItem>
 							<SelectItem value="90">90 minutes</SelectItem>
+							<SelectItem value="120">120 minutes</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
