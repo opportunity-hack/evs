@@ -8,6 +8,7 @@ import {
 } from '@remix-run/node'
 import {
 	Form,
+	Link,
 	useActionData,
 	useFormAction,
 	useLoaderData,
@@ -219,8 +220,19 @@ export default function OnboardingPage() {
 					<CheckboxField
 						labelProps={{
 							htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
-							children:
-								'Do you agree to our Terms of Service and Privacy Policy?',
+							children: (
+								<>
+									Do you agree to our{' '}
+									<Link to="/tos" target="_blank" className="underline">
+										Terms of Service
+									</Link>{' '}
+									and{' '}
+									<Link to="/privacy" target="_blank" className="underline">
+										Privacy Policy
+									</Link>
+									?
+								</>
+							),
 						}}
 						buttonProps={conform.input(
 							fields.agreeToTermsOfServiceAndPrivacyPolicy,
