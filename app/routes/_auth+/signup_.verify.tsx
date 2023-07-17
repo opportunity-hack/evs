@@ -135,7 +135,7 @@ export default function SignupVerifyRoute() {
 	return (
 		<div className="container mx-auto flex flex-col justify-center pb-32 pt-20">
 			<div className="text-center">
-				<h1 className="text-h1">Check your email</h1>
+				<h1 className="text-4xl sm:text-h1">Check your email</h1>
 				<p className="mt-3 text-body-md text-muted-foreground">
 					We've sent you a code to verify your email address.
 				</p>
@@ -143,7 +143,7 @@ export default function SignupVerifyRoute() {
 
 			<Form
 				method="POST"
-				className="mx-auto mt-16 min-w-[368px] max-w-sm"
+				className="mx-auto mt-16 w-full max-w-sm"
 				{...form.props}
 			>
 				<Field

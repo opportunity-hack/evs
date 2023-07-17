@@ -119,7 +119,7 @@ export default function ResetPasswordPage() {
 			</div>
 			<Form
 				method="POST"
-				className="mx-auto mt-16 min-w-[368px] max-w-sm"
+				className="mx-auto mt-16 w-full max-w-sm"
 				{...form.props}
 			>
 				<Field
