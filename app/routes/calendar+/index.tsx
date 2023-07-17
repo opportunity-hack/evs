@@ -221,7 +221,7 @@ export default function Schedule() {
 	}
 
 	return (
-		<div className="grid place-items-center">
+		<div className="grid place-items-center gap-2">
 			<h1 className="mb-5 text-5xl">Calendar</h1>
 			<div className="flex gap-2">
 				<Checkbox
@@ -233,7 +233,7 @@ export default function Schedule() {
 					Show only events that need more volunteers
 				</Label>
 			</div>
-			<div className="container h-screen w-screen sm:h-[80vh] sm:w-[80vw]">
+			<div className="h-screen min-h-[700px] w-screen max-w-6xl">
 				<Calendar
 					localizer={localizer}
 					events={filterFlag ? eventsThatNeedHelp : events}
@@ -311,7 +311,7 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 				<DialogTitle className="text-h4">
 					{calEvent.title} - Volunteer Registration
 				</DialogTitle>
-				<div className="flex items-center justify-between">
+				<div className="flex flex-wrap items-center justify-between">
 					<p>
 						{calEvent.start.toLocaleDateString()}, {format(calEvent.start, 'p')}{' '}
 						- {format(calEvent.end, 'p')}
@@ -357,7 +357,7 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 									key={volunteerType.field}
 									className="items-left m-2 flex flex-col"
 								>
-									<div className="flex w-[80%] justify-between">
+									<div className="flex justify-between">
 										<div className="flex items-center">
 											<RadioGroupItem
 												disabled={isFull}
@@ -379,9 +379,9 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 										<TooltipProvider>
 											<Tooltip delayDuration={0}>
 												<TooltipTrigger asChild>
-													<Info size="20" className="mr-1" />
+													<Info size="20" />
 												</TooltipTrigger>
-												<TooltipContent>
+												<TooltipContent align={"end"}>
 													<p className="max-w-[250px]">
 														{volunteerType.description}
 													</p>
@@ -545,6 +545,7 @@ function CreateEventForm({
 					errors={fields.title.errors}
 				/>
 				<Field
+					className='col-span-2 sm:col-span-1'
 					labelProps={{
 						htmlFor: fields.startDate.id,
 						children: 'Start Date',
@@ -555,7 +556,9 @@ function CreateEventForm({
 					}}
 					errors={fields.startDate.errors}
 				/>
-				<div>
+				<div 
+					className='col-span-2 sm:col-span-1'
+					>
 					<Label htmlFor="duration">Duration</Label>
 					<Select name="duration" defaultValue="30">
 						<SelectTrigger>
@@ -568,16 +571,21 @@ function CreateEventForm({
 						</SelectContent>
 					</Select>
 				</div>
-				<div>
+				<div
+					className='col-span-2 sm:col-span-1'
+					>
 					<Label htmlFor="horses">Horses</Label>
 					<HorseListbox name="horses" horses={horses} />
 				</div>
-				<div>
+				<div
+					className='col-span-2 sm:col-span-1'
+					>
 					<Label htmlFor="instructor">Instructor</Label>
 					<InstructorListbox name="instructor" instructors={instructors} />
 				</div>
 				<Separator className="col-span-2 border" />
 				<Field
+					className='col-span-2 sm:col-span-1'
 					labelProps={{
 						htmlFor: fields.cleaningCrewReq.id,
 						children: 'cleaning crew needed',
@@ -585,10 +593,12 @@ function CreateEventForm({
 					inputProps={{
 						...conform.input(fields.cleaningCrewReq),
 						type: 'number',
+						min: 0,
 					}}
 					errors={fields.cleaningCrewReq.errors}
 				/>
 				<Field
+					className='col-span-2 sm:col-span-1'
 					labelProps={{
 						htmlFor: fields.lessonAssistantsReq.id,
 						children: 'Lesson assistants needed',
@@ -596,10 +606,12 @@ function CreateEventForm({
 					inputProps={{
 						...conform.input(fields.lessonAssistantsReq),
 						type: 'number',
+						min: 0,
 					}}
 					errors={fields.lessonAssistantsReq.errors}
 				/>
 				<Field
+					className='col-span-2 sm:col-span-1'
 					labelProps={{
 						htmlFor: fields.sideWalkersReq.id,
 						children: 'Sidewalkers needed',
@@ -607,10 +619,12 @@ function CreateEventForm({
 					inputProps={{
 						...conform.input(fields.sideWalkersReq),
 						type: 'number',
+						min: 0,
 					}}
 					errors={fields.sideWalkersReq.errors}
 				/>
 				<Field
+					className='col-span-2 sm:col-span-1'
 					labelProps={{
 						htmlFor: fields.horseLeadersReq.id,
 						children: 'Horse leaders needed',
@@ -618,10 +632,12 @@ function CreateEventForm({
 					inputProps={{
 						...conform.input(fields.horseLeadersReq),
 						type: 'number',
+						min: 0,
 					}}
 					errors={fields.horseLeadersReq.errors}
 				/>
 				<CheckboxField
+					className='col-span-2'
 					labelProps={{
 						htmlFor: fields.isPrivate.id,
 						children: 'Private (only visible to admins)',

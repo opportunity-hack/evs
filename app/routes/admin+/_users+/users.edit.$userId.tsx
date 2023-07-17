@@ -158,7 +158,7 @@ export default function EditUser() {
 				<Form method="PUT" {...form.props}>
 					<div className="grid grid-cols-6 gap-x-10">
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.username.id,
 								children: 'Username',
@@ -167,13 +167,13 @@ export default function EditUser() {
 							errors={fields.username.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
 							inputProps={conform.input(fields.name)}
 							errors={fields.name.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6"
 							labelProps={{ htmlFor: fields.email.id, children: 'Email' }}
 							inputProps={{
 								...conform.input(fields.email),
@@ -182,9 +182,8 @@ export default function EditUser() {
 							}}
 							errors={fields.email.errors}
 						/>
-						<div className="col-span-3"></div>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.birthdate.id,
 								children: 'Birthdate',
@@ -196,7 +195,7 @@ export default function EditUser() {
 							errors={fields.birthdate.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.height.id,
 								children: 'Height (inches)',
@@ -208,7 +207,7 @@ export default function EditUser() {
 							errors={fields.height.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.yearsOfExperience.id,
 								children: 'Years of experience with horses',
@@ -220,7 +219,7 @@ export default function EditUser() {
 							errors={fields.yearsOfExperience.errors}
 						/>
 						<CheckboxField
-							className="col-span-3 place-self-center"
+							className="col-span-6 sm:col-span-3 place-self-center"
 							labelProps={{
 								htmlFor: fields.isInstructor.id,
 								children: 'Is an instructor',

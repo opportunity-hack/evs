@@ -138,7 +138,7 @@ export default function ForgotPasswordRoute() {
 				<forgotPassword.Form
 					method="POST"
 					{...form.props}
-					className="mx-auto mt-16 min-w-[368px] max-w-sm"
+					className="mx-auto mt-16 w-full max-w-sm"
 				>
 					<div>
 						<Field

@@ -225,6 +225,7 @@ export default function EventEditor() {
 							errors={fields.title.errors}
 						/>
 						<Field
+							className='col-span-2 sm:col-span-1'
 							labelProps={{
 								htmlFor: fields.startDate.id,
 								children: 'Start Date',
@@ -235,7 +236,7 @@ export default function EventEditor() {
 							}}
 							errors={fields.startDate.errors}
 						/>
-						<div>
+						<div className='col-span-2 sm:col-span-1'>
 							<Label htmlFor="duration">Duration</Label>
 							<Select name="duration" defaultValue={defaultDuration.toString()}>
 								<SelectTrigger>
@@ -248,7 +249,7 @@ export default function EventEditor() {
 								</SelectContent>
 							</Select>
 						</div>
-						<div>
+						<div className='col-span-2 sm:col-span-1'>
 							<Label htmlFor="horses">Horses</Label>
 							<HorseListbox
 								name="horses"
@@ -256,7 +257,7 @@ export default function EventEditor() {
 								defaultValues={data.event?.horses}
 							/>
 						</div>
-						<div>
+						<div className='col-span-2 sm:col-span-1'>
 							<Label htmlFor="instructor">Instructor</Label>
 							<InstructorListbox
 								name="instructor"
@@ -266,6 +267,7 @@ export default function EventEditor() {
 						</div>
 						<Separator className="col-span-2 border" />
 						<Field
+							className='col-span-2 sm:col-span-1'
 							labelProps={{
 								htmlFor: fields.cleaningCrewReq.id,
 								children: 'cleaning crew needed',
@@ -277,6 +279,7 @@ export default function EventEditor() {
 							errors={fields.cleaningCrewReq.errors}
 						/>
 						<Field
+							className='col-span-2 sm:col-span-1'
 							labelProps={{
 								htmlFor: fields.lessonAssistantsReq.id,
 								children: 'Lesson assistants needed',
@@ -288,6 +291,7 @@ export default function EventEditor() {
 							errors={fields.lessonAssistantsReq.errors}
 						/>
 						<Field
+							className='col-span-2 sm:col-span-1'
 							labelProps={{
 								htmlFor: fields.sideWalkersReq.id,
 								children: 'Sidewalkers needed',
@@ -299,6 +303,7 @@ export default function EventEditor() {
 							errors={fields.sideWalkersReq.errors}
 						/>
 						<Field
+							className='col-span-2 sm:col-span-1'
 							labelProps={{
 								htmlFor: fields.horseLeadersReq.id,
 								children: 'Horse leaders needed',
@@ -310,6 +315,7 @@ export default function EventEditor() {
 							errors={fields.horseLeadersReq.errors}
 						/>
 						<CheckboxField
+							className='col-span-2'
 							labelProps={{
 								htmlFor: fields.isPrivate.id,
 								children: 'Private (only visible to admins)',
