@@ -34,15 +34,17 @@ import {
 	nameSchema,
 	usernameSchema,
 } from '~/utils/user-validation.ts'
+import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
+import { format } from 'date-fns'
 
 const editUserSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
 	email: emailSchema.optional(),
-	birthdate: z.coerce.date().optional(),
+	birthdate: optionalDateSchema,
 	height: z.coerce.number().min(0).optional(),
 	yearsOfExperience: z.coerce.number().min(0).optional(),
-	isInstructor: z.boolean().optional(),
+	isInstructor: checkboxSchema(),
 })
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
@@ -86,9 +88,9 @@ export async function action({ request, params }: DataFunctionArgs) {
 		data: {
 			name,
 			username,
-			birthdate,
-			height,
-			yearsOfExperience,
+			birthdate: birthdate ?? null,
+			height: height ?? null,
+			yearsOfExperience: yearsOfExperience ?? null,
 			instructor: isInstructor,
 		},
 	})
@@ -125,6 +127,12 @@ export default function EditUser() {
 		setOpen(false)
 		navigate('..', { preventScrollReset: true })
 	}
+	
+	let formattedBirthdate = null
+	if (data.user.birthdate) {
+		formattedBirthdate = format(new Date(data.user.birthdate), 'yyyy-MM-dd')
+	}
+	
 	const [form, fields] = useForm({
 		id: 'edit-user',
 		lastSubmission: actionData?.submission,
@@ -135,7 +143,7 @@ export default function EditUser() {
 			name: data.user?.name ?? '',
 			username: data.user?.username ?? '',
 			email: data.user?.email,
-			birthdate: data.user?.birthdate ?? '',
+			birthdate: formattedBirthdate ?? '',
 			height: data.user?.height ?? '',
 			yearsOfExperience: data.user?.yearsOfExperience ?? '',
 		},
@@ -173,7 +181,7 @@ export default function EditUser() {
 							errors={fields.name.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6"
 							labelProps={{ htmlFor: fields.email.id, children: 'Email' }}
 							inputProps={{
 								...conform.input(fields.email),
@@ -182,7 +190,6 @@ export default function EditUser() {
 							}}
 							errors={fields.email.errors}
 						/>
-						<div className="col-span-3"></div>
 						<Field
 							className="col-span-3"
 							labelProps={{

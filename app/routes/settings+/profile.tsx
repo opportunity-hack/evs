@@ -32,14 +32,14 @@ import {
 } from '~/utils/user-validation.ts'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-
 import { format } from 'date-fns'
+import { optionalDateSchema } from '~/utils/zod-extensions.ts'
 
 const profileFormSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
 	email: emailSchema.optional(),
-	birthdate: z.coerce.date().optional(),
+	birthdate: optionalDateSchema,
 	height: z.coerce.number().min(0).optional(),
 	yearsOfExperience: z.coerce.number().min(0).optional(),
 	currentPassword: z
@@ -133,7 +133,7 @@ export async function action({ request }: DataFunctionArgs) {
 		data: {
 			name,
 			username,
-			birthdate,
+			birthdate: birthdate ?? null,
 			height,
 			yearsOfExperience,
 			password: newPassword
