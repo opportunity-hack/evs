@@ -150,9 +150,9 @@ export default function EditUser() {
 				onPointerDownOutside={dismissModal}
 			>
 				<DialogHeader>
-					<DialogTitle>Edit Horse: {data.user?.name}</DialogTitle>
+					<DialogTitle>Edit User: {data.user?.name}</DialogTitle>
 					<DialogDescription>
-						Edit this horse using this form. Click save to save your changes.
+						Click save to save your changes.
 					</DialogDescription>
 				</DialogHeader>
 				<Form method="PUT" {...form.props}>
