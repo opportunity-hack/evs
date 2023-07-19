@@ -10,6 +10,7 @@ import { createEvent } from 'tests/db-utils.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { readEmail } from 'tests/mocks/utils.ts'
 import { siteEmailAddress } from '~/data.ts'
+import { format } from 'date-fns'
 
 const dateRegex = /On: (?<date>[A-Z][a-z]+ [0-9]+[a-z]+, [0-9]+)/
 function extractDate (text: string) {
@@ -26,9 +27,34 @@ test('registering for an event', async ({ page }) => {
 
     //email
     const confirmationEmail = {
-        name: `${user.name}`,
-        username: `${user.username}`,
-        email: `${user.email}`,
+        name: user.name,
+        username: user.username,
+        email: user.email
+    }
+
+    const confirmationEmailAdmin: { name: string | null, username: string, email: string }[] = []
+
+    const adminUsers = await prisma.user.findMany({
+        where: {
+            roles: {
+               some: {
+                name: 'admin'
+               }
+            }
+        },
+        select: {
+            name: true,
+            username: true,
+            email: true
+        }
+    })
+
+    for(const u of adminUsers) {
+        confirmationEmailAdmin.push({
+            name: u.name,
+            username: u.username,
+            email: u.email
+        })
     }
 
     // Event Creation setup
@@ -86,10 +112,17 @@ test('registering for an event', async ({ page }) => {
     expect(email.from).toBe(siteEmailAddress)
     expect(email.subject).toBe('Event Registration Notification')
     
+    // Check email
     const reservationDate = extractDate(email.text)
     invariant(reservationDate, 'Date not found')
-
-    //TODO: check reseveration date against event.Start?
+    expect(reservationDate).toBe(format(event.start, 'MMMM do, Y'))
+    
+    if(confirmationEmailAdmin.length) {
+        for(let e of confirmationEmailAdmin) {
+            let adminEmail = await readEmail(e.email)
+            invariant(adminEmail, 'Admin email not found')
+        }
+    }
 
     //Clean up
     await prisma.event.delete({
