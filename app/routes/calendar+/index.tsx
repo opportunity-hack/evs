@@ -123,7 +123,7 @@ const createEventSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
 	startDate: z.coerce.date(),
 	duration: z.coerce.number().gt(0),
-	horses: z.array(horseSchema),
+	horses: z.array(horseSchema).optional(),
 	instructor: instructorSchema,
 	cleaningCrewReq: z.coerce.number().gt(-1),
 	lessonAssistantsReq: z.coerce.number().gt(-1),
@@ -155,7 +155,7 @@ export async function action({ request }: ActionArgs) {
 	const end = addMinutes(start, submission.value.duration)
 
 	const instructorId = submission.value.instructor.id
-	const horseIds = submission.value.horses.map(e => {
+	const horseIds = submission.value.horses?.map(e => {
 		return { id: e.id }
 	})
 
@@ -175,7 +175,7 @@ export async function action({ request }: ActionArgs) {
 				connect: { id: instructorId },
 			},
 			horses: {
-				connect: horseIds,
+				connect: horseIds ?? [],
 			},
 			cleaningCrewReq,
 			lessonAssistantsReq,
