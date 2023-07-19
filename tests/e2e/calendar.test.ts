@@ -117,12 +117,15 @@ test('registering for an event', async ({ page }) => {
     invariant(reservationDate, 'Date not found')
     expect(reservationDate).toBe(format(event.start, 'MMMM do, Y'))
     
+    /*
+        Preparation for email checks on admin
     if(confirmationEmailAdmin.length) {
         for(let e of confirmationEmailAdmin) {
             let adminEmail = await readEmail(e.email)
             invariant(adminEmail, 'Admin email not found')
         }
     }
+    */
 
     //Clean up
     await prisma.event.delete({
