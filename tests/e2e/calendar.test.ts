@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker'
 import invariant from 'tiny-invariant'
 import {
     expect,
+    hideCurrentMonthEvents,
     insertNewUser,
     test
 } from '../playwright-utils.ts'
@@ -30,7 +31,9 @@ test('registering for an event', async ({ page }) => {
         email: `${user.email}`,
     }
 
-    // Create fake event
+    // Event Creation setup
+    hideCurrentMonthEvents()
+
     const eventDate = new Date()
     eventDate.setDate(eventDate.getDate() + 2)
     const eventData = await createEvent(eventDate)

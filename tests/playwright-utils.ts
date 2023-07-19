@@ -9,6 +9,8 @@ export const dataCleanup = {
 	users: new Set<string>(),
 }
 
+export const hiddenEvents: {id: string}[] = []
+
 export function deleteUserByUsername(username: string) {
 	return prisma.user.delete({ where: { username } })
 }
@@ -88,6 +90,35 @@ export async function loginPage({
 	return user
 }
 
+export async function hideCurrentMonthEvents() {
+	const currentDate = new Date();
+
+	const results = await prisma.event.findMany({
+		where: {
+			AND: [
+				{ start: { gte: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) },},
+				{ end: { lte: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)},}
+			],
+		},
+		select: {
+			id: true
+		}
+	})
+
+	for(let p of results) {
+		await prisma.event.update({
+			where: {
+				id: p.id
+			},
+			data: {
+				isPrivate: true
+			}
+		})
+
+		hiddenEvents.push(p)
+	}
+}
+
 test.afterEach(async () => {
 	type Delegate = {
 		deleteMany: (opts: {
@@ -102,4 +133,18 @@ test.afterEach(async () => {
 		}
 	}
 	await deleteAll(dataCleanup.users, prisma.user)
+
+	if(hiddenEvents.length) {
+		for(let p of hiddenEvents) {
+			await prisma.event.update({
+				where: {
+					id: p.id
+				},
+				data: {
+					isPrivate: false
+				}
+			})
+		}
+		
+	}
 })
