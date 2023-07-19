@@ -160,15 +160,19 @@ function App() {
 	)
 	if (user) {
 		nav = (
-			<div className="flex items-center gap-1">
-				<Button asChild className="mx-auto pr-4" size="sm" variant="default">
-					<Link to="/calendar" className="flex gap-2 pr-1">
-						<Icon className="text-body-md" name="calendar" />
-						Calendar
-					</Link>
-				</Button>
-				{userIsAdmin ? <AdminDropdown /> : null}
-				<UserDropdown />
+			<div className="flex grow items-center justify-between gap-1 sm:justify-end">
+				<div className="flex items-center justify-start gap-1">
+					<Button asChild className="px-4" size="sm" variant="default">
+						<Link to="/calendar" className="flex gap-2">
+							<Icon className="text-body-md" name="calendar" />
+							<span className="xsm:inline hidden">Calendar</span>
+						</Link>
+					</Button>
+					{userIsAdmin ? <AdminDropdown /> : null}
+				</div>
+				<div className="shrink-0">
+					<UserDropdown />
+				</div>
 			</div>
 		)
 	}
@@ -184,8 +188,8 @@ function App() {
 			</head>
 			<body className="flex h-full flex-col justify-between bg-background text-foreground">
 				<header className="container mx-auto py-6">
-					<nav className="flex justify-between">
-						<Link to="/">
+					<nav className="flex justify-center sm:justify-between">
+						<Link to="/" className="hidden sm:block">
 							<div className="font-light">Equestrian</div>
 							<div className="font-bold">Volunteer Scheduler</div>
 						</Link>
@@ -229,7 +233,7 @@ function UserDropdown() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary" className="min-w-[8rem]">
+				<Button asChild variant="secondary" className="gap-2 px-2">
 					<Link
 						to={`/users/${user.username}`}
 						// this is for progressive enhancement
@@ -240,7 +244,7 @@ function UserDropdown() {
 							alt={user.name ?? user.username}
 							src={getUserImgSrc(user.imageId)}
 						/>
-						<span className="text-body-sm font-bold">
+						<span className="text-body-sm font-bold hidden sm:inline">
 							{user.name ?? user.username}
 						</span>
 					</Link>
@@ -281,7 +285,7 @@ function AdminDropdown() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary" className="min-w-[8rem]">
+				<Button asChild variant="secondary" className="gap-2">
 					<Link
 						to="/admin/users"
 						// this is for progressive enhancement
