@@ -344,7 +344,7 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 					defaultValue={volunteerTypes[volunteerTypeIdx].field}
 					disabled={isRegistered}
 				>
-					<ul className="">
+					<ul className="pb-4">
 						{volunteerTypes.map(volunteerType => {
 							const spotsLeft = calEvent[`${volunteerType.field}Req`]-calEvent[volunteerType.field].length
 
@@ -401,7 +401,7 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 				</RadioGroup>
 				{!isRegistered ? null : (
 					<>
-						<div>
+						<div className="pb-4">
 							<input type="hidden" name="role" value={registeredAs.field} />
 							You are registered to volunteer in this event as one of the{' '}
 							{registeredAs.displayName}.
