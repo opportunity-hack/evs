@@ -36,11 +36,10 @@ import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group.tsx'
 import { Label } from '~/components/ui/label.tsx'
 
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from '@/components/ui/tooltip.tsx'
+	Popover,
+	PopoverTrigger,
+	PopoverContent,
+} from '@/components/ui/popover.tsx'
 
 import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
@@ -297,8 +296,7 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 	if (!isRegistered) {
 		volunteerTypeIdx = 0
 	}
-	const registeredAs = volunteerTypes[volunteerTypeIdx]	
-	
+	const registeredAs = volunteerTypes[volunteerTypeIdx]
 
 	const helpNeeded =
 		calEvent.cleaningCrewReq > calEvent.cleaningCrew.length ||
@@ -346,7 +344,9 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 				>
 					<ul className="">
 						{volunteerTypes.map(volunteerType => {
-							const spotsLeft = calEvent[`${volunteerType.field}Req`]-calEvent[volunteerType.field].length
+							const spotsLeft =
+								calEvent[`${volunteerType.field}Req`] -
+								calEvent[volunteerType.field].length
 
 							const isFull =
 								calEvent[volunteerType.reqField] <=
@@ -372,22 +372,20 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 												<span className="capitalize">
 													{volunteerType.displayName}:
 												</span>{' '}
-												{spotsLeft} spot{ spotsLeft == 0 || spotsLeft > 1 ? "s" : ""} left
-												
+												{spotsLeft} spot
+												{spotsLeft == 0 || spotsLeft > 1 ? 's' : ''} left
 											</Label>
 										</div>
-										<TooltipProvider>
-											<Tooltip delayDuration={0}>
-												<TooltipTrigger asChild>
-													<Info size="20" />
-												</TooltipTrigger>
-												<TooltipContent align={"end"}>
-													<p className="max-w-[250px]">
-														{volunteerType.description}
-													</p>
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
+										<Popover>
+											<PopoverTrigger>
+												<Info size="20" />
+											</PopoverTrigger>
+											<PopoverContent side={'top'}>
+												<p className="max-w-[250px]">
+													{volunteerType.description}
+												</p>
+											</PopoverContent>
+										</Popover>
 									</div>
 									{isFull ? (
 										<div className="ml-7 text-foreground">
@@ -545,7 +543,7 @@ function CreateEventForm({
 					errors={fields.title.errors}
 				/>
 				<Field
-					className='col-span-2 sm:col-span-1'
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
 						htmlFor: fields.startDate.id,
 						children: 'Start Date',
@@ -556,9 +554,7 @@ function CreateEventForm({
 					}}
 					errors={fields.startDate.errors}
 				/>
-				<div 
-					className='col-span-2 sm:col-span-1'
-					>
+				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="duration">Duration</Label>
 					<Select name="duration" defaultValue="30">
 						<SelectTrigger>
@@ -572,21 +568,17 @@ function CreateEventForm({
 						</SelectContent>
 					</Select>
 				</div>
-				<div
-					className='col-span-2 sm:col-span-1'
-					>
+				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="horses">Horses</Label>
 					<HorseListbox name="horses" horses={horses} />
 				</div>
-				<div
-					className='col-span-2 sm:col-span-1'
-					>
+				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="instructor">Instructor</Label>
 					<InstructorListbox name="instructor" instructors={instructors} />
 				</div>
 				<Separator className="col-span-2 border" />
 				<Field
-					className='col-span-2 sm:col-span-1'
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
 						htmlFor: fields.cleaningCrewReq.id,
 						children: 'cleaning crew needed',
@@ -599,7 +591,7 @@ function CreateEventForm({
 					errors={fields.cleaningCrewReq.errors}
 				/>
 				<Field
-					className='col-span-2 sm:col-span-1'
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
 						htmlFor: fields.lessonAssistantsReq.id,
 						children: 'Lesson assistants needed',
@@ -612,7 +604,7 @@ function CreateEventForm({
 					errors={fields.lessonAssistantsReq.errors}
 				/>
 				<Field
-					className='col-span-2 sm:col-span-1'
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
 						htmlFor: fields.sideWalkersReq.id,
 						children: 'Sidewalkers needed',
@@ -625,7 +617,7 @@ function CreateEventForm({
 					errors={fields.sideWalkersReq.errors}
 				/>
 				<Field
-					className='col-span-2 sm:col-span-1'
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
 						htmlFor: fields.horseLeadersReq.id,
 						children: 'Horse leaders needed',
@@ -638,7 +630,7 @@ function CreateEventForm({
 					errors={fields.horseLeadersReq.errors}
 				/>
 				<CheckboxField
-					className='col-span-2'
+					className="col-span-2"
 					labelProps={{
 						htmlFor: fields.isPrivate.id,
 						children: 'Private (only visible to admins)',
