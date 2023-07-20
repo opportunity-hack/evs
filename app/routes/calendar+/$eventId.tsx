@@ -327,7 +327,7 @@ function VolunteerListItem({
 					'border-1 border border-dashed border-primary opacity-50 dark:bg-slate-800',
 			)}
 		>
-			<VolunteerInfoPopover volunteer={user}>
+			{isPlaceholder ? (
 				<div className="flex w-1/3 items-center gap-2">
 					<img
 						className="h-14 w-14 rounded-full object-cover"
@@ -336,7 +336,18 @@ function VolunteerListItem({
 					/>
 					{user.name}
 				</div>
-			</VolunteerInfoPopover>
+			) : (
+				<VolunteerInfoPopover volunteer={user}>
+					<div className="flex w-1/3 items-center gap-2">
+						<img
+							className="h-14 w-14 rounded-full object-cover"
+							alt={user.name ?? user.username}
+							src={getUserImgSrc(user.imageId)}
+						/>
+						{user.name}
+					</div>
+				</VolunteerInfoPopover>
+			)}
 			<Icon className="text-body-xl" name="arrow-right" />
 
 			<div className="flex items-center gap-2">
