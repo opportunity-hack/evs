@@ -56,6 +56,7 @@ model User {
   email    String  @unique
   username String  @unique
   name     String?
+  phone    String?
 
   birthdate         DateTime?
   height            Int?
