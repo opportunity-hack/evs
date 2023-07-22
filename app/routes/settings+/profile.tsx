@@ -20,7 +20,7 @@ import {
 	verifyLogin,
 } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
-import { ErrorList, Field } from '~/components/forms.tsx'
+import { ErrorList, Field, PhoneField } from '~/components/forms.tsx'
 import { Button } from '~/components/ui/button.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { getUserImgSrc } from '~/utils/misc.ts'
@@ -28,6 +28,7 @@ import {
 	emailSchema,
 	nameSchema,
 	passwordSchema,
+	phoneSchema,
 	usernameSchema,
 } from '~/utils/user-validation.ts'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
@@ -40,6 +41,7 @@ const profileFormSchema = z.object({
 	username: usernameSchema,
 	email: emailSchema.optional(),
 	birthdate: optionalDateSchema,
+	phone: phoneSchema,
 	height: z.coerce.number().min(0).optional(),
 	yearsOfExperience: z.coerce.number().min(0).optional(),
 	currentPassword: z
@@ -56,6 +58,7 @@ export async function loader({ request }: DataFunctionArgs) {
 			id: true,
 			name: true,
 			username: true,
+			phone: true,
 			birthdate: true,
 			height: true,
 			yearsOfExperience: true,
@@ -117,6 +120,7 @@ export async function action({ request }: DataFunctionArgs) {
 		name,
 		username,
 		email,
+		phone,
 		birthdate,
 		height,
 		yearsOfExperience,
@@ -133,6 +137,7 @@ export async function action({ request }: DataFunctionArgs) {
 		data: {
 			name,
 			username,
+			phone,
 			birthdate: birthdate ?? null,
 			height,
 			yearsOfExperience,
@@ -176,6 +181,7 @@ export default function EditUserProfile() {
 			username: data.user.username,
 			name: data.user.name ?? '',
 			email: data.user.email,
+			phone: data.user.phone,
 			birthdate: formattedBirthdate ?? '',
 			height: data.user.height ?? '',
 			yearsOfExperience: data.user.yearsOfExperience ?? '',
@@ -250,6 +256,14 @@ export default function EditUserProfile() {
 								disabled: true,
 							}}
 							errors={fields.email.errors}
+						/>
+						<PhoneField 
+							className="col-span-3"
+							labelProps={{ htmlFor: fields.phone.id, children: "Phone Number"}}
+							inputProps={{
+								...conform.input(fields.phone),
+							}}
+							errors={fields.phone.errors}
 						/>
 						<div className="col-span-3"></div>
 
