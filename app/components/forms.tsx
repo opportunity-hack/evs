@@ -4,6 +4,7 @@ import { Input } from '~/components/ui/input.tsx'
 import { Label } from '~/components/ui/label.tsx'
 import { Checkbox, type CheckboxProps } from '~/components/ui/checkbox.tsx'
 import { Textarea } from '~/components/ui/textarea.tsx'
+import InputMask from 'react-input-mask'
 
 export type ListOfErrors = Array<string | null | undefined> | null | undefined
 
@@ -48,6 +49,37 @@ export function Field({
 				id={id}
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
+				{...inputProps}
+			/>
+			<div className="min-h-[32px] px-4 pb-3 pt-1">
+				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
+			</div>
+		</div>
+	)
+}
+export function PhoneField({
+	labelProps,
+	inputProps,
+	errors,
+	className,
+}: {
+	labelProps: Omit<React.LabelHTMLAttributes<HTMLLabelElement>, 'className'>
+	inputProps: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className'>
+	errors?: ListOfErrors
+	className?: string
+}) {
+	const fallbackId = useId()
+	const id = inputProps.id ?? fallbackId
+	const errorId = errors?.length ? `${id}-error` : undefined
+	return (
+		<div className={className}>
+			<Label htmlFor={id} {...labelProps} />
+			<InputMask
+				mask='(999) 999-9999'
+				id={id}
+				aria-invalid={errorId ? true : undefined}
+				aria-describedby={errorId}
+				className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid'
 				{...inputProps}
 			/>
 			<div className="min-h-[32px] px-4 pb-3 pt-1">

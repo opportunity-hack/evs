@@ -20,12 +20,13 @@ import { z } from 'zod'
 import { Spacer } from '~/components/spacer.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { authenticator, requireAnonymous, signup } from '~/utils/auth.server.ts'
-import { CheckboxField, ErrorList, Field } from '~/components/forms.tsx'
+import { CheckboxField, ErrorList, Field, PhoneField } from '~/components/forms.tsx'
 import { commitSession, getSession } from '~/utils/session.server.ts'
 import {
 	nameSchema,
 	passwordSchema,
 	usernameSchema,
+	phoneSchema,
 } from '~/utils/user-validation.ts'
 import { checkboxSchema } from '~/utils/zod-extensions.ts'
 import { redirectWithConfetti } from '~/utils/flash-session.server.ts'
@@ -38,6 +39,7 @@ const onboardingFormSchema = z
 	.object({
 		username: usernameSchema,
 		name: nameSchema,
+		phone: phoneSchema,
 		password: passwordSchema,
 		confirmPassword: passwordSchema,
 		agreeToTermsOfServiceAndPrivacyPolicy: checkboxSchema(
@@ -120,13 +122,14 @@ export async function action({ request }: DataFunctionArgs) {
 		username,
 		name,
 		password,
+		phone,
 		// TODO: add user to mailing list if they agreed to it
 		// agreeToMailingList,
 		remember,
 		redirectTo,
 	} = submission.value
 
-	const session = await signup({ email, username, password, name })
+	const session = await signup({ email, username, password, name, phone })
 
 	cookieSession.set(authenticator.sessionKey, session.id)
 	cookieSession.unset(onboardingEmailSessionKey)
@@ -195,6 +198,14 @@ export default function OnboardingPage() {
 							autoComplete: 'name',
 						}}
 						errors={fields.name.errors}
+					/>
+					<PhoneField
+						labelProps={{ htmlFor: fields.phone.id, children: 'Phone Number' }}
+						inputProps={{
+							...conform.input(fields.phone),
+							autoComplete: 'tel',
+						}}
+						errors={fields.phone.errors}
 					/>
 					<Field
 						labelProps={{ htmlFor: fields.password.id, children: 'Password' }}
