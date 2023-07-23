@@ -4,7 +4,7 @@ import { Input } from '~/components/ui/input.tsx'
 import { Label } from '~/components/ui/label.tsx'
 import { Checkbox, type CheckboxProps } from '~/components/ui/checkbox.tsx'
 import { Textarea } from '~/components/ui/textarea.tsx'
-import InputMask from 'react-input-mask'
+import { ReactInputMask as InputMask } from 'react-input-mask'
 
 export type ListOfErrors = Array<string | null | undefined> | null | undefined
 
