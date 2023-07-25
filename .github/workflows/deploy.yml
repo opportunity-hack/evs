@@ -102,7 +102,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: prisma/data.db
-          key: db-cache
+          key: db-cache-${{ hashfiles('prisma/data.db') }}
 
       - name: 🏗 Build
         run: npm run build
