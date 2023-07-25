@@ -22,9 +22,11 @@ test('onboarding with link', async ({ page }) => {
 		.userName({ firstName, lastName })
 		.slice(0, 20)
 		.replace(/[^a-z0-9_]/g, '_')
+	const phone = faker.phone.number('###-###-####')
 	const onboardingData = {
 		name: `${firstName} ${lastName}`,
 		username,
+		phone,
 		email: `${username}@example.com`,
 		password: faker.internet.password(),
 	}
@@ -67,6 +69,8 @@ test('onboarding with link', async ({ page }) => {
 
 	await page.getByRole('textbox', { name: /^name/i }).fill(onboardingData.name)
 
+	await page.getByRole('textbox', { name: /number/i}).fill(onboardingData.phone)
+
 	await page.getByLabel(/^password/i).fill(onboardingData.password)
 
 	await page.getByLabel(/^confirm password/i).fill(onboardingData.password)
@@ -98,9 +102,11 @@ test('onboarding with a short code', async ({ page }) => {
 	const firstName = faker.person.firstName()
 	const lastName = faker.person.lastName()
 	const username = faker.internet.userName({ firstName, lastName }).slice(0, 15)
+	const phone = faker.phone.number('###-###-####')
 	const onboardingData = {
 		name: `${firstName} ${lastName}`,
 		username,
+		phone,
 		email: `${username}@example.com`,
 		password: faker.internet.password(),
 	}

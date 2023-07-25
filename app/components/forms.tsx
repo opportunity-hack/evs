@@ -4,7 +4,6 @@ import { Input } from '~/components/ui/input.tsx'
 import { Label } from '~/components/ui/label.tsx'
 import { Checkbox, type CheckboxProps } from '~/components/ui/checkbox.tsx'
 import { Textarea } from '~/components/ui/textarea.tsx'
-import { ReactInputMask as InputMask } from 'react-input-mask'
 
 export type ListOfErrors = Array<string | null | undefined> | null | undefined
 
@@ -51,38 +50,6 @@ export function Field({
 				aria-describedby={errorId}
 				{...inputProps}
 			/>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
-				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
-			</div>
-		</div>
-	)
-}
-export function PhoneField({
-	labelProps,
-	inputProps,
-	errors,
-	className,
-}: {
-	labelProps: Omit<React.LabelHTMLAttributes<HTMLLabelElement>, 'className'>
-	inputProps: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className'>
-	errors?: ListOfErrors
-	className?: string
-}) {
-	const fallbackId = useId()
-	const id = inputProps.id ?? fallbackId
-	const errorId = errors?.length ? `${id}-error` : undefined
-	return (
-		<div className={className}>
-			<Label htmlFor={id} {...labelProps} />
-			<InputMask mask='(999) 999-9999'>
-				<Input 
-					id={id}
-					type='tel'
-					aria-invalid={errorId ? true : undefined}
-					aria-describedby={errorId}
-					{...inputProps}
-				/>
-			</InputMask>
 			<div className="min-h-[32px] px-4 pb-3 pt-1">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>

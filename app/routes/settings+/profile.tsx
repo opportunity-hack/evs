@@ -20,7 +20,7 @@ import {
 	verifyLogin,
 } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
-import { ErrorList, Field, PhoneField } from '~/components/forms.tsx'
+import { ErrorList, Field } from '~/components/forms.tsx'
 import { Button } from '~/components/ui/button.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { getUserImgSrc } from '~/utils/misc.ts'
@@ -257,11 +257,11 @@ export default function EditUserProfile() {
 							}}
 							errors={fields.email.errors}
 						/>
-						<PhoneField 
+						<Field 
 							className="col-span-3"
 							labelProps={{ htmlFor: fields.phone.id, children: "Phone Number"}}
 							inputProps={{
-								...conform.input(fields.phone),
+								...conform.input(fields.phone, { type: 'tel' }),
 							}}
 							errors={fields.phone.errors}
 						/>

@@ -20,7 +20,7 @@ import { z } from 'zod'
 import { Spacer } from '~/components/spacer.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { authenticator, requireAnonymous, signup } from '~/utils/auth.server.ts'
-import { CheckboxField, ErrorList, Field, PhoneField } from '~/components/forms.tsx'
+import { CheckboxField, ErrorList, Field } from '~/components/forms.tsx'
 import { commitSession, getSession } from '~/utils/session.server.ts'
 import {
 	nameSchema,
@@ -199,10 +199,10 @@ export default function OnboardingPage() {
 						}}
 						errors={fields.name.errors}
 					/>
-					<PhoneField
+					<Field
 						labelProps={{ htmlFor: fields.phone.id, children: 'Phone Number' }}
 						inputProps={{
-							...conform.input(fields.phone),
+							...conform.input(fields.phone, { type: 'tel' }),
 							autoComplete: 'tel',
 						}}
 						errors={fields.phone.errors}
