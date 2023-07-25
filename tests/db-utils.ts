@@ -31,6 +31,7 @@ export function createUser() {
 		username,
 		name: `${firstName} ${lastName}`,
 		email: `${username}@example.com`,
+		phone: faker.phone.number('##########'),
 		instructor: faker.datatype.boolean(),
 		birthdate: faker.date.birthdate(),
 		height: faker.number.int({ min: 60, max: 80 }),
