@@ -72,7 +72,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		},
 	},
 	{
-		accessorKey: 'roles',
+		accessorKey: 'admin',
 		header: 'admin',
 		cell: ({ row }) => {
 			const isAdmin = row.original.roles.find(r => r.name == 'admin')
@@ -80,7 +80,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		},
 	},
 	{
-		accessorKey: 'roles',
+		accessorKey: 'lessonAssistant',
 		header: 'lesson assistant',
 		enableResizing: true,
 		maxSize: 1,
@@ -90,7 +90,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		},
 	},
 	{
-		accessorKey: 'roles',
+		accessorKey: 'horseLeader',
 		header: 'horse leader',
 		cell: ({ row }) => {
 			const hasRole = row.original.roles.find(r => r.name == 'horseLeader')

@@ -99,6 +99,19 @@ export async function action({ request, params }: DataFunctionArgs) {
 		isLessonAssistant,
 	} = submission.value
 
+	const roleConnectArray = []
+	const roleDisconnectArray = []
+	if (isHorseLeader) {
+		roleConnectArray.push({ name: 'horseLeader' })
+	} else {
+		roleDisconnectArray.push({ name: 'horseLeader' })
+	}
+	if (isLessonAssistant) {
+		roleConnectArray.push({ name: 'lessonAssistant'})
+	} else {
+		roleDisconnectArray.push({ name: 'lessonAssistant'})
+	}
+
 	const updatedUser = await prisma.user.update({
 		where: { id: params.userId },
 		data: {
@@ -110,8 +123,8 @@ export async function action({ request, params }: DataFunctionArgs) {
 			yearsOfExperience: yearsOfExperience ?? null,
 			instructor: isInstructor,
 			roles: {
-				[isHorseLeader ? 'connect' : 'disconnect']: { name: 'horseLeader' },
-				[isLessonAssistant ? 'connect' : 'disconnect']: { name: 'lessonAssistant' },
+				connect: roleConnectArray,
+				disconnect: roleDisconnectArray,
 			},
 		},
 	})
@@ -175,11 +188,12 @@ export default function EditUser() {
 
 	let isLessonAssistant = false
 	let isHorseLeader = false
+	let isInstructor = data.user?.instructor ?? false
 	for (const role of data.user?.roles) {
-		if (role.name == 'lessonAssistant') {
+		if (role.name === 'lessonAssistant') {
 			isLessonAssistant = true
 		}
-		if (role.name == 'horseLeader') {
+		if (role.name === 'horseLeader') {
 			isHorseLeader = true
 		}
 	}
@@ -273,9 +287,12 @@ export default function EditUser() {
 									htmlFor: fields.isInstructor.id,
 									children: 'Instructor',
 								}}
-								buttonProps={conform.input(fields.isInstructor, {
-									type: 'checkbox',
-								})}
+								buttonProps={{
+									...conform.input(fields.isInstructor, {
+										type: 'checkbox',
+									}),
+									defaultChecked: isInstructor,
+								}}
 								errors={fields.isInstructor.errors}
 							/>
 							<CheckboxField
