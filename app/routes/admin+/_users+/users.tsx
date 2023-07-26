@@ -52,7 +52,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		cell: ({ row }) => {
 			const s = row.getValue('phone') as string
 			const formatted = s ? `${s.slice(0,3)}-${s.slice(3,6)}-${s.slice(6,10)}` : null
-			return <div>{formatted}</div>
+			return formatted
 		}
 	},
 	{
@@ -61,46 +61,41 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		cell: ({ row }) => {
 			const timeStamp = new Date(row.getValue('lastLogin'))
 			const formatted = formatRelative(timeStamp, new Date())
-			return <div>{formatted}</div>
+			return formatted
 		},
 	},
 	{
 		accessorKey: 'instructor',
 		header: 'instructor',
 		cell: ({ row }) => {
-			return <div>{row.original.instructor ? 'Yes' : 'No'}</div>
+			return row.original.instructor ? 'Yes' : 'No'
 		},
 	},
 	{
-		accessorKey: 'admin',
 		header: 'admin',
-		cell: ({ row }) => {
-			const isAdmin = row.original.roles.find(r => r.name == 'admin')
-			return <div>{isAdmin ? 'Yes' : 'No'}</div>
+		accessorFn: (row) => {
+			const hasRole = row.roles.find(r => r.name === 'admin')
+			return hasRole ? 'Yes' : 'No'
 		},
 	},
 	{
-		accessorKey: 'lessonAssistant',
 		header: 'lesson assistant',
-		enableResizing: true,
-		maxSize: 1,
-		cell: ({ row }) => {
-			const hasRole = row.original.roles.find(r => r.name == 'lessonAssistant')
-			return <div>{hasRole ? 'Yes' : 'No'}</div>
+		accessorFn: (row) => {
+			const hasRole = row.roles.find(r => r.name === 'lessonAssistant')
+			return hasRole ? 'Yes' : 'No'
 		},
 	},
 	{
-		accessorKey: 'horseLeader',
 		header: 'horse leader',
-		cell: ({ row }) => {
-			const hasRole = row.original.roles.find(r => r.name == 'horseLeader')
-			return <div>{hasRole ? 'Yes' : 'No'}</div>
+		accessorFn: (row) => {
+			const hasRole = row.roles.find(r => r.name === 'horseLeader')
+			return hasRole ? 'Yes' : 'No'
 		},
 	},
 	{
 		id: 'actions',
 		cell: ({ row }) => {
-			const isAdmin = row.original.roles.find(r => r.name == 'admin')
+			const isAdmin = row.original.roles.find(r => r.name === 'admin')
 			return (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
