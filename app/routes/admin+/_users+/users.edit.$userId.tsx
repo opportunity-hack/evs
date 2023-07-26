@@ -32,6 +32,7 @@ import { z } from 'zod'
 import {
 	emailSchema,
 	nameSchema,
+	phoneSchema,
 	usernameSchema,
 } from '~/utils/user-validation.ts'
 import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
@@ -41,6 +42,7 @@ const editUserSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
 	email: emailSchema.optional(),
+	phone: phoneSchema,
 	birthdate: optionalDateSchema,
 	height: z.coerce.number().min(0).optional(),
 	yearsOfExperience: z.coerce.number().min(0).optional(),
@@ -52,9 +54,9 @@ const editUserSchema = z.object({
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
 	invariant(params.userId, 'Missing user id')
-	const user = await prisma.user.findUnique({ 
+	const user = await prisma.user.findUnique({
 		where: { id: params.userId },
-		include: { roles: true }
+		include: { roles: true },
 	})
 	if (!user) {
 		throw new Response('not found', { status: 404 })
@@ -85,22 +87,32 @@ export async function action({ request, params }: DataFunctionArgs) {
 		)
 	}
 
-	const { name, username, birthdate, height, yearsOfExperience, isInstructor, isHorseLeader, isLessonAssistant } =
-		submission.value
+	const {
+		name,
+		username,
+		birthdate,
+		phone,
+		height,
+		yearsOfExperience,
+		isInstructor,
+		isHorseLeader,
+		isLessonAssistant,
+	} = submission.value
 
 	const updatedUser = await prisma.user.update({
 		where: { id: params.userId },
 		data: {
 			name,
 			username,
+			phone,
 			birthdate: birthdate ?? null,
 			height: height ?? null,
 			yearsOfExperience: yearsOfExperience ?? null,
 			instructor: isInstructor,
 			roles: {
-				[isHorseLeader ? "connect" : "disconnect"]: { name: 'horseLeader' },
-				[isLessonAssistant ? "connect" : "disconnect"]: { name: 'lessonAssistant' },
-			}
+				[isHorseLeader ? 'connect' : 'disconnect']: { name: 'horseLeader' },
+				[isLessonAssistant ? 'connect' : 'disconnect']: { name: 'lessonAssistant' },
+			},
 		},
 	})
 
@@ -136,12 +148,12 @@ export default function EditUser() {
 		setOpen(false)
 		navigate('..', { preventScrollReset: true })
 	}
-	
+
 	let formattedBirthdate = null
 	if (data.user.birthdate) {
 		formattedBirthdate = format(new Date(data.user.birthdate), 'yyyy-MM-dd')
 	}
-	
+
 	const [form, fields] = useForm({
 		id: 'edit-user',
 		lastSubmission: actionData?.submission,
@@ -152,6 +164,7 @@ export default function EditUser() {
 			name: data.user?.name ?? '',
 			username: data.user?.username ?? '',
 			email: data.user?.email,
+			phone: data.user?.phone,
 			birthdate: formattedBirthdate ?? '',
 			height: data.user?.height ?? '',
 			yearsOfExperience: data.user?.yearsOfExperience ?? '',
@@ -163,10 +176,10 @@ export default function EditUser() {
 	let isLessonAssistant = false
 	let isHorseLeader = false
 	for (const role of data.user?.roles) {
-		if (role.name == "lessonAssistant") {
+		if (role.name == 'lessonAssistant') {
 			isLessonAssistant = true
 		}
-		if (role.name == "horseLeader") {
+		if (role.name == 'horseLeader') {
 			isHorseLeader = true
 		}
 	}
@@ -201,7 +214,7 @@ export default function EditUser() {
 							errors={fields.name.errors}
 						/>
 						<Field
-							className="col-span-6"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.email.id, children: 'Email' }}
 							inputProps={{
 								...conform.input(fields.email),
@@ -209,6 +222,14 @@ export default function EditUser() {
 								disabled: true,
 							}}
 							errors={fields.email.errors}
+						/>
+						<Field
+							className="col-span-6 sm:col-span-3"
+							labelProps={{ htmlFor: fields.phone.id, children: 'Phone' }}
+							inputProps={{
+								...conform.input(fields.phone),
+							}}
+							errors={fields.phone.errors}
 						/>
 						<Field
 							className="col-span-6 sm:col-span-3"
@@ -250,7 +271,7 @@ export default function EditUser() {
 							className="col-span-6 sm:col-span-3 place-self-center"
 							labelProps={{
 								htmlFor: fields.isInstructor.id,
-								children: 'Is an instructor',
+								children: 'Instructor',
 							}}
 							buttonProps={conform.input(fields.isInstructor, {
 								type: 'checkbox',
@@ -261,28 +282,28 @@ export default function EditUser() {
 							className="col-span-6 sm:col-span-3 place-self-center"
 							labelProps={{
 								htmlFor: fields.isLessonAssistant.id,
-								children: 'lesson assistant',
+								children: 'Lesson Assistant',
 							}}
 							buttonProps={{
-							...conform.input(fields.isLessonAssistant, {
-								type: 'checkbox',
-							}),
-							defaultChecked: isLessonAssistant
-						}}
+								...conform.input(fields.isLessonAssistant, {
+									type: 'checkbox',
+								}),
+								defaultChecked: isLessonAssistant,
+							}}
 							errors={fields.isLessonAssistant.errors}
 						/>
 						<CheckboxField
 							className="col-span-6 sm:col-span-3 place-self-center"
 							labelProps={{
 								htmlFor: fields.isHorseLeader.id,
-								children: 'horse leader',
+								children: 'Horse Leader',
 							}}
 							buttonProps={{
-							...conform.input(fields.isHorseLeader, {
-								type: 'checkbox',
-							}),
-							defaultChecked: isHorseLeader
-						}}
+								...conform.input(fields.isHorseLeader, {
+									type: 'checkbox',
+								}),
+								defaultChecked: isHorseLeader,
+							}}
 							errors={fields.isHorseLeader.errors}
 						/>
 					</div>
