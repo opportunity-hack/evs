@@ -29,6 +29,29 @@ async function seed() {
 		},
 	})
 	console.timeEnd(`👑 Created admin role/permission...`)
+
+	console.time(`Created lesson assistant role/permission...`)
+	const lessonAssistantRole = await prisma.role.create({
+		data: {
+			name: 'lessonAssistant',
+			permissions: {
+				create: { name: 'lessonAssistant' },
+			},
+		},
+	})
+	console.timeEnd(`Created lesson assistant role/permission...`)
+
+	console.time(`Created horse leader role/permission...`)
+	const horseLeaderRole = await prisma.role.create({
+		data: {
+			name: 'horseLeader',
+			permissions: {
+				create: { name: 'horseLeader' },
+			},
+		},
+	})
+	console.timeEnd(`Created horse leader role/permission...`)
+
 	const totalUsers = 40
 	console.time(`👤 Created ${totalUsers} users...`)
 	const users = await Promise.all(

@@ -47,6 +47,15 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		header: 'name',
 	},
 	{
+		accessorKey: 'phone',
+		header: 'phone',
+		cell: ({ row }) => {
+			const s = row.getValue('phone') as string
+			const formatted = s ? `(${s.slice(0,3)})-${s.slice(2,6)}-${s.slice(6,9)}` : null
+			return <div>{formatted}</div>
+		}
+	},
+	{
 		accessorKey: 'lastLogin',
 		header: 'last login',
 		cell: ({ row }) => {
@@ -68,6 +77,24 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		cell: ({ row }) => {
 			const isAdmin = row.original.roles.find(r => r.name == 'admin')
 			return <div>{isAdmin ? 'Yes' : 'No'}</div>
+		},
+	},
+	{
+		accessorKey: 'roles',
+		header: 'lesson assistant',
+		enableResizing: true,
+		maxSize: 1,
+		cell: ({ row }) => {
+			const hasRole = row.original.roles.find(r => r.name == 'lessonAssistant')
+			return <div>{hasRole ? 'Yes' : 'No'}</div>
+		},
+	},
+	{
+		accessorKey: 'roles',
+		header: 'horse leader',
+		cell: ({ row }) => {
+			const hasRole = row.original.roles.find(r => r.name == 'horseLeader')
+			return <div>{hasRole ? 'Yes' : 'No'}</div>
 		},
 	},
 	{

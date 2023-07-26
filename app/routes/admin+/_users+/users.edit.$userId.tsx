@@ -45,12 +45,17 @@ const editUserSchema = z.object({
 	height: z.coerce.number().min(0).optional(),
 	yearsOfExperience: z.coerce.number().min(0).optional(),
 	isInstructor: checkboxSchema(),
+	isLessonAssistant: checkboxSchema(),
+	isHorseLeader: checkboxSchema(),
 })
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
 	invariant(params.userId, 'Missing user id')
-	const user = await prisma.user.findUnique({ where: { id: params.userId } })
+	const user = await prisma.user.findUnique({ 
+		where: { id: params.userId },
+		include: { roles: true }
+	})
 	if (!user) {
 		throw new Response('not found', { status: 404 })
 	}
@@ -80,7 +85,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 		)
 	}
 
-	const { name, username, birthdate, height, yearsOfExperience, isInstructor } =
+	const { name, username, birthdate, height, yearsOfExperience, isInstructor, isHorseLeader, isLessonAssistant } =
 		submission.value
 
 	const updatedUser = await prisma.user.update({
@@ -92,6 +97,10 @@ export async function action({ request, params }: DataFunctionArgs) {
 			height: height ?? null,
 			yearsOfExperience: yearsOfExperience ?? null,
 			instructor: isInstructor,
+			roles: {
+				[isHorseLeader ? "connect" : "disconnect"]: { name: 'horseLeader' },
+				[isLessonAssistant ? "connect" : "disconnect"]: { name: 'lessonAssistant' },
+			}
 		},
 	})
 
@@ -150,6 +159,17 @@ export default function EditUser() {
 		shouldRevalidate: 'onSubmit',
 		onSubmit: dismissModal,
 	})
+
+	let isLessonAssistant = false
+	let isHorseLeader = false
+	for (const role of data.user?.roles) {
+		if (role.name == "lessonAssistant") {
+			isLessonAssistant = true
+		}
+		if (role.name == "horseLeader") {
+			isHorseLeader = true
+		}
+	}
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -236,6 +256,34 @@ export default function EditUser() {
 								type: 'checkbox',
 							})}
 							errors={fields.isInstructor.errors}
+						/>
+						<CheckboxField
+							className="col-span-6 sm:col-span-3 place-self-center"
+							labelProps={{
+								htmlFor: fields.isLessonAssistant.id,
+								children: 'lesson assistant',
+							}}
+							buttonProps={{
+							...conform.input(fields.isLessonAssistant, {
+								type: 'checkbox',
+							}),
+							defaultChecked: isLessonAssistant
+						}}
+							errors={fields.isLessonAssistant.errors}
+						/>
+						<CheckboxField
+							className="col-span-6 sm:col-span-3 place-self-center"
+							labelProps={{
+								htmlFor: fields.isHorseLeader.id,
+								children: 'horse leader',
+							}}
+							buttonProps={{
+							...conform.input(fields.isHorseLeader, {
+								type: 'checkbox',
+							}),
+							defaultChecked: isHorseLeader
+						}}
+							errors={fields.isHorseLeader.errors}
 						/>
 					</div>
 					<DialogFooter className="mt-4">
