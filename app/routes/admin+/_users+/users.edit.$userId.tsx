@@ -267,45 +267,44 @@ export default function EditUser() {
 							}}
 							errors={fields.yearsOfExperience.errors}
 						/>
-						<CheckboxField
-							className="col-span-6 sm:col-span-3 place-self-center"
-							labelProps={{
-								htmlFor: fields.isInstructor.id,
-								children: 'Instructor',
-							}}
-							buttonProps={conform.input(fields.isInstructor, {
-								type: 'checkbox',
-							})}
-							errors={fields.isInstructor.errors}
-						/>
-						<CheckboxField
-							className="col-span-6 sm:col-span-3 place-self-center"
-							labelProps={{
-								htmlFor: fields.isLessonAssistant.id,
-								children: 'Lesson Assistant',
-							}}
-							buttonProps={{
-								...conform.input(fields.isLessonAssistant, {
+						<div className="col-span-6 grid grid-col-1">
+							<CheckboxField
+								labelProps={{
+									htmlFor: fields.isInstructor.id,
+									children: 'Instructor',
+								}}
+								buttonProps={conform.input(fields.isInstructor, {
 									type: 'checkbox',
-								}),
-								defaultChecked: isLessonAssistant,
-							}}
-							errors={fields.isLessonAssistant.errors}
-						/>
-						<CheckboxField
-							className="col-span-6 sm:col-span-3 place-self-center"
-							labelProps={{
-								htmlFor: fields.isHorseLeader.id,
-								children: 'Horse Leader',
-							}}
-							buttonProps={{
-								...conform.input(fields.isHorseLeader, {
-									type: 'checkbox',
-								}),
-								defaultChecked: isHorseLeader,
-							}}
-							errors={fields.isHorseLeader.errors}
-						/>
+								})}
+								errors={fields.isInstructor.errors}
+							/>
+							<CheckboxField
+								labelProps={{
+									htmlFor: fields.isLessonAssistant.id,
+									children: 'Lesson Assistant',
+								}}
+								buttonProps={{
+									...conform.input(fields.isLessonAssistant, {
+										type: 'checkbox',
+									}),
+									defaultChecked: isLessonAssistant,
+								}}
+								errors={fields.isLessonAssistant.errors}
+							/>
+							<CheckboxField
+								labelProps={{
+									htmlFor: fields.isHorseLeader.id,
+									children: 'Horse Leader',
+								}}
+								buttonProps={{
+									...conform.input(fields.isHorseLeader, {
+										type: 'checkbox',
+									}),
+									defaultChecked: isHorseLeader,
+								}}
+								errors={fields.isHorseLeader.errors}
+							/>
+						</div>
 					</div>
 					<DialogFooter className="mt-4">
 						<StatusButton
