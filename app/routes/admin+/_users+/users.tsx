@@ -51,7 +51,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		header: 'phone',
 		cell: ({ row }) => {
 			const s = row.getValue('phone') as string
-			const formatted = s ? `(${s.slice(0,3)})-${s.slice(2,6)}-${s.slice(6,9)}` : null
+			const formatted = s ? `${s.slice(0,3)}-${s.slice(3,6)}-${s.slice(6,10)}` : null
 			return <div>{formatted}</div>
 		}
 	},
