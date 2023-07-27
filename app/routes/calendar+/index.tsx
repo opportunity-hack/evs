@@ -273,8 +273,10 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 	const registrationFetcher = useFetcher()
 	const user = useUser()
 	const userIsAdmin = user.roles.find(role => role.name === 'admin')
-	const userIsLessonAssistant = user.roles.find(role => role.name === 'lessonAssistant') != undefined
-	const userIsHorseLeader = user.roles.find(role => role.name === 'horseLeader') != undefined
+	const userIsLessonAssistant =
+		user.roles.find(role => role.name === 'lessonAssistant') != undefined
+	const userIsHorseLeader =
+		user.roles.find(role => role.name === 'horseLeader') != undefined
 
 	const isSubmitting = registrationFetcher.state === 'submitting'
 
@@ -356,10 +358,10 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 								calEvent[volunteerType.reqField] <=
 								calEvent[volunteerType.field].length
 
-							let hasPermissions = true;
-							if (volunteerType.field == "lessonAssistants") {
+							let hasPermissions = true
+							if (volunteerType.field == 'lessonAssistants') {
 								hasPermissions = userIsLessonAssistant
-							} else if (volunteerType.field == "horseLeaders") {
+							} else if (volunteerType.field == 'horseLeaders') {
 								hasPermissions = userIsHorseLeader
 							}
 
@@ -378,7 +380,11 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 											/>
 											<Label
 												htmlFor={volunteerType.field}
-												className={isFull || !hasPermissions ? 'text-muted-foreground' : ''}
+												className={
+													isFull || !hasPermissions
+														? 'text-muted-foreground'
+														: ''
+												}
 											>
 												<span className="capitalize">
 													{volunteerType.displayName}:
@@ -401,7 +407,13 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 											</PopoverContent>
 										</Popover>
 									</div>
-											{!hasPermissions ? <div className="text-xs max-w-xs text-muted-foreground">You do not have permission to volunteer in this role.<br/>For more information, speak to the volunteer coordinator.</div> : null}
+									{!hasPermissions ? (
+										<div className="max-w-xs text-xs text-muted-foreground">
+											You do not have permission to volunteer in this role.
+											<br />
+											For more information, speak to the volunteer coordinator.
+										</div>
+									) : null}
 								</li>
 							)
 						})}

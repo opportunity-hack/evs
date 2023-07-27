@@ -71,12 +71,12 @@ export async function action({ request }: DataFunctionArgs) {
 
 	if (submission.value.role == 'lessonAssistants') {
 		if (!user.roles.find(role => role.name === 'lessonAssistant')) {
-				throw json({ error: 'Missing permissions' }, { status: 403 })
+			throw json({ error: 'Missing permissions' }, { status: 403 })
 		}
 	}
 	if (submission.value.role == 'horseLeaders') {
 		if (!user.roles.find(role => role.name === 'horseleader')) {
-				throw json({ error: 'Missing permissions' }, { status: 403 })
+			throw json({ error: 'Missing permissions' }, { status: 403 })
 		}
 	}
 
