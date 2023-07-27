@@ -19,6 +19,7 @@ import { useFetcher, Outlet } from '@remix-run/react'
 import { z } from 'zod'
 import { parse } from '@conform-to/zod'
 import { requireAdmin } from '~/utils/permissions.server.ts'
+import { formatPhone } from '~/utils/phone-format.ts'
 import invariant from 'tiny-invariant'
 import {
 	Popover,
@@ -404,7 +405,7 @@ function HorseInfoPopover({ children, horse }: HorseInfoPopoverProps) {
 			<PopoverContent side="bottom">
 				<div className="text-xl">{horse.name}</div>
 				<img
-					className="h-52 w-52 rounded-full object-cover"
+					className="h-52 w-52 rounded-full object-cover mx-auto"
 					alt="horse"
 					src={getHorseImgSrc(horse.imageId)}
 				/>
@@ -443,7 +444,7 @@ function VolunteerInfoPopover({
 					</Link>
 				</div>
 				<img
-					className="h-52 w-52 rounded-full object-cover"
+					className="h-52 w-52 rounded-full object-cover mx-auto"
 					alt="horse"
 					src={getHorseImgSrc(volunteer.imageId)}
 				/>
@@ -462,6 +463,12 @@ function VolunteerInfoPopover({
 						Years of Experience:{' '}
 					</span>
 					{volunteer.yearsOfExperience}
+				</div>
+				<div>
+					<span className="text-xs font-bold uppercase">
+						Phone Number:{' '}
+					</span>
+					{ formatPhone(volunteer.phone) }
 				</div>
 				<div>
 					<span className="text-xs font-bold uppercase">Notes: </span>

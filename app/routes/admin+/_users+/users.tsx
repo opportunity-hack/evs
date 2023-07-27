@@ -6,6 +6,7 @@ import { DataTable } from '~/components/ui/data_table.tsx'
 import { type ColumnDef } from '@tanstack/react-table'
 import { type User, type Role } from '@prisma/client'
 import { formatRelative } from 'date-fns'
+import { formatPhone } from '~/utils/phone-format.ts'
 import { Icon } from '~/components/ui/icon.tsx'
 import {
 	DropdownMenu,
@@ -51,7 +52,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		header: 'phone',
 		cell: ({ row }) => {
 			const s = row.getValue('phone') as string
-			const formatted = s ? `${s.slice(0,3)}-${s.slice(3,6)}-${s.slice(6,10)}` : null
+			const formatted = s ? formatPhone(s) : null
 			return formatted
 		}
 	},
