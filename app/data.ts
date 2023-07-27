@@ -12,6 +12,13 @@ export const volunteerTypes = [
 			'Cleaning crew volunteers help clean all pastures and stalls in the barn, check automatic waterers, sweep the feed room and tack room, and handle other miscellaneous cleaning jobs. No prior experience with horses is required.',
 	},
 	{
+		displayName: 'side walkers',
+		field: 'sideWalkers',
+		reqField: 'sideWalkersReq',
+		description:
+			'Side walkers walk alongside students helping to support them during lessons.No prior experience with horses needed. Must be able to walk on uneven surfaces.',
+	},
+	{
 		displayName: 'lesson assistants',
 		field: 'lessonAssistants',
 		reqField: 'lessonAssistantsReq',
@@ -24,13 +31,6 @@ export const volunteerTypes = [
 		reqField: 'horseLeadersReq',
 		description:
 			'Leads horses during lessons. Should have 1+ years of experiences with horses, and must be able to walk on uneven surfaces.',
-	},
-	{
-		displayName: 'side walkers',
-		field: 'sideWalkers',
-		reqField: 'sideWalkersReq',
-		description:
-			'Side walkers walk alongside students helping to support them during lessons.No prior experience with horses needed. Must be able to walk on uneven surfaces.',
 	},
 ] as const
 

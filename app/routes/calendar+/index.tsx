@@ -83,7 +83,7 @@ const localizer = dateFnsLocalizer({
 export const loader = async ({ request }: LoaderArgs) => {
 	await requireUserId(request)
 	const instructors = await prisma.user.findMany({
-		where: { roles: { some: { name: 'instructor' }} },
+		where: { roles: { some: { name: 'instructor' } } },
 	})
 
 	let eventsWhere: { isPrivate?: boolean } = { isPrivate: false }
@@ -339,7 +339,9 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 				<Input type="hidden" name="eventId" value={calEvent.id}></Input>
 				<RadioGroup
 					name="role"
-					defaultValue={volunteerTypes[volunteerTypeIdx].field}
+					defaultValue={
+						isRegistered ? volunteerTypes[volunteerTypeIdx].field : undefined
+					}
 					disabled={isRegistered}
 				>
 					<ul className="pb-4">
@@ -372,8 +374,11 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 												<span className="capitalize">
 													{volunteerType.displayName}:
 												</span>{' '}
-												{spotsLeft} spot
-												{spotsLeft == 0 || spotsLeft > 1 ? 's' : ''} left
+												{spotsLeft === 0
+													? 'this position is full'
+													: spotsLeft === 1
+													? 'there is 1 spot left'
+													: `there are ${spotsLeft} spots left`}
 											</Label>
 										</div>
 										<Popover>
@@ -387,11 +392,6 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 											</PopoverContent>
 										</Popover>
 									</div>
-									{isFull ? (
-										<div className="ml-7 text-foreground">
-											This position is full
-										</div>
-									) : null}
 								</li>
 							)
 						})}
