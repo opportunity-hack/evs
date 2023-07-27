@@ -63,10 +63,21 @@ export async function action({ request }: DataFunctionArgs) {
 
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
-		select: { email: true, username: true },
+		select: { email: true, username: true, roles: true },
 	})
 	if (!user) {
 		throw json({ error: 'No user found' }, { status: 404 })
+	}
+
+	if (submission.value.role == 'lessonAssistants') {
+		if (!user.roles.find(role => role.name === 'lessonAssistant')) {
+				throw json({ error: 'Missing permissions' }, { status: 403 })
+		}
+	}
+	if (submission.value.role == 'horseLeaders') {
+		if (!user.roles.find(role => role.name === 'horseleader')) {
+				throw json({ error: 'Missing permissions' }, { status: 403 })
+		}
 	}
 
 	const event = await prisma.event.update({
