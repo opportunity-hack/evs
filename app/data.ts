@@ -39,7 +39,7 @@ export interface UserData {
 	name: string | null
 	username: string
 	imageId: string | null
-
+	phone: string | null
 	notes: string | null
 	birthdate: Date | null
 	height: number | null

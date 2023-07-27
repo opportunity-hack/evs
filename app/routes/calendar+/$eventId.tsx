@@ -273,6 +273,7 @@ const placeHolderUser: UserData = {
 	id: 'placeholder',
 	name: 'No one yet',
 	username: 'placeholder',
+	phone: null,
 	imageId: '',
 	height: null,
 	birthdate: null,
