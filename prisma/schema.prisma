@@ -75,8 +75,6 @@ model User {
 
   lastLogin DateTime? @default(now())
 
-  instructor Boolean @default(false)
-
   Instructor      Event[] @relation("instructor")
   cleaningCrew    Event[] @relation("cleaningCrew")
   lessonAssistant Event[] @relation("lessonAssistant")

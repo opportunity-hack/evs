@@ -45,7 +45,7 @@ export const loader = async ({ request, params }: DataFunctionArgs) => {
 	invariant(params.eventId, 'Missing event id')
 
 	const instructors = await prisma.user.findMany({
-		where: { instructor: true },
+		where: { roles: { some: { name: 'instructor' }} },
 	})
 	const horses = await prisma.horse.findMany()
 	const event = await prisma.event.findUnique({

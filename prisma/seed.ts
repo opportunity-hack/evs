@@ -52,6 +52,17 @@ async function seed() {
 	})
 	console.timeEnd(`Created horse leader role/permission...`)
 
+	console.time(`Created instructor role/permission...`)
+	const instructorRole = await prisma.role.create({
+		data: {
+			name: 'instructor',
+			permissions: {
+				create: { name: 'instructor' },
+			},
+		},
+	})
+	console.timeEnd(`Created instructor role/permission...`)
+
 	const totalUsers = 40
 	console.time(`👤 Created ${totalUsers} users...`)
 	const users = await Promise.all(
@@ -152,6 +163,7 @@ async function seed() {
 			email: 'isabelle@is.instructor',
 			username: 'isabelle',
 			name: 'Isabelle',
+			roles: { connect: { id: instructorRole.id } },
 			image: {
 				create: {
 					contentType: 'image/png',
@@ -169,7 +181,6 @@ async function seed() {
 					hash: await getPasswordHash('isabelleinstructor'),
 				},
 			},
-			instructor: true,
 		},
 	})
 	console.timeEnd(

@@ -101,6 +101,11 @@ export async function action({ request, params }: DataFunctionArgs) {
 
 	const roleConnectArray = []
 	const roleDisconnectArray = []
+	if (isInstructor) {
+		roleConnectArray.push({ name: 'instructor'})
+	} else {
+		roleDisconnectArray.push({ name: 'instructor'})
+	}
 	if (isHorseLeader) {
 		roleConnectArray.push({ name: 'horseLeader' })
 	} else {
@@ -121,7 +126,6 @@ export async function action({ request, params }: DataFunctionArgs) {
 			birthdate: birthdate ?? null,
 			height: height ?? null,
 			yearsOfExperience: yearsOfExperience ?? null,
-			instructor: isInstructor,
 			roles: {
 				connect: roleConnectArray,
 				disconnect: roleDisconnectArray,
@@ -188,7 +192,7 @@ export default function EditUser() {
 
 	let isLessonAssistant = false
 	let isHorseLeader = false
-	let isInstructor = data.user?.instructor ?? false
+	let isInstructor = false
 	for (const role of data.user?.roles) {
 		if (role.name === 'lessonAssistant') {
 			isLessonAssistant = true
@@ -196,7 +200,10 @@ export default function EditUser() {
 		if (role.name === 'horseLeader') {
 			isHorseLeader = true
 		}
-	}
+		if (role.name === 'instructor') {
+			isInstructor = true
+		}
+ 	}
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>

@@ -65,10 +65,10 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		},
 	},
 	{
-		accessorKey: 'instructor',
 		header: 'instructor',
-		cell: ({ row }) => {
-			return row.original.instructor ? 'Yes' : 'No'
+		accessorFn: (row) => {
+			const hasRole = row.roles.find(r => r.name === 'instructor')
+			return hasRole ? 'Yes' : 'No'
 		},
 	},
 	{

@@ -83,7 +83,7 @@ const localizer = dateFnsLocalizer({
 export const loader = async ({ request }: LoaderArgs) => {
 	await requireUserId(request)
 	const instructors = await prisma.user.findMany({
-		where: { instructor: true },
+		where: { roles: { some: { name: 'instructor' }} },
 	})
 
 	let eventsWhere: { isPrivate?: boolean } = { isPrivate: false }

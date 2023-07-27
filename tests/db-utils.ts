@@ -32,7 +32,6 @@ export function createUser() {
 		name: `${firstName} ${lastName}`,
 		email: `${username}@example.com`,
 		phone: faker.phone.number('##########'),
-		instructor: faker.datatype.boolean(),
 		birthdate: faker.date.birthdate(),
 		height: faker.number.int({ min: 60, max: 80 }),
 		yearsOfExperience: faker.number.int({ min: 1, max: 10 }),
@@ -82,7 +81,10 @@ export async function createEvent(start: Date) {
 	const horses = faker.helpers.arrayElements(allHorses, { min: 3, max: 5 })
 	const duration = faker.helpers.arrayElement([30, 60, 90])
 
-	const instructor = users.find(user => user.instructor)
+	const instructors = await prisma.user.findMany({
+		where: { roles: { some: { name: 'instructor' }} },
+	})
+	const instructor = faker.helpers.arrayElement(instructors)
 	if (!instructor) {
 		throw new Error('no instructors in database')
 	}
