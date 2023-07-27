@@ -107,7 +107,7 @@ test('onboarding with a short code', async ({ page }) => {
 		name: `${firstName} ${lastName}`,
 		username,
 		phone,
-		email: `${username}@example.com`,
+		email: `${username}@example.com`.toLowerCase(),
 		password: faker.internet.password(),
 	}
 
