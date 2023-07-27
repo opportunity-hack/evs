@@ -9,7 +9,7 @@ import {
 	DialogFooter,
 } from '~/components/ui/dialog.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import { CheckboxField, Field } from '~/components/forms.tsx'
+import { CheckboxField, Field, TextareaField } from '~/components/forms.tsx'
 import {
 	Form,
 	useLoaderData,
@@ -49,6 +49,7 @@ const editUserSchema = z.object({
 	isInstructor: checkboxSchema(),
 	isLessonAssistant: checkboxSchema(),
 	isHorseLeader: checkboxSchema(),
+	notes: z.string(),
 })
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
@@ -97,6 +98,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 		isInstructor,
 		isHorseLeader,
 		isLessonAssistant,
+		notes,
 	} = submission.value
 
 	const roleConnectArray = []
@@ -126,6 +128,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 			birthdate: birthdate ?? null,
 			height: height ?? null,
 			yearsOfExperience: yearsOfExperience ?? null,
+			notes,
 			roles: {
 				connect: roleConnectArray,
 				disconnect: roleDisconnectArray,
@@ -185,6 +188,7 @@ export default function EditUser() {
 			birthdate: formattedBirthdate ?? '',
 			height: data.user?.height ?? '',
 			yearsOfExperience: data.user?.yearsOfExperience ?? '',
+			notes: data.user?.notes ?? '',
 		},
 		shouldRevalidate: 'onSubmit',
 		onSubmit: dismissModal,
@@ -287,6 +291,17 @@ export default function EditUser() {
 								type: 'number',
 							}}
 							errors={fields.yearsOfExperience.errors}
+						/>
+						<TextareaField 
+							className="col-span-6"
+							labelProps={{
+								htmlFor: fields.notes.id,
+								children: 'Notes',
+							}}
+							textareaProps={{
+								...conform.input(fields.notes),
+							}}
+							errors={fields.notes.errors}
 						/>
 						<div className="col-span-6 grid grid-col-1">
 							<CheckboxField
