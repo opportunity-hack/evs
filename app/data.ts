@@ -52,6 +52,7 @@ export interface HorseData {
 	imageId: string | null
 	status: string | null
 	notes: string | null
+	doNotSchedule: boolean
 }
 
 export interface HorseAssignment {
