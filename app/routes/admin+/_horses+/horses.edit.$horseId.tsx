@@ -9,7 +9,7 @@ import {
 	DialogFooter,
 } from '~/components/ui/dialog.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import { Field, TextareaField } from '~/components/forms.tsx'
+import { CheckboxField, Field, TextareaField } from '~/components/forms.tsx'
 import {
 	Form,
 	useLoaderData,
@@ -61,7 +61,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 		)
 	}
 
-	const { name, notes, status } = submission.value
+	const { name, notes, status, doNotSchedule } = submission.value
 
 	const updatedHorse = await prisma.horse.update({
 		where: { id: params.horseId },
@@ -69,6 +69,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 			name,
 			status,
 			notes,
+			doNotSchedule,
 		},
 	})
 
@@ -115,6 +116,7 @@ export default function EditHorse() {
 		shouldRevalidate: 'onSubmit',
 		onSubmit: dismissModal,
 	})
+	const doNotSchedule = data.horse?.doNotSchedule
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -146,7 +148,6 @@ export default function EditHorse() {
 						inputProps={conform.input(fields.status)}
 						errors={fields.status.errors}
 					/>
-
 					<TextareaField
 						labelProps={{
 							htmlFor: fields.notes.id,
@@ -154,6 +155,19 @@ export default function EditHorse() {
 						}}
 						textareaProps={conform.textarea(fields.notes)}
 						errors={fields.notes.errors}
+					/>
+					<CheckboxField 
+						labelProps={{
+							htmlFor: fields.doNotSchedule.id,
+							children: 'Do not schedule for events',
+						}}
+						buttonProps={{
+							...conform.input(fields.doNotSchedule, {
+								type: 'checkbox',
+							}),
+							defaultChecked: doNotSchedule,
+						}}
+						errors={fields.doNotSchedule.errors}
 					/>
 					<DialogFooter className="mt-4">
 						<StatusButton
