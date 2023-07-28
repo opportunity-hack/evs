@@ -43,12 +43,14 @@ import {
 	DropdownMenuSeparator,
 } from '~/components/ui/dropdown-menu.tsx'
 import { Button } from '~/components/ui/button.tsx'
+import { checkboxSchema } from '~/utils/zod-extensions.ts'
 
 export const horseFormSchema = z.object({
 	_action: z.enum(['create', 'update']),
 	name: z.string().min(1, { message: 'Name is required' }),
 	notes: z.string().optional(),
 	status: z.string().optional(),
+	doNotSchedule: checkboxSchema(),
 })
 
 export const loader = async ({ request }: DataFunctionArgs) => {
@@ -171,12 +173,19 @@ export const columns: ColumnDef<Horse>[] = [
 		header: 'status',
 	},
 	{
+		accessorKey: 'doNotSchedule',
+		header: 'available',
+		cell: ({ row }) => {
+			return row.getValue('doNotSchedule') ? 'No' : 'Yes'
+		}
+	},
+	{
 		accessorKey: 'updatedAt',
 		header: 'last updated',
 		cell: ({ row }) => {
 			const timeStamp = new Date(row.getValue('updatedAt'))
 			const formatted = formatRelative(timeStamp, new Date())
-			return <div>{formatted}</div>
+			return formatted
 		},
 	},
 	{
