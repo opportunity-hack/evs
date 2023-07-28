@@ -28,6 +28,7 @@ export async function sendEmail({
 }: {
 	to: string
 	subject: string
+	attachments?: { filename?: string, path?: string, content?: string | Buffer }[]
 } & (
 	| { html: string; text: string; react?: never }
 	| { react: ReactElement; html?: never; text?: never }

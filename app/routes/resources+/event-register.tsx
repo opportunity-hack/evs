@@ -5,6 +5,10 @@ import { json, type DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { sendEmail } from '~/utils/email.server.ts'
 import { RegistrationEmail } from './registration-emails.server.tsx'
+import { createEvent, type DateArray } from 'ics'
+import { type Event } from '@prisma/client'
+import { differenceInMinutes } from 'date-fns'
+import { siteEmailAddress } from '~/data.ts'
 
 const actions = ['register', 'unregister'] as const
 
@@ -96,9 +100,26 @@ export async function action({ request }: DataFunctionArgs) {
 		throw json({ error: 'No event found' }, { status: 404 })
 	}
 
+	const invite = generateInvite(event)
+	if (invite === "") {
+		console.error(
+			'There was an error generating an invite for the following event:',
+			JSON.stringify(event),
+		)
+		return json(
+			{
+				status: 'error',
+				message: "Error generating event invite",
+				submission,
+			} as const,
+			{ status: 500 },
+		)
+	}
+	
 	sendEmail({
 		to: user.email,
 		subject: `Event Registration Notification`,
+		attachments: [{ filename: 'invite.ics', content: invite }],
 		react: <RegistrationEmail event={event} role={submission.value.role} />,
 	}).then(result => {
 		if (result.status == 'error') {
@@ -117,4 +138,33 @@ export async function action({ request }: DataFunctionArgs) {
 		} as const,
 		{ status: 200 },
 	)
+}
+
+function generateInvite(event: Event) {
+
+	const year = event.start.getFullYear()
+	const month = event.start.getMonth() + 1 // JS Date months are 0 indexed)
+	const day = event.start.getDate()
+	const hour = event.start.getHours()
+	const minute = event.start.getMinutes()
+
+	const duration = differenceInMinutes(event.end, event.start)
+	
+	let icalEvent = {
+	  start: [year, month, day, hour, minute] as DateArray,
+	  duration: { minutes: duration },
+	  title: event.title,
+	  organizer: { name: 'Volunteer Coordinator', email: siteEmailAddress },
+	};
+
+	let invite: string = "";
+	createEvent(icalEvent, (error, value) => {
+		if (error) {
+			console.log(error);
+			return;
+		}
+		invite = value;
+	})
+
+	return invite
 }
