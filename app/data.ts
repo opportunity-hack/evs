@@ -52,7 +52,9 @@ export interface HorseData {
 	imageId: string | null
 	status: string | null
 	notes: string | null
-	doNotSchedule: boolean
+	cooldown: boolean
+	cooldownStartDate: Date | null
+	cooldownEndDate: Date | null
 }
 
 export interface HorseAssignment {

@@ -43,15 +43,40 @@ import {
 	DropdownMenuSeparator,
 } from '~/components/ui/dropdown-menu.tsx'
 import { Button } from '~/components/ui/button.tsx'
-import { checkboxSchema } from '~/utils/zod-extensions.ts'
+import {
+	checkboxSchema,
+	optionalDateSchemaTimeZone,
+} from '~/utils/zod-extensions.ts'
 
-export const horseFormSchema = z.object({
-	_action: z.enum(['create', 'update']),
-	name: z.string().min(1, { message: 'Name is required' }),
-	notes: z.string().optional(),
-	status: z.string().optional(),
-	doNotSchedule: checkboxSchema(),
-})
+export const horseFormSchema = z
+	.object({
+		_action: z.enum(['create', 'update']),
+		name: z.string().min(1, { message: 'Name is required' }),
+		notes: z.string().optional(),
+		status: z.string().optional(),
+		cooldown: checkboxSchema(),
+		cooldownStartDate: optionalDateSchemaTimeZone,
+		cooldownEndDate: optionalDateSchemaTimeZone,
+	})
+	.refine(
+		/**
+		 * This makes sure that if cooldown is checked, there is both a start and end date,
+		 * and if cooldown is not checked, there are no start and end dates
+		 */
+		schema =>
+			(schema.cooldownStartDate === null &&
+				schema.cooldownEndDate === null &&
+				!schema.cooldown) ||
+			(schema.cooldownStartDate !== null &&
+				schema.cooldownEndDate !== null &&
+				schema.cooldown)
+				? true
+				: false,
+		{
+			message:
+				'If "Schedule Cooldown" is checked, you must choose a start and end date',
+		},
+	)
 
 export const loader = async ({ request }: DataFunctionArgs) => {
 	await requireAdmin(request)
@@ -171,13 +196,6 @@ export const columns: ColumnDef<Horse>[] = [
 	{
 		accessorKey: 'status',
 		header: 'status',
-	},
-	{
-		accessorKey: 'doNotSchedule',
-		header: 'available',
-		cell: ({ row }) => {
-			return row.getValue('doNotSchedule') ? 'No' : 'Yes'
-		}
 	},
 	{
 		accessorKey: 'updatedAt',
