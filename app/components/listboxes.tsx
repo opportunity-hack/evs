@@ -11,7 +11,6 @@ const listBoxOptionsClassname =
 interface HorseData {
 	id: string
 	name: string
-	doNotSchedule: boolean
 }
 
 interface HorseListboxProps {
@@ -63,19 +62,12 @@ export function HorseListbox({
 									${active ? 'bg-teal-600 text-white' : 'bg-background text-primary'}`
 								}
 								value={horse}
-								disabled={horse.doNotSchedule}
 							>
 								{({ selected, active }) => (
 									<>
 										<span
 											className={`block truncate 
-											${horse.doNotSchedule ? 'opacity-50' : ''}
 											${selected ? 'font-medium' : 'font-normal'}`}
-											title={
-												horse.doNotSchedule
-													? `Horse is labelled "Do not schedule for events"`
-													: ''
-											}
 										>
 											{horse.name}
 										</span>

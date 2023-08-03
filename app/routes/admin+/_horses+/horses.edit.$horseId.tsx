@@ -9,7 +9,7 @@ import {
 	DialogFooter,
 } from '~/components/ui/dialog.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import { CheckboxField, Field, TextareaField } from '~/components/forms.tsx'
+import { CheckboxField, Field, TextareaField, ErrorList } from '~/components/forms.tsx'
 import {
 	Form,
 	useLoaderData,
@@ -27,6 +27,7 @@ import { parse } from '@conform-to/zod'
 import { horseFormSchema } from './horses.tsx'
 import { redirectWithToast } from '~/utils/flash-session.server.ts'
 import { StatusButton } from '~/components/ui/status-button.tsx'
+import { format } from 'date-fns'
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
@@ -61,7 +62,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 		)
 	}
 
-	const { name, notes, status, doNotSchedule } = submission.value
+	const { name, notes, status, cooldown, cooldownStartDate, cooldownEndDate } = submission.value
 
 	const updatedHorse = await prisma.horse.update({
 		where: { id: params.horseId },
@@ -69,7 +70,9 @@ export async function action({ request, params }: DataFunctionArgs) {
 			name,
 			status,
 			notes,
-			doNotSchedule,
+			cooldown,
+			cooldownStartDate,
+			cooldownEndDate,
 		},
 	})
 
@@ -112,11 +115,18 @@ export default function EditHorse() {
 			name: data.horse?.name,
 			status: data.horse?.status,
 			notes: data.horse?.notes,
+			cooldownStartDate: data.horse?.cooldownStartDate
+				? format(new Date(data.horse.cooldownStartDate), 'yyyy-MM-dd')
+				: null,
+			cooldownEndDate: data.horse?.cooldownEndDate
+				? format(new Date(data.horse.cooldownEndDate), 'yyyy-MM-dd')
+				: null,
 		},
 		shouldRevalidate: 'onSubmit',
 		onSubmit: dismissModal,
 	})
-	const doNotSchedule = data.horse?.doNotSchedule
+	const cooldown = actionData ? actionData.submission.payload?.cooldown === 'on' ? true: false : data.horse?.cooldown
+	const [cooldownChecked, setcooldownChecked] = useState(cooldown)
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -156,19 +166,56 @@ export default function EditHorse() {
 						textareaProps={conform.textarea(fields.notes)}
 						errors={fields.notes.errors}
 					/>
-					<CheckboxField 
+					<CheckboxField
 						labelProps={{
-							htmlFor: fields.doNotSchedule.id,
-							children: 'Do not schedule for events',
+							htmlFor: fields.cooldown.id,
+							children: 'Schedule Cooldown',
 						}}
 						buttonProps={{
-							...conform.input(fields.doNotSchedule, {
+							...conform.input(fields.cooldown, {
 								type: 'checkbox',
 							}),
-							defaultChecked: doNotSchedule,
+							onCheckedChange: state => {
+								setcooldownChecked(Boolean(state.valueOf()))
+							},
+							defaultChecked: cooldownChecked,
 						}}
-						errors={fields.doNotSchedule.errors}
+						errors={fields.cooldown.errors}
 					/>
+					{cooldownChecked ? (
+						<fieldset className="grid grid-cols-2 gap-x-10">
+							<Field
+								className="col-span-1"
+								labelProps={{
+									htmlFor: fields.cooldownStartDate.id,
+									children: 'Start Date',
+								}}
+								inputProps={{
+									...conform.input(fields.cooldownStartDate),
+									type: 'date',
+								}}
+								errors={fields.cooldownStartDate.errors}
+							/>
+
+							<Field
+								className="col-span-1"
+								labelProps={{
+									htmlFor: fields.cooldownEndDate.id,
+									children: 'End Date',
+								}}
+								inputProps={{
+									...conform.input(fields.cooldownEndDate),
+									type: 'date',
+								}}
+								errors={fields.cooldownEndDate.errors}
+							/>
+						</fieldset>
+					) : null}
+					{form.error ? (
+						<div className="min-h-[32px] px-4 pb-3 pt-1">
+							{form.errorId ? <ErrorList id={form.errorId} errors={form.errors} /> : null}
+						</div>
+					): null}
 					<DialogFooter className="mt-4">
 						<StatusButton
 							type="submit"

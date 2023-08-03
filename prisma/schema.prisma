@@ -133,7 +133,9 @@ model Horse {
   notes     String?
   status    String?
   updatedAt DateTime @updatedAt
-  doNotSchedule Boolean @default(false)
+  cooldown Boolean @default(false)
+  cooldownStartDate DateTime?
+  cooldownEndDate DateTime?
 
   image   Image?  @relation(fields: [imageId], references: [fileId])
   imageId String? @unique
