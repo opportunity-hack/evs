@@ -308,10 +308,10 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 		calEvent.horseLeadersReq > calEvent.horseLeaders.length ||
 		calEvent.sideWalkersReq > calEvent.sideWalkers.length
 
-	const now = new Date();
-	let hasPassed = false;
+	const now = new Date()
+	let hasPassed = false
 	if (isAfter(now, calEvent.end)) {
-		hasPassed = true;
+		hasPassed = true
 	}
 
 	return (
@@ -340,132 +340,139 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 					</p>
 				) : null}
 			</DialogHeader>
-			{hasPassed ? <div className="text-2xl">This event has already passed.</div> :
-			<>
-			<DialogDescription>
-				{isRegistered ? 'Manage registration' : 'Select a role to volunteer in'}
-			</DialogDescription>
-			<registrationFetcher.Form
-				method="post"
-				action="/resources/event-register"
-			>
-				<Input type="hidden" name="eventId" value={calEvent.id}></Input>
-				<RadioGroup
-					name="role"
-					defaultValue={
-						isRegistered ? volunteerTypes[volunteerTypeIdx].field : undefined
-					}
-					disabled={isRegistered}
-				>
-					<ul className="pb-4">
-						{volunteerTypes.map(volunteerType => {
-							const spotsLeft =
-								calEvent[`${volunteerType.field}Req`] -
-								calEvent[volunteerType.field].length
-
-							const isFull =
-								calEvent[volunteerType.reqField] <=
-								calEvent[volunteerType.field].length
-
-							let hasPermissions = true
-							if (volunteerType.field == 'lessonAssistants') {
-								hasPermissions = userIsLessonAssistant
-							} else if (volunteerType.field == 'horseLeaders') {
-								hasPermissions = userIsHorseLeader
+			{hasPassed ? (
+				<div className="text-2xl">This event has already passed.</div>
+			) : (
+				<>
+					<DialogDescription>
+						{isRegistered
+							? 'Manage registration'
+							: 'Select a role to volunteer in'}
+					</DialogDescription>
+					<registrationFetcher.Form
+						method="post"
+						action="/resources/event-register"
+					>
+						<Input type="hidden" name="eventId" value={calEvent.id}></Input>
+						<RadioGroup
+							name="role"
+							defaultValue={
+								isRegistered
+									? volunteerTypes[volunteerTypeIdx].field
+									: undefined
 							}
+							disabled={isRegistered}
+						>
+							<ul className="pb-4">
+								{volunteerTypes.map(volunteerType => {
+									const spotsLeft =
+										calEvent[`${volunteerType.field}Req`] -
+										calEvent[volunteerType.field].length
 
-							return (
-								<li
-									key={volunteerType.field}
-									className="items-left m-2 flex flex-col"
+									const isFull =
+										calEvent[volunteerType.reqField] <=
+										calEvent[volunteerType.field].length
+
+									let hasPermissions = true
+									if (volunteerType.field == 'lessonAssistants') {
+										hasPermissions = userIsLessonAssistant
+									} else if (volunteerType.field == 'horseLeaders') {
+										hasPermissions = userIsHorseLeader
+									}
+
+									return (
+										<li
+											key={volunteerType.field}
+											className="items-left m-2 flex flex-col"
+										>
+											<div className="flex justify-between">
+												<div className="flex items-center">
+													<RadioGroupItem
+														disabled={isFull || !hasPermissions}
+														className="mr-2 aria-disabled:bg-muted"
+														id={volunteerType.field}
+														value={volunteerType.field}
+													/>
+													<Label
+														htmlFor={volunteerType.field}
+														className={
+															isFull || !hasPermissions
+																? 'text-muted-foreground'
+																: ''
+														}
+													>
+														<span className="capitalize">
+															{volunteerType.displayName}:
+														</span>{' '}
+														{spotsLeft === 0
+															? 'this position is full'
+															: spotsLeft === 1
+															? 'there is 1 spot left'
+															: `there are ${spotsLeft} spots left`}
+													</Label>
+												</div>
+												<Popover>
+													<PopoverTrigger>
+														<Info size="20" />
+													</PopoverTrigger>
+													<PopoverContent side={'top'}>
+														<p className="max-w-[250px]">
+															{volunteerType.description}
+														</p>
+													</PopoverContent>
+												</Popover>
+											</div>
+											{!hasPermissions ? (
+												<div className="max-w-xs text-xs text-muted-foreground">
+													You do not have permission to volunteer in this role.
+													<br />
+													For more information, speak to the volunteer
+													coordinator.
+												</div>
+											) : null}
+										</li>
+									)
+								})}
+							</ul>
+						</RadioGroup>
+						{!isRegistered ? null : (
+							<>
+								<div className="pb-4">
+									<input type="hidden" name="role" value={registeredAs.field} />
+									You are registered to volunteer in this event as one of the{' '}
+									{registeredAs.displayName}.
+								</div>
+							</>
+						)}
+						<DialogFooter>
+							{isSubmitting ? (
+								<div>Processing...</div>
+							) : isRegistered ? (
+								<Button
+									type="submit"
+									name="_action"
+									value="unregister"
+									variant="destructive"
 								>
-									<div className="flex justify-between">
-										<div className="flex items-center">
-											<RadioGroupItem
-												disabled={isFull || !hasPermissions}
-												className="mr-2 aria-disabled:bg-muted"
-												id={volunteerType.field}
-												value={volunteerType.field}
-											/>
-											<Label
-												htmlFor={volunteerType.field}
-												className={
-													isFull || !hasPermissions
-														? 'text-muted-foreground'
-														: ''
-												}
-											>
-												<span className="capitalize">
-													{volunteerType.displayName}:
-												</span>{' '}
-												{spotsLeft === 0
-													? 'this position is full'
-													: spotsLeft === 1
-													? 'there is 1 spot left'
-													: `there are ${spotsLeft} spots left`}
-											</Label>
-										</div>
-										<Popover>
-											<PopoverTrigger>
-												<Info size="20" />
-											</PopoverTrigger>
-											<PopoverContent side={'top'}>
-												<p className="max-w-[250px]">
-													{volunteerType.description}
-												</p>
-											</PopoverContent>
-										</Popover>
-									</div>
-									{!hasPermissions ? (
-										<div className="max-w-xs text-xs text-muted-foreground">
-											You do not have permission to volunteer in this role.
-											<br />
-											For more information, speak to the volunteer coordinator.
-										</div>
-									) : null}
-								</li>
-							)
-						})}
-					</ul>
-				</RadioGroup>
-				{!isRegistered ? null : (
-					<>
-						<div className="pb-4">
-							<input type="hidden" name="role" value={registeredAs.field} />
-							You are registered to volunteer in this event as one of the{' '}
-							{registeredAs.displayName}.
-						</div>
-					</>
-				)}
-				<DialogFooter>
-					{isSubmitting ? (
-						<div>Processing...</div>
-					) : isRegistered ? (
-						<Button
-							type="submit"
-							name="_action"
-							value="unregister"
-							variant="destructive"
-						>
-							{' '}
-							Unregister
-						</Button>
-					) : (
-						<Button
-							className=""
-							type="submit"
-							name="_action"
-							value="register"
-							disabled={!helpNeeded}
-						>
-							Register
-						</Button>
-					)}
-					<DialogClose autoFocus={false} />
-				</DialogFooter>
-			</registrationFetcher.Form>
-</>
-			}
+									{' '}
+									Unregister
+								</Button>
+							) : (
+								<Button
+									className=""
+									type="submit"
+									name="_action"
+									value="register"
+									disabled={!helpNeeded}
+								>
+									Register
+								</Button>
+							)}
+							<DialogClose autoFocus={false} />
+						</DialogFooter>
+					</registrationFetcher.Form>
+				</>
+			)}
 		</DialogContent>
 	)
 }
