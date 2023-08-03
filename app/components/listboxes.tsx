@@ -34,10 +34,6 @@ export function HorseListbox({
 	})
 	const [selected, setSelected] = useState(initialValues)
 
-	console.log('initial values: ', JSON.stringify(initialValues))
-	console.log('default values: ', JSON.stringify(defaultValues))
-	console.log('all horses: ', JSON.stringify(horses))
-
 	return (
 		<Listbox value={selected} onChange={setSelected} name={name} multiple>
 			<div className="relative mt-1">
@@ -114,7 +110,7 @@ interface InstructorListboxProps {
 export function InstructorListbox({
 	instructors,
 	name,
-	defaultValue = instructors[0],
+	defaultValue,
 }: InstructorListboxProps) {
 	const [selected, setSelected] = useState(defaultValue)
 
@@ -134,6 +130,20 @@ export function InstructorListbox({
 					leaveTo="opacity-0"
 				>
 					<Listbox.Options className={listBoxOptionsClassname}>
+						<Listbox.Option
+							key={"none"}
+							className={({ active }) =>
+								`relative cursor-default select-none py-2 pl-10 pr-4 ${
+									active
+										? 'bg-teal-600 text-white'
+										: 'bg-background text-primary'
+								}`
+							}
+							value={undefined}
+							onChange={() => setSelected(undefined)}
+						>
+							undecided
+						</Listbox.Option>
 						{instructors.map((person, personIdx) => (
 							<Listbox.Option
 								key={personIdx}
