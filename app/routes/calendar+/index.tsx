@@ -45,7 +45,7 @@ import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
 
 import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
-import { addMinutes } from 'date-fns'
+import { addMinutes, isAfter } from 'date-fns'
 import { useFetcher, useFormAction, useNavigation } from '@remix-run/react'
 import { useResetCallback } from '~/utils/misc.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
@@ -307,6 +307,13 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 		calEvent.lessonAssistantsReq > calEvent.lessonAssistants.length ||
 		calEvent.horseLeadersReq > calEvent.horseLeaders.length ||
 		calEvent.sideWalkersReq > calEvent.sideWalkers.length
+
+	const now = new Date();
+	let hasPassed = false;
+	if (isAfter(now, calEvent.end)) {
+		hasPassed = true;
+	}
+
 	return (
 		<DialogContent>
 			<DialogHeader>
@@ -333,6 +340,8 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 					</p>
 				) : null}
 			</DialogHeader>
+			{hasPassed ? <div className="text-2xl">This event has already passed.</div> :
+			<>
 			<DialogDescription>
 				{isRegistered ? 'Manage registration' : 'Select a role to volunteer in'}
 			</DialogDescription>
@@ -455,6 +464,8 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 					<DialogClose autoFocus={false} />
 				</DialogFooter>
 			</registrationFetcher.Form>
+</>
+			}
 		</DialogContent>
 	)
 }
