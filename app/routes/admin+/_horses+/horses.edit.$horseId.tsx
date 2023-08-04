@@ -125,8 +125,14 @@ export default function EditHorse() {
 		shouldRevalidate: 'onSubmit',
 		onSubmit: dismissModal,
 	})
-	const cooldown = actionData ? actionData.submission.payload?.cooldown === 'on' ? true: false : data.horse?.cooldown
-	const [cooldownChecked, setcooldownChecked] = useState(cooldown)
+	/**
+	 * If there is returned actionData (form validation errors),
+	 * use that checked state, otherwise use the boolean from the DB
+	 */
+	const cooldown = actionData 
+		? actionData.submission.payload?.cooldown === 'on' ? true: false 
+		: data.horse?.cooldown
+	const [cooldownChecked, setCooldownChecked] = useState(cooldown)
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -176,7 +182,7 @@ export default function EditHorse() {
 								type: 'checkbox',
 							}),
 							onCheckedChange: state => {
-								setcooldownChecked(Boolean(state.valueOf()))
+								setCooldownChecked(Boolean(state.valueOf()))
 							},
 							defaultChecked: cooldownChecked,
 						}}

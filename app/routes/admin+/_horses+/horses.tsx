@@ -45,7 +45,7 @@ import {
 import { Button } from '~/components/ui/button.tsx'
 import {
 	checkboxSchema,
-	optionalDateSchemaTimeZone,
+	optionalDateTimeZoneSchema,
 } from '~/utils/zod-extensions.ts'
 
 export const horseFormSchema = z
@@ -55,8 +55,8 @@ export const horseFormSchema = z
 		notes: z.string().optional(),
 		status: z.string().optional(),
 		cooldown: checkboxSchema(),
-		cooldownStartDate: optionalDateSchemaTimeZone,
-		cooldownEndDate: optionalDateSchemaTimeZone,
+		cooldownStartDate: optionalDateTimeZoneSchema,
+		cooldownEndDate: optionalDateTimeZoneSchema,
 	})
 	.refine(
 		/**
