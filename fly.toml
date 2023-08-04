@@ -50,3 +50,6 @@ script_checks = [ ]
   timeout = "2s"
   tls_skip_verify = false
   headers = { }
+
+[env]
+  TZ = "US/Arizona"
