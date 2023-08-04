@@ -34,13 +34,13 @@ import {
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
 import { format } from 'date-fns'
-import { optionalDateSchema } from '~/utils/zod-extensions.ts'
+import { optionalDateTimeZoneSchema } from '~/utils/zod-extensions.ts'
 
 const profileFormSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
 	email: emailSchema.optional(),
-	birthdate: optionalDateSchema,
+	birthdate: optionalDateTimeZoneSchema,
 	phone: phoneSchema,
 	height: z.coerce.number().min(0).optional(),
 	yearsOfExperience: z.coerce.number().min(0).optional(),

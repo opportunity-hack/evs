@@ -20,7 +20,7 @@ export const optionalDateSchema = z.preprocess(arg =>  {
 	return undefined 
 }, z.date().optional())
 
-export const optionalDateSchemaTimeZone = z.union([
+export const optionalDateTimeZoneSchema = z.union([
 	z.string()
 		.transform(date => date + 'T00:00:00-07:00')
 		.pipe(z.coerce.date()),
