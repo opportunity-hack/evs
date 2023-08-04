@@ -190,6 +190,11 @@ export default function EditHorse() {
 					/>
 					{cooldownChecked ? (
 						<fieldset className="grid grid-cols-2 gap-x-10">
+							{form.error ? (
+								<div className="min-h-[32px] px-4 pb-3 pt-1 col-span-2">
+									<ErrorList id={form.errorId} errors={form.errors} />
+								</div>
+							): null}
 							<Field
 								className="col-span-1"
 								labelProps={{
@@ -202,7 +207,6 @@ export default function EditHorse() {
 								}}
 								errors={fields.cooldownStartDate.errors}
 							/>
-
 							<Field
 								className="col-span-1"
 								labelProps={{
@@ -217,11 +221,6 @@ export default function EditHorse() {
 							/>
 						</fieldset>
 					) : null}
-					{form.error ? (
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
-							{form.errorId ? <ErrorList id={form.errorId} errors={form.errors} /> : null}
-						</div>
-					): null}
 					<DialogFooter className="mt-4">
 						<StatusButton
 							type="submit"
