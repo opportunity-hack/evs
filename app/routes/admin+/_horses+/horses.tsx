@@ -77,6 +77,20 @@ export const horseFormSchema = z
 				'If "Schedule Cooldown" is checked, you must choose a start and end date',
 		},
 	)
+	.refine(
+		/**
+		 * Checks that end date is after or equal to start date
+		 */
+		schema => {
+			const { cooldownStartDate, cooldownEndDate} = schema
+			if (cooldownStartDate && cooldownEndDate) {
+				return cooldownStartDate <= cooldownEndDate
+			}
+		},
+		{
+			message: "End date must not be before start date."
+		}
+	)
 
 export const loader = async ({ request }: DataFunctionArgs) => {
 	await requireAdmin(request)
