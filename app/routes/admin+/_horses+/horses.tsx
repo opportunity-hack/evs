@@ -82,10 +82,10 @@ export const horseFormSchema = z
 		 * Checks that end date is after or equal to start date
 		 */
 		schema => {
-			const { cooldownStartDate, cooldownEndDate} = schema
+			const { cooldownStartDate, cooldownEndDate } = schema
 			if (cooldownStartDate && cooldownEndDate) {
 				return cooldownStartDate <= cooldownEndDate
-			}
+			} else return true
 		},
 		{
 			message: "End date must not be before start date."
