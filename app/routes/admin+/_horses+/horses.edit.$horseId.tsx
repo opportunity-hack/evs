@@ -9,7 +9,12 @@ import {
 	DialogFooter,
 } from '~/components/ui/dialog.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import { CheckboxField, Field, TextareaField, ErrorList } from '~/components/forms.tsx'
+import {
+	CheckboxField,
+	Field,
+	TextareaField,
+	ErrorList,
+} from '~/components/forms.tsx'
 import {
 	Form,
 	useLoaderData,
@@ -27,7 +32,7 @@ import { parse } from '@conform-to/zod'
 import { horseFormSchema } from './horses.tsx'
 import { redirectWithToast } from '~/utils/flash-session.server.ts'
 import { StatusButton } from '~/components/ui/status-button.tsx'
-import { format } from 'date-fns'
+import { format, add } from 'date-fns'
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
@@ -62,7 +67,8 @@ export async function action({ request, params }: DataFunctionArgs) {
 		)
 	}
 
-	const { name, notes, status, cooldown, cooldownStartDate, cooldownEndDate } = submission.value
+	const { name, notes, status, cooldown, cooldownStartDate, cooldownEndDate } =
+		submission.value
 
 	const updatedHorse = await prisma.horse.update({
 		where: { id: params.horseId },
@@ -82,6 +88,53 @@ export async function action({ request, params }: DataFunctionArgs) {
 			variant: 'destructive',
 			description: `Failed to update horse`,
 		})
+	}
+
+	if (cooldown && cooldownStartDate && cooldownEndDate) {
+		// Get events horseID is registered for
+		const horseEvents = await prisma.event.findMany({
+			where: {
+				horses: {
+					some: {
+						id: updatedHorse.id,
+					},
+				},
+			},
+		})
+
+		// Compare event dates to cooldown dates and gather events with conflicts
+		const conflictEvents = []
+		if (horseEvents) {
+			for (const e of horseEvents) {
+				if (
+					cooldownStartDate <= e.start &&
+					e.start < add(cooldownEndDate, { days: 1 }) // checks that event is before midnight of cooldownEndDate
+				) {
+					conflictEvents.push(e)
+				}
+			}
+		}
+
+		// Remove horse from events with conflicts
+		if (conflictEvents.length > 0) {
+			for (const e of conflictEvents) {
+				await prisma.event.update({
+					where: { id: e.id },
+					data: {
+						horses: {
+							disconnect: { id: updatedHorse.id },
+						},
+					},
+				})
+			}
+			return redirectWithToast(`/admin/horses`, {
+				title: `Success`,
+				description: `Removed ${updatedHorse.name} from ${
+					conflictEvents.length
+				} event${conflictEvents.length > 1 ? 's' : ''}`,
+			})
+		}
+		// TODO: Display events that horse was removed from
 	}
 
 	return redirectWithToast(`/admin/horses`, {
@@ -129,8 +182,10 @@ export default function EditHorse() {
 	 * If there is returned actionData (form validation errors),
 	 * use that checked state, otherwise use the boolean from the DB
 	 */
-	const cooldown = actionData 
-		? actionData.submission.payload?.cooldown === 'on' ? true: false 
+	const cooldown = actionData
+		? actionData.submission.payload?.cooldown === 'on'
+			? true
+			: false
 		: data.horse?.cooldown
 	const [cooldownChecked, setCooldownChecked] = useState(cooldown)
 
@@ -191,10 +246,10 @@ export default function EditHorse() {
 					{cooldownChecked ? (
 						<fieldset className="grid grid-cols-2 gap-x-10">
 							{form.error ? (
-								<div className="min-h-[32px] px-4 pb-3 pt-1 col-span-2">
+								<div className="col-span-2 min-h-[32px] px-4 pb-3 pt-1">
 									<ErrorList id={form.errorId} errors={form.errors} />
 								</div>
-							): null}
+							) : null}
 							<Field
 								className="col-span-1"
 								labelProps={{
