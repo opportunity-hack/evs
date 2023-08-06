@@ -22,7 +22,10 @@ import {
 	useActionData,
 	useNavigation,
 	useFormAction,
+	Link,
 } from '@remix-run/react'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert.tsx'
+import { AlertTriangle } from 'lucide-react'
 import { json, type DataFunctionArgs } from '@remix-run/node'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { prisma } from '~/utils/db.server.ts'
@@ -127,14 +130,12 @@ export async function action({ request, params }: DataFunctionArgs) {
 					},
 				})
 			}
-			return redirectWithToast(`/admin/horses`, {
-				title: `Success`,
-				description: `Removed ${updatedHorse.name} from ${
-					conflictEvents.length
-				} event${conflictEvents.length > 1 ? 's' : ''}`,
+			return json({
+				status: 'idle',
+				submission,
+				conflictEvents,
 			})
 		}
-		// TODO: Display events that horse was removed from
 	}
 
 	return redirectWithToast(`/admin/horses`, {
@@ -188,6 +189,10 @@ export default function EditHorse() {
 			: false
 		: data.horse?.cooldown
 	const [cooldownChecked, setCooldownChecked] = useState(cooldown)
+	console.log('actionData', actionData)
+	const conflictEvents = actionData?.conflictEvents ?? null
+	const testDate = format(new Date('2023-06-05'), 'h:mmaaa MMMM do, yyyy')
+	console.log('testDate', testDate)
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -251,7 +256,7 @@ export default function EditHorse() {
 								</div>
 							) : null}
 							<Field
-								className="col-span-1"
+								className="col-span-2 sm:col-span-1"
 								labelProps={{
 									htmlFor: fields.cooldownStartDate.id,
 									children: 'Start Date',
@@ -263,7 +268,7 @@ export default function EditHorse() {
 								errors={fields.cooldownStartDate.errors}
 							/>
 							<Field
-								className="col-span-1"
+								className="col-span-2 sm:col-span-1"
 								labelProps={{
 									htmlFor: fields.cooldownEndDate.id,
 									children: 'End Date',
@@ -275,6 +280,38 @@ export default function EditHorse() {
 								errors={fields.cooldownEndDate.errors}
 							/>
 						</fieldset>
+					) : null}
+					{conflictEvents ? (
+						<Alert variant="destructive">
+							<AlertTriangle className="h-4 w-4" />
+							<AlertTitle>
+								Horse removed from {conflictEvents.length}{' '}
+								{conflictEvents.length > 1 ? 'events' : 'event'}
+							</AlertTitle>
+							<AlertDescription>
+								<ul className="mt-2 flex flex-col gap-2">
+									{conflictEvents
+										? conflictEvents.map(event => {
+												const date = format(
+													new Date(event.start),
+													'MMMM do, yyyy',
+												)
+												const link = `/calendar/${event.id}`
+												return (
+													<>
+														<li key={event.id}>
+															<Link to={link} target="_blank">
+																<span>{event.title} - </span>
+																<span>{date}</span>
+															</Link>
+														</li>
+													</>
+												)
+										  })
+										: null}
+								</ul>
+							</AlertDescription>
+						</Alert>
 					) : null}
 					<DialogFooter className="mt-4">
 						<StatusButton
