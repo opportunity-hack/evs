@@ -58,13 +58,14 @@ export async function action({ request, params }: DataFunctionArgs) {
 	})
 
 	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
+		return json({ status: 'idle', submission, conflictEvents: []} as const)
 	}
 	if (!submission.value) {
 		return json(
 			{
 				status: 'error',
 				submission,
+				conflictEvents: []
 			} as const,
 			{ status: 400 },
 		)
@@ -134,7 +135,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 				status: 'idle',
 				submission,
 				conflictEvents,
-			})
+			} as const)
 		}
 	}
 
@@ -291,17 +292,17 @@ export default function EditHorse() {
 							<AlertDescription>
 								<ul className="mt-2 flex flex-col gap-2">
 									{conflictEvents
-										? conflictEvents.map(event => {
+										? conflictEvents.map((e) => {
 												const date = format(
-													new Date(event.start),
+													new Date(e.start),
 													'MMMM do, yyyy',
 												)
-												const link = `/calendar/${event.id}`
+												const link = `/calendar/${e.id}`
 												return (
 													<>
-														<li key={event.id}>
+														<li key={e.id}>
 															<Link to={link} target="_blank">
-																<span>{event.title} - </span>
+																<span>{e.title} - </span>
 																<span>{date}</span>
 															</Link>
 														</li>
