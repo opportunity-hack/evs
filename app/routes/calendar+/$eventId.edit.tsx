@@ -71,7 +71,7 @@ const instructorSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	username: z.string(),
-})
+}).optional()
 
 const editEventSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
@@ -109,7 +109,13 @@ export async function action({ request, params }: DataFunctionArgs) {
 	const start = submission.value.startDate
 	const end = addMinutes(start, submission.value.duration)
 
-	const instructorId = submission.value.instructor.id
+	const instructorId = submission.value.instructor?.id
+	let instructorData: { id: string}[] = [];
+	if (instructorId) {
+		instructorData = [
+			{id: instructorId}
+		]
+	}
 	const horseIds = submission.value.horses?.map(e => {
 		return { id: e.id }
 	})
@@ -130,7 +136,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 			start,
 			end,
 			instructors: {
-				set: { id: instructorId },
+				set: instructorData,
 			},
 			horses: {
 				set: horseIds ?? [],

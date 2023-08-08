@@ -9,12 +9,7 @@ import {
 	DialogFooter,
 } from '~/components/ui/dialog.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import {
-	CheckboxField,
-	Field,
-	TextareaField,
-	ErrorList,
-} from '~/components/forms.tsx'
+import { CheckboxField, Field, TextareaField, ErrorList } from '~/components/forms.tsx'
 import {
 	Form,
 	useLoaderData,
