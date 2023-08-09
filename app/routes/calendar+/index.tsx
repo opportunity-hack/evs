@@ -45,7 +45,7 @@ import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
 
 import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
-import { addMinutes, isAfter } from 'date-fns'
+import { addMinutes, isAfter, add } from 'date-fns'
 import { useFetcher, useFormAction, useNavigation } from '@remix-run/react'
 import { useResetCallback } from '~/utils/misc.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
@@ -66,7 +66,7 @@ import {
 } from '~/components/ui/select.tsx'
 import { Separator } from '~/components/ui/separator.tsx'
 import { CheckboxField, Field } from '~/components/forms.tsx'
-import { checkboxSchema } from '~/utils/zod-extensions.ts'
+import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
 
 const locales = {
 	'en-US': enUS,
@@ -110,12 +110,13 @@ export const loader = async ({ request }: LoaderArgs) => {
 const horseSchema = z.object({
 	id: z.string(),
 	name: z.string(),
+	cooldownStartDate: optionalDateSchema,
+	cooldownEndDate: optionalDateSchema,
 })
 
 const instructorSchema = z.object({
 	id: z.string(),
 	name: z.string(),
-	username: z.string(),
 }).optional()
 
 const createEventSchema = z.object({
@@ -144,6 +145,7 @@ export async function action({ request }: ActionArgs) {
 			{
 				status: 'error',
 				submission,
+				message: null,
 			} as const,
 			{ status: 400 },
 		)
@@ -163,6 +165,21 @@ export async function action({ request }: ActionArgs) {
 	const horseIds = submission.value.horses?.map(e => {
 		return { id: e.id }
 	})
+
+	// check that horses selected are not in cooldown period
+	if (submission.value.horses) {
+		const selectedHorsesArray = submission.value.horses
+		const errorHorses = selectedHorsesArray.filter(horse => {
+			if (horse.cooldownStartDate && horse.cooldownEndDate) {
+				return horse.cooldownStartDate <= start && start < add(horse.cooldownEndDate, { days: 1 })
+			} else return false
+		})
+		const listOfHorses = errorHorses.map(h => h.name).join(', ')
+		if (errorHorses.length > 0) {
+			return json({ status: 'horse-error', submission, message: listOfHorses } as const)
+		}
+	}
+
 
 	const cleaningCrewReq = submission.value.cleaningCrewReq
 	const lessonAssistantsReq = submission.value.lessonAssistantsReq
@@ -194,7 +211,8 @@ export async function action({ request }: ActionArgs) {
 		{
 			status: 'success',
 			submission,
-		},
+			message: null,
+		} as const,
 		{ status: 200 },
 	)
 }
@@ -567,6 +585,12 @@ function CreateEventForm({
 			if (doneCallback) {
 				doneCallback()
 			}
+		} else if (actionData.status === 'horse-error') {
+			toast({
+				variant: 'destructive',
+				title: 'The following horses are scheduled for cooldown on the selected date:',
+				description: actionData.message,
+			})
 		} else {
 			toast({
 				variant: 'destructive',

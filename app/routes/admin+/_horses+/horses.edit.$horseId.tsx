@@ -185,10 +185,7 @@ export default function EditHorse() {
 			: false
 		: data.horse?.cooldown
 	const [cooldownChecked, setCooldownChecked] = useState(cooldown)
-	console.log('actionData', actionData)
 	const conflictEvents = actionData?.conflictEvents ?? null
-	const testDate = format(new Date('2023-06-05'), 'h:mmaaa MMMM do, yyyy')
-	console.log('testDate', testDate)
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>

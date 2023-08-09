@@ -35,7 +35,7 @@ export function HorseListbox({
 	const [selected, setSelected] = useState(initialValues)
 
 	return (
-		<Listbox value={selected} onChange={setSelected} name={name} multiple>
+		<Listbox value={selected} by="id" onChange={setSelected} name={name} multiple>
 			<div className="relative mt-1">
 				<div className={''}>
 					<Listbox.Button className={listboxButtonClassName}>
@@ -67,7 +67,7 @@ export function HorseListbox({
 									<>
 										<span
 											className={`block truncate 
-											${selected ? 'font-medium' : 'font-normal'}`}
+											${selected ? 'font-semibold' : 'font-normal'}`}
 										>
 											{horse.name}
 										</span>
