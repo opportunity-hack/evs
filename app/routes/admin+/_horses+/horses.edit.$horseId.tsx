@@ -17,7 +17,10 @@ import {
 	useActionData,
 	useNavigation,
 	useFormAction,
+	Link,
 } from '@remix-run/react'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert.tsx'
+import { AlertTriangle } from 'lucide-react'
 import { json, type DataFunctionArgs } from '@remix-run/node'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { prisma } from '~/utils/db.server.ts'
@@ -27,7 +30,7 @@ import { parse } from '@conform-to/zod'
 import { horseFormSchema } from './horses.tsx'
 import { redirectWithToast } from '~/utils/flash-session.server.ts'
 import { StatusButton } from '~/components/ui/status-button.tsx'
-import { format } from 'date-fns'
+import { format, add } from 'date-fns'
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
@@ -50,19 +53,21 @@ export async function action({ request, params }: DataFunctionArgs) {
 	})
 
 	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
+		return json({ status: 'idle', submission, conflictEvents: []} as const)
 	}
 	if (!submission.value) {
 		return json(
 			{
 				status: 'error',
 				submission,
+				conflictEvents: []
 			} as const,
 			{ status: 400 },
 		)
 	}
 
-	const { name, notes, status, cooldown, cooldownStartDate, cooldownEndDate } = submission.value
+	const { name, notes, status, cooldown, cooldownStartDate, cooldownEndDate } =
+		submission.value
 
 	const updatedHorse = await prisma.horse.update({
 		where: { id: params.horseId },
@@ -82,6 +87,51 @@ export async function action({ request, params }: DataFunctionArgs) {
 			variant: 'destructive',
 			description: `Failed to update horse`,
 		})
+	}
+
+	if (cooldown && cooldownStartDate && cooldownEndDate) {
+		// Get events horseID is registered for
+		const horseEvents = await prisma.event.findMany({
+			where: {
+				horses: {
+					some: {
+						id: updatedHorse.id,
+					},
+				},
+			},
+		})
+
+		// Compare event dates to cooldown dates and gather events with conflicts
+		const conflictEvents = []
+		if (horseEvents) {
+			for (const e of horseEvents) {
+				if (
+					cooldownStartDate <= e.start &&
+					e.start < add(cooldownEndDate, { days: 1 }) // checks that event is before midnight of cooldownEndDate
+				) {
+					conflictEvents.push(e)
+				}
+			}
+		}
+
+		// Remove horse from events with conflicts
+		if (conflictEvents.length > 0) {
+			for (const e of conflictEvents) {
+				await prisma.event.update({
+					where: { id: e.id },
+					data: {
+						horses: {
+							disconnect: { id: updatedHorse.id },
+						},
+					},
+				})
+			}
+			return json({
+				status: 'idle',
+				submission,
+				conflictEvents,
+			} as const)
+		}
 	}
 
 	return redirectWithToast(`/admin/horses`, {
@@ -129,10 +179,16 @@ export default function EditHorse() {
 	 * If there is returned actionData (form validation errors),
 	 * use that checked state, otherwise use the boolean from the DB
 	 */
-	const cooldown = actionData 
-		? actionData.submission.payload?.cooldown === 'on' ? true: false 
+	const cooldown = actionData
+		? actionData.submission.payload?.cooldown === 'on'
+			? true
+			: false
 		: data.horse?.cooldown
 	const [cooldownChecked, setCooldownChecked] = useState(cooldown)
+	console.log('actionData', actionData)
+	const conflictEvents = actionData?.conflictEvents ?? null
+	const testDate = format(new Date('2023-06-05'), 'h:mmaaa MMMM do, yyyy')
+	console.log('testDate', testDate)
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -191,12 +247,12 @@ export default function EditHorse() {
 					{cooldownChecked ? (
 						<fieldset className="grid grid-cols-2 gap-x-10">
 							{form.error ? (
-								<div className="min-h-[32px] px-4 pb-3 pt-1 col-span-2">
+								<div className="col-span-2 min-h-[32px] px-4 pb-3 pt-1">
 									<ErrorList id={form.errorId} errors={form.errors} />
 								</div>
-							): null}
+							) : null}
 							<Field
-								className="col-span-1"
+								className="col-span-2 sm:col-span-1"
 								labelProps={{
 									htmlFor: fields.cooldownStartDate.id,
 									children: 'Start Date',
@@ -208,7 +264,7 @@ export default function EditHorse() {
 								errors={fields.cooldownStartDate.errors}
 							/>
 							<Field
-								className="col-span-1"
+								className="col-span-2 sm:col-span-1"
 								labelProps={{
 									htmlFor: fields.cooldownEndDate.id,
 									children: 'End Date',
@@ -220,6 +276,38 @@ export default function EditHorse() {
 								errors={fields.cooldownEndDate.errors}
 							/>
 						</fieldset>
+					) : null}
+					{conflictEvents ? (
+						<Alert variant="destructive">
+							<AlertTriangle className="h-4 w-4" />
+							<AlertTitle>
+								Horse removed from {conflictEvents.length}{' '}
+								{conflictEvents.length > 1 ? 'events' : 'event'}
+							</AlertTitle>
+							<AlertDescription>
+								<ul className="mt-2 flex flex-col gap-2">
+									{conflictEvents
+										? conflictEvents.map((e) => {
+												const date = format(
+													new Date(e.start),
+													'MMMM do, yyyy',
+												)
+												const link = `/calendar/${e.id}`
+												return (
+													<>
+														<li key={e.id}>
+															<Link to={link} target="_blank">
+																<span>{e.title} - </span>
+																<span>{date}</span>
+															</Link>
+														</li>
+													</>
+												)
+										  })
+										: null}
+								</ul>
+							</AlertDescription>
+						</Alert>
 					) : null}
 					<DialogFooter className="mt-4">
 						<StatusButton
