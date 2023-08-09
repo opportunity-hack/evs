@@ -114,10 +114,13 @@ const horseSchema = z.object({
 	cooldownEndDate: optionalDateSchema,
 })
 
-const instructorSchema = z.object({
-	id: z.string(),
-	name: z.string(),
-}).optional()
+const instructorSchema = z
+	.object({
+		id: z.string(),
+		name: z.string(),
+		username: z.string(),
+	})
+	.optional()
 
 const createEventSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
@@ -156,11 +159,9 @@ export async function action({ request }: ActionArgs) {
 	const end = addMinutes(start, submission.value.duration)
 
 	const instructorId = submission.value.instructor?.id
-	let instructorData: { id: string}[] = [];
+	let instructorData: { id: string }[] = []
 	if (instructorId) {
-		instructorData = [
-			{id: instructorId}
-		]
+		instructorData = [{ id: instructorId }]
 	}
 	const horseIds = submission.value.horses?.map(e => {
 		return { id: e.id }
@@ -171,15 +172,21 @@ export async function action({ request }: ActionArgs) {
 		const selectedHorsesArray = submission.value.horses
 		const errorHorses = selectedHorsesArray.filter(horse => {
 			if (horse.cooldownStartDate && horse.cooldownEndDate) {
-				return horse.cooldownStartDate <= start && start < add(horse.cooldownEndDate, { days: 1 })
+				return (
+					horse.cooldownStartDate <= start &&
+					start < add(horse.cooldownEndDate, { days: 1 })
+				)
 			} else return false
 		})
 		const listOfHorses = errorHorses.map(h => h.name).join(', ')
 		if (errorHorses.length > 0) {
-			return json({ status: 'horse-error', submission, message: listOfHorses } as const)
+			return json({
+				status: 'horse-error',
+				submission,
+				message: listOfHorses,
+			} as const)
 		}
 	}
-
 
 	const cleaningCrewReq = submission.value.cleaningCrewReq
 	const lessonAssistantsReq = submission.value.lessonAssistantsReq
@@ -588,7 +595,8 @@ function CreateEventForm({
 		} else if (actionData.status === 'horse-error') {
 			toast({
 				variant: 'destructive',
-				title: 'The following horses are scheduled for cooldown on the selected date:',
+				title:
+					'The following horses are scheduled for cooldown on the selected date:',
 				description: actionData.message,
 			})
 		} else {

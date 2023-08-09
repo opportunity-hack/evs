@@ -146,8 +146,10 @@ export default function () {
 			<section className="h-fit pr-2 md:sticky md:top-20 md:w-2/5">
 				<h1 className="text-h2 uppercase">Event Details</h1>
 				<Card className="px-4 py-6">
-					<div className="flex items-center justify-between">
-						<h2 className="text-2xl font-bold">{event.title}</h2>
+					<div className="flex flex-wrap items-center justify-between">
+						<h2 className="text-2xl font-bold">
+							{event.title}
+						</h2>
 						<Button asChild className="" variant="default" size="sm">
 							<Link to="edit">Edit</Link>
 						</Button>
@@ -406,7 +408,7 @@ function HorseInfoPopover({ children, horse }: HorseInfoPopoverProps) {
 			<PopoverContent side="bottom">
 				<div className="text-xl">{horse.name}</div>
 				<img
-					className="h-52 w-52 rounded-full object-cover mx-auto"
+					className="mx-auto h-52 w-52 rounded-full object-cover"
 					alt="horse"
 					src={getHorseImgSrc(horse.imageId)}
 				/>
@@ -445,7 +447,7 @@ function VolunteerInfoPopover({
 					</Link>
 				</div>
 				<img
-					className="h-52 w-52 rounded-full object-cover mx-auto"
+					className="mx-auto h-52 w-52 rounded-full object-cover"
 					alt="horse"
 					src={getHorseImgSrc(volunteer.imageId)}
 				/>
@@ -466,10 +468,8 @@ function VolunteerInfoPopover({
 					{volunteer.yearsOfExperience}
 				</div>
 				<div>
-					<span className="text-xs font-bold uppercase">
-						Phone Number:{' '}
-					</span>
-					{ formatPhone(volunteer.phone) }
+					<span className="text-xs font-bold uppercase">Phone Number: </span>
+					{formatPhone(volunteer.phone)}
 				</div>
 				<div>
 					<span className="text-xs font-bold uppercase">Notes: </span>
