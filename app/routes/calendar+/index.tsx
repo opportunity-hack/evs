@@ -499,11 +499,11 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 									Register
 								</Button>
 							)}
-							<DialogClose autoFocus={false} />
 						</DialogFooter>
 					</registrationFetcher.Form>
 				</>
 			)}
+			<DialogClose autoFocus={false} />
 		</DialogContent>
 	)
 }
