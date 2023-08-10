@@ -241,8 +241,9 @@ export default function EventEditor() {
 		if (actionData.status === 'horse-error') {
 			toast({
 				variant: 'destructive',
-				title: 'The following horses are scheduled for cooldown on the selected date:',
-				description: actionData.message
+				title:
+					'The following horses are scheduled for cooldown on the selected date:',
+				description: actionData.message,
 			})
 		}
 	})
@@ -302,6 +303,7 @@ export default function EventEditor() {
 								name="horses"
 								horses={data.horses}
 								defaultValues={data.event?.horses}
+								error={actionData?.status === 'horse-error' ?? false}
 							/>
 						</div>
 						<div className="col-span-2 sm:col-span-1">
