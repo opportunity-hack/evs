@@ -648,7 +648,11 @@ function CreateEventForm({
 				</div>
 				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="horses">Horses</Label>
-					<HorseListbox name="horses" horses={horses} />
+					<HorseListbox
+						name="horses"
+						horses={horses}
+						error={actionData?.status === 'horse-error' ?? false}
+					/>
 				</div>
 				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="instructor">Instructor</Label>
