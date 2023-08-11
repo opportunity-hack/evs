@@ -82,26 +82,37 @@ const localizer = dateFnsLocalizer({
 
 export const loader = async ({ request }: LoaderArgs) => {
 	await requireUserId(request)
+	const isAdmin = await userHasAdminPermissions(request)
 	const instructors = await prisma.user.findMany({
 		where: { roles: { some: { name: 'instructor' } } },
 	})
 
 	let eventsWhere: { isPrivate?: boolean } = { isPrivate: false }
-	if (await userHasAdminPermissions(request)) {
-		delete eventsWhere.isPrivate
+	if (isAdmin) delete eventsWhere.isPrivate
+	let events = await prisma.event.findMany({
+		where: eventsWhere,
+		include: {
+			horses: true,
+			instructors: true,
+			cleaningCrew: true,
+			lessonAssistants: true,
+			sideWalkers: true,
+			horseLeaders: true,
+		},
+	})
+
+	// Add 🔒 to title of private events
+	if (isAdmin) {
+		events = events.map(e => {
+			if (e.isPrivate) {
+				return { ...e, title: '🔒' + e.title }
+			}
+			return e
+		})
 	}
+
 	return json({
-		events: await prisma.event.findMany({
-			where: eventsWhere,
-			include: {
-				horses: true,
-				instructors: true,
-				cleaningCrew: true,
-				lessonAssistants: true,
-				sideWalkers: true,
-				horseLeaders: true,
-			},
-		}),
+		events,
 		horses: await prisma.horse.findMany(),
 		instructors,
 	})
