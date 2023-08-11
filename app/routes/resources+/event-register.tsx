@@ -4,9 +4,9 @@ import { parse } from '@conform-to/zod'
 import { json, type DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { sendEmail } from '~/utils/email.server.ts'
-import { RegistrationEmail } from './registration-emails.server.tsx'
+import { RegistrationEmail, RegistrationNoticeForAdmins } from './registration-emails.server.tsx'
 import { createEvent, type DateArray } from 'ics'
-import { type Event } from '@prisma/client'
+import type { User, Event } from '@prisma/client'
 import { differenceInMinutes } from 'date-fns'
 import { siteEmailAddress } from '~/data.ts'
 
@@ -43,8 +43,16 @@ export async function action({ request }: DataFunctionArgs) {
 		)
 	}
 
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		include: { roles: true },
+	})
+	if (!user) {
+		throw json({ error: 'No user found' }, { status: 404 })
+	}
+
 	if (submission.value._action === 'unregister') {
-		await prisma.event.update({
+		const event = await prisma.event.update({
 			where: {
 				id: submission.value.eventId,
 			},
@@ -56,6 +64,12 @@ export async function action({ request }: DataFunctionArgs) {
 				},
 			},
 		})
+		notifyAdmins({
+			user: user,
+			event: event,
+			role: submission.value.role,
+			action: 'unregister',
+		})
 		return json(
 			{
 				status: 'successfully unregistered',
@@ -65,13 +79,6 @@ export async function action({ request }: DataFunctionArgs) {
 		)
 	}
 
-	const user = await prisma.user.findUnique({
-		where: { id: userId },
-		select: { email: true, username: true, roles: true },
-	})
-	if (!user) {
-		throw json({ error: 'No user found' }, { status: 404 })
-	}
 
 	if (submission.value.role == 'lessonAssistants') {
 		if (!user.roles.find(role => role.name === 'lessonAssistant')) {
@@ -131,6 +138,13 @@ export async function action({ request }: DataFunctionArgs) {
 		}
 	})
 
+	notifyAdmins({
+		user: user,
+		event: event,
+		role: submission.value.role,
+		action: 'register',
+	})
+
 	return json(
 		{
 			status: 'success',
@@ -167,4 +181,40 @@ function generateInvite(event: Event) {
 	})
 
 	return invite
+}
+
+async function notifyAdmins({
+	event,
+	role,
+	action,
+	user,
+}: {
+	event: Event
+	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'horseLeaders',
+	action: 'register' | 'unregister';
+	user: User;
+	}) {
+	const admins = await prisma.user.findMany({
+		where: { roles: { some: { name: 'instructor' } } },
+	})
+
+	for (const admin of admins) {
+		sendEmail({
+			to: admin.email,
+			subject: `${user.name} ${action}ed as a volunteer for ${event.title}`,
+			react: <RegistrationNoticeForAdmins 
+				user={user} 
+				event={event} 
+				role={role} 
+				action={action} />,
+		}).then(result => {
+			if (result.status == 'error') {
+				// TODO: think through this case and how to handle it properly
+				console.error(
+					'There was an error sending an volunteer registration notification email: ',
+					JSON.stringify(result.error),
+				)
+			}
+		})
+	}
 }
