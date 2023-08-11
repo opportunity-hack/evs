@@ -77,7 +77,7 @@ test('onboarding with link', async ({ page }) => {
 
 	await page.getByLabel(/terms/i).check()
 
-	await page.getByLabel(/offers/i).check()
+	await page.getByLabel(/opportunities to volunteer/i).check()
 
 	await page.getByLabel(/remember me/i).check()
 
