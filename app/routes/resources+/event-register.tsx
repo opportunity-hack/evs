@@ -195,7 +195,7 @@ async function notifyAdmins({
 	user: User;
 	}) {
 	const admins = await prisma.user.findMany({
-		where: { roles: { some: { name: 'instructor' } } },
+		where: { roles: { some: { name: 'admin' } } },
 	})
 
 	for (const admin of admins) {
