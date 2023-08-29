@@ -47,6 +47,10 @@ test('onboarding with link', async ({ page }) => {
 	await emailTextbox.click()
 	await emailTextbox.fill(onboardingData.email)
 
+	const secretTextbox = page.getByRole('textbox', { name: /secret/i })
+	await secretTextbox.click()
+	await secretTextbox.fill("horses are cool")
+
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
 		page.getByRole('button', { name: /submit/i, disabled: true }),
@@ -117,6 +121,10 @@ test('onboarding with a short code', async ({ page }) => {
 	await emailTextbox.click()
 	await emailTextbox.fill(onboardingData.email)
 
+	const secretTextbox = page.getByRole('textbox', { name: /secret/i })
+	await secretTextbox.click()
+	await secretTextbox.fill("horses are cool")
+	
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
 		page.getByRole('button', { name: /submit/i, disabled: true }),
