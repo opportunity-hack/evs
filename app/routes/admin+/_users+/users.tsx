@@ -17,6 +17,7 @@ import {
 	DropdownMenuSeparator,
 } from '~/components/ui/dropdown-menu.tsx'
 import { Button } from '~/components/ui/button.tsx'
+import { SetSignupPasswordForm } from '~/routes/resources+/signup_password.tsx'
 
 export const loader = async ({ request }: LoaderArgs) => {
 	await requireAdmin(request)
@@ -30,6 +31,7 @@ export default function Users() {
 			<h1 className="text-center text-5xl">Users</h1>
 			<div className="container pt-10">
 				<DataTable columns={columns} data={data} />
+				<SetSignupPasswordForm/>
 			</div>
 			<Outlet />
 		</div>
