@@ -37,26 +37,26 @@ CREATE TABLE IF NOT EXISTS "Role" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
-INSERT INTO Role VALUES('cllwcvcn90000a1dpldrn1llt','admin',1693316410821,1693316410821);
-INSERT INTO Role VALUES('cllwcvcnc0002a1dpbvre5f6j','lessonAssistant',1693316410825,1693316410825);
-INSERT INTO Role VALUES('cllwcvcnf0004a1dpi4vpfyya','horseLeader',1693316410827,1693316410827);
-INSERT INTO Role VALUES('cllwcvcnh0006a1dp31y5jzwm','instructor',1693316410829,1693316410829);
+INSERT INTO Role VALUES('cllwn31jx0000a18y8fkw6j9i','admin',1693333565853,1693333565853);
+INSERT INTO Role VALUES('cllwn31k00002a18yycpbfyh1','lessonAssistant',1693333565856,1693333565856);
+INSERT INTO Role VALUES('cllwn31k20004a18yixl5zs23','horseLeader',1693333565859,1693333565859);
+INSERT INTO Role VALUES('cllwn31k40006a18y74bnzyqk','instructor',1693333565860,1693333565860);
 CREATE TABLE IF NOT EXISTS "Permission" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
-INSERT INTO Permission VALUES('cllwcvcn90001a1dphjmxbu6j','admin',1693316410821,1693316410821);
-INSERT INTO Permission VALUES('cllwcvcnc0003a1dpx9z0agj7','lessonAssistant',1693316410825,1693316410825);
-INSERT INTO Permission VALUES('cllwcvcnf0005a1dpqt8ted2t','horseLeader',1693316410827,1693316410827);
-INSERT INTO Permission VALUES('cllwcvcnh0007a1dptpj58hw2','instructor',1693316410829,1693316410829);
+INSERT INTO Permission VALUES('cllwn31jx0001a18ybxiz4ymo','admin',1693333565853,1693333565853);
+INSERT INTO Permission VALUES('cllwn31k00003a18y6jq06dc4','lessonAssistant',1693333565856,1693333565856);
+INSERT INTO Permission VALUES('cllwn31k20005a18yqge50zjs','horseLeader',1693333565859,1693333565859);
+INSERT INTO Permission VALUES('cllwn31k40007a18y4i7fta6v','instructor',1693333565860,1693333565860);
 CREATE TABLE IF NOT EXISTS "Password" (
     "hash" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     CONSTRAINT "Password_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
-INSERT INTO Password VALUES('$2a$10$ijhQb/aumx/YOTbDCwo9z.qHYOqk3goyY3bcGodpsaEXzbY5yE3EC','cllwcvcp30008a1dpshn42gie');
+INSERT INTO Password VALUES('$2a$10$dmeL3HPH5B9Ujbna.Y6Y7u8dtMXyoCGQSAHgONW8tofVOUQppa.Gm','cllwn31lv0008a18ydvjhk6ji');
 CREATE TABLE IF NOT EXISTS "Verification" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -81,17 +81,17 @@ CREATE TABLE IF NOT EXISTS "_RoleToUser" (
     CONSTRAINT "_RoleToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "_RoleToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
-INSERT INTO _RoleToUser VALUES('cllwcvcn90000a1dpldrn1llt','cllwcvcp30008a1dpshn42gie');
+INSERT INTO _RoleToUser VALUES('cllwn31jx0000a18y8fkw6j9i','cllwn31lv0008a18ydvjhk6ji');
 CREATE TABLE IF NOT EXISTS "_PermissionToRole" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
     CONSTRAINT "_PermissionToRole_A_fkey" FOREIGN KEY ("A") REFERENCES "Permission" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "_PermissionToRole_B_fkey" FOREIGN KEY ("B") REFERENCES "Role" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
-INSERT INTO _PermissionToRole VALUES('cllwcvcn90001a1dphjmxbu6j','cllwcvcn90000a1dpldrn1llt');
-INSERT INTO _PermissionToRole VALUES('cllwcvcnc0003a1dpx9z0agj7','cllwcvcnc0002a1dpbvre5f6j');
-INSERT INTO _PermissionToRole VALUES('cllwcvcnf0005a1dpqt8ted2t','cllwcvcnf0004a1dpi4vpfyya');
-INSERT INTO _PermissionToRole VALUES('cllwcvcnh0007a1dptpj58hw2','cllwcvcnh0006a1dp31y5jzwm');
+INSERT INTO _PermissionToRole VALUES('cllwn31jx0001a18ybxiz4ymo','cllwn31jx0000a18y8fkw6j9i');
+INSERT INTO _PermissionToRole VALUES('cllwn31k00003a18y6jq06dc4','cllwn31k00002a18yycpbfyh1');
+INSERT INTO _PermissionToRole VALUES('cllwn31k20005a18yqge50zjs','cllwn31k20004a18yixl5zs23');
+INSERT INTO _PermissionToRole VALUES('cllwn31k40007a18y4i7fta6v','cllwn31k40006a18y74bnzyqk');
 CREATE TABLE IF NOT EXISTS "_instructor" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS "User" (
     "lastLogin" DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "User_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "Image" ("fileId") ON DELETE SET NULL ON UPDATE CASCADE
 );
-INSERT INTO User VALUES('cllwcvcp30008a1dpshn42gie','admin@trottracker.org','admin','Starter admin',NULL,NULL,NULL,NULL,NULL,1693316410887,1693316410887,NULL,1693316410887);
+INSERT INTO User VALUES('cllwn31lv0008a18ydvjhk6ji','admin@email.trottrack.org','admin','admin',NULL,NULL,NULL,NULL,NULL,1693333565924,1693333565924,NULL,1693333565924);
 CREATE TABLE IF NOT EXISTS "Horse" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
@@ -177,6 +177,10 @@ CREATE TABLE IF NOT EXISTS "Horse" (
     "imageId" TEXT,
     CONSTRAINT "Horse_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "Image" ("fileId") ON DELETE SET NULL ON UPDATE CASCADE
 );
+CREATE TABLE IF NOT EXISTS "SignupPassword" (
+    "hash" TEXT NOT NULL
+);
+INSERT INTO SignupPassword VALUES('$2a$10$bAFeI8IX2fI4BcZ8o7Bp8.xc5nQUxp1hGA4LcXHsehxgMYzls/8fm');
 CREATE UNIQUE INDEX "File_id_key" ON "File"("id");
 CREATE UNIQUE INDEX "Image_fileId_key" ON "Image"("fileId");
 CREATE UNIQUE INDEX "Role_id_key" ON "Role"("id");
@@ -210,4 +214,5 @@ CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 CREATE UNIQUE INDEX "User_imageId_key" ON "User"("imageId");
 CREATE UNIQUE INDEX "Horse_id_key" ON "Horse"("id");
 CREATE UNIQUE INDEX "Horse_imageId_key" ON "Horse"("imageId");
+CREATE UNIQUE INDEX "SignupPassword_hash_key" ON "SignupPassword"("hash");
 COMMIT;

@@ -237,13 +237,13 @@ async function seed() {
 	)
 	console.timeEnd(`📅 Created a few events in the current month`)
 
-	console.time(`Setting signup password to "horses_are_cool"`)
+	console.time(`Setting signup password to "horses are cool"`)
 	await prisma.signupPassword.create({
 			data: {
-				hash: await getPasswordHash('horses_are_cool'),
+				hash: await getPasswordHash('horses are cool'),
 			}
 	})
-	console.timeEnd(`Setting signup password to "horses_are_cool"`)
+	console.timeEnd(`Setting signup password to "horses are cool"`)
 
 	console.timeEnd(`🌱 Database has been seeded`)
 
