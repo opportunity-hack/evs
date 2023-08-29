@@ -20,7 +20,8 @@ To do this:
 
 This sql script will create instructor, admin, and necessary volunteer user
 roles, as well as an initial admin user with the username "admin" and a
-hardcoded password `au1pui2OBjJdTzGS5c0F`. At this point, you should create a
+hardcoded password `au1pui2OBjJdTzGS5c0F`. It will also create a default signup
+secret with the value of "horses are cool" At this point, you should create a
 user of your own, use this default admin account to give your new user account
 admin rights through the UI, and then delete the default admin account.
 
