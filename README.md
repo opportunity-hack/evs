@@ -8,23 +8,18 @@ development with the support and supervision of
 ## Development
 
 EVS is built on Kent C. Dodd's [Epic Stack](https://www.epicweb.dev/epic-stack)
-starter project. Most of the Epic Stack's
-[docs](https://github.com/epicweb-dev/epic-stack/tree/main/docs) are applicable
-to this application with a few minor deviations.
+starter project. Most of the Epic Stack's [docs](https://github.com/epicweb-dev/
+epic-stack/tree/main/docs) are applicable to this application with a few minor
+deviations and discrepencies from changes made to Epic Stack over time.
 
-To run this application locally:
+For instructions on setting up this project in your local development see the
+document [./docs/development.md](./docs/development.md) in this repo.
 
-- Clone the git repo
-- In the project root, copy `.env.example` to `.env`
-- Run `npm i`, and then `npm run setup` to perform initial setup
-- Start a dev server using `npm run dev`
+## Deployment
 
-## Admin Setup
-To do this, it's easiest to use the Prisma UI to give yourself admin
-1. `npx prisma studio`
-2. Head over to http://localhost:5555/
-3. Select the `User` table
-4. Look for the `roles[]` column and the row for your user
-5. Click the `[0|Role]` button, then select the admin role checkbox
-6. Click the Green save button to save changes
-7. Profit
+See this document for an overview of the deployment setup used by this project's
+stack and how to configure it: <https://github.com/epicweb-dev/epic-stack/blob/main/docs/deployment.md>
+
+For this application to function properly, the deployed database needs to be
+seeded with some initial data. See the document [./docs/deployment.md](./docs/deployment)
+in this repo for more information and instructions on how to do this.
