@@ -1,4 +1,4 @@
-import { type Password, type User } from '@prisma/client'
+import { SignupPassword, type Password, type User } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { Authenticator } from 'remix-auth'
 import { FormStrategy } from 'remix-auth-form'
@@ -180,4 +180,15 @@ export async function verifyLogin(
 	}
 
 	return { id: userWithPassword.id }
+}
+
+export async function verifySignupPassword(password: string) {
+	const signUpPassword = await prisma.signupPassword.findFirst();
+
+	if (!signUpPassword) {
+		throw "No signup password has been set"
+	}
+
+	const isValid = await bcrypt.compare(password, signUpPassword.hash)
+	return isValid
 }
