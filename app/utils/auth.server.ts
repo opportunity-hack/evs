@@ -1,4 +1,4 @@
-import { SignupPassword, type Password, type User } from '@prisma/client'
+import { type Password, type User } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { Authenticator } from 'remix-auth'
 import { FormStrategy } from 'remix-auth-form'
