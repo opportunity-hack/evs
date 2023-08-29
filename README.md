@@ -21,5 +21,5 @@ See this document for an overview of the deployment setup used by this project's
 stack and how to configure it: <https://github.com/epicweb-dev/epic-stack/blob/main/docs/deployment.md>
 
 For this application to function properly, the deployed database needs to be
-seeded with some initial data. See the document [./docs/deployment.md](./docs/deployment)
+seeded with some initial data. See the document [./docs/deployment.md](./docs/deployment.md)
 in this repo for more information and instructions on how to do this.
