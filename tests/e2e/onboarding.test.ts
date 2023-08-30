@@ -5,6 +5,7 @@ import {
 	expect,
 	insertNewUser,
 	test,
+	setSignupPassword,
 } from '../playwright-utils.ts'
 import { readEmail } from '../mocks/utils.ts'
 import { siteEmailAddress } from '~/data.ts'
@@ -30,6 +31,8 @@ test('onboarding with link', async ({ page }) => {
 		email: `${username}@example.com`,
 		password: faker.internet.password(),
 	}
+
+	await setSignupPassword()
 
 	await page.goto('/')
 
@@ -114,6 +117,8 @@ test('onboarding with a short code', async ({ page }) => {
 		email: `${username}@example.com`,
 		password: faker.internet.password(),
 	}
+
+	await setSignupPassword()
 
 	await page.goto('/signup')
 
