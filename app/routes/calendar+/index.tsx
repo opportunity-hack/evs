@@ -45,7 +45,7 @@ import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
 
 import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
-import { addMinutes, isAfter, add } from 'date-fns'
+import { addMinutes, isAfter } from 'date-fns'
 import { useFetcher, useFormAction, useNavigation } from '@remix-run/react'
 import { useResetCallback } from '~/utils/misc.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
@@ -65,8 +65,12 @@ import {
 	SelectValue,
 } from '~/components/ui/select.tsx'
 import { Separator } from '~/components/ui/separator.tsx'
-import { CheckboxField, Field } from '~/components/forms.tsx'
+import { CheckboxField, Field, DatePickerField } from '~/components/forms.tsx'
 import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
+import {
+	horseDateConflicts,
+	renderHorseConflictMessage,
+} from '~/utils/cooldown-functions.ts'
 
 const locales = {
 	'en-US': enUS,
@@ -135,7 +139,8 @@ const instructorSchema = z
 
 const createEventSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
-	startDate: z.coerce.date(),
+	dates: z.string().regex(new RegExp(/^(\d{4}-\d{2}-\d{2},?\s?)+$/g), 'Invalid dates'),
+	startTime: z.string().regex(new RegExp(/\d{2}:\d{2}/g), 'Invalid start time'),
 	duration: z.coerce.number().gt(0),
 	horses: z.array(horseSchema).optional(),
 	instructor: instructorSchema,
@@ -166,8 +171,48 @@ export async function action({ request }: ActionArgs) {
 	}
 
 	const title = submission.value.title
-	const start = submission.value.startDate
-	const end = addMinutes(start, submission.value.duration)
+	const datesArray = submission.value.dates.split(', ')
+	const startTime = submission.value.startTime
+	const duration = submission.value.duration
+	const cleaningCrewReq = submission.value.cleaningCrewReq
+	const lessonAssistantsReq = submission.value.lessonAssistantsReq
+	const sideWalkersReq = submission.value.sideWalkersReq
+	const horseLeadersReq = submission.value.horseLeadersReq
+	const isPrivate = submission.value.isPrivate
+
+	const dateTimesArray = datesArray.map(date => {
+		const string = `${date} ${startTime} -07` // -07 Arizona timezone
+		const start = parse(string, 'yyyy-MM-dd HH:mm X', new Date())
+		const end = addMinutes(start, duration)
+		return { start, end }
+	})
+
+	// Check that horses selected are not in cooldown period
+	const horses = submission.value.horses
+	if (horses) {
+		interface horseDateConflict {
+			name: String
+			conflictingDatesArr: Array<Date>
+		}
+		let errorHorseArr: Array<horseDateConflict> = []
+		horses.forEach(horse => {
+			const conflicts = horseDateConflicts(
+				horse,
+				dateTimesArray.map(date => date.start),
+			)
+			if (conflicts) errorHorseArr.push(conflicts)
+		})
+
+		const message = renderHorseConflictMessage(errorHorseArr)
+
+		if (errorHorseArr.length > 0) {
+			return json({
+				status: 'horse-error',
+				submission,
+				message,
+			} as const)
+		}
+	}
 
 	const instructorId = submission.value.instructor?.id
 	let instructorData: { id: string }[] = []
@@ -178,61 +223,42 @@ export async function action({ request }: ActionArgs) {
 		return { id: e.id }
 	})
 
-	// check that horses selected are not in cooldown period
-	if (submission.value.horses) {
-		const selectedHorsesArray = submission.value.horses
-		const errorHorses = selectedHorsesArray.filter(horse => {
-			if (horse.cooldownStartDate && horse.cooldownEndDate) {
-				return (
-					horse.cooldownStartDate <= start &&
-					start < add(horse.cooldownEndDate, { days: 1 })
-				)
-			} else return false
-		})
-		const listOfHorses = errorHorses.map(h => h.name).join(', ')
-		if (errorHorses.length > 0) {
-			return json({
-				status: 'horse-error',
-				submission,
-				message: listOfHorses,
-			} as const)
-		}
+	let transactions = []
+	for (let dateTime of dateTimesArray) {
+		transactions.push(
+			prisma.event.create({
+				data: {
+					title,
+					start: dateTime.start,
+					end: dateTime.end,
+					instructors: {
+						connect: instructorData,
+					},
+					horses: {
+						connect: horseIds ?? [],
+					},
+					cleaningCrewReq,
+					lessonAssistantsReq,
+					sideWalkersReq,
+					horseLeadersReq,
+					isPrivate,
+				},
+			}),
+		)
 	}
-
-	const cleaningCrewReq = submission.value.cleaningCrewReq
-	const lessonAssistantsReq = submission.value.lessonAssistantsReq
-	const sideWalkersReq = submission.value.sideWalkersReq
-	const horseLeadersReq = submission.value.horseLeadersReq
-
-	const isPrivate = submission.value.isPrivate
-
-	await prisma.event.create({
-		data: {
-			title,
-			start,
-			end,
-			instructors: {
-				connect: instructorData,
-			},
-			horses: {
-				connect: horseIds ?? [],
-			},
-			cleaningCrewReq,
-			lessonAssistantsReq,
-			sideWalkersReq,
-			horseLeadersReq,
-			isPrivate,
-		},
-	})
-
-	return json(
-		{
-			status: 'success',
-			submission,
-			message: null,
-		} as const,
-		{ status: 200 },
-	)
+	try {
+		await prisma.$transaction(transactions)
+		return json(
+			{
+				status: 'success',
+				submission,
+				message: null,
+			} as const,
+			{ status: 200 },
+		)
+	} catch (e) {
+		console.log(e)
+	}
 }
 
 export default function Schedule() {
@@ -595,7 +621,7 @@ function CreateEventForm({
 		if (!actionData) {
 			return
 		}
-		if (actionData.status == 'success') {
+		if (actionData.status === 'success') {
 			toast({
 				title: 'Success',
 				description: `Created event "${actionData.submission?.value?.title}".`,
@@ -607,7 +633,7 @@ function CreateEventForm({
 			toast({
 				variant: 'destructive',
 				title:
-					'The following horses are scheduled for cooldown on the selected date:',
+					'The following horses are scheduled for cooldown on the selected dates:',
 				description: actionData.message,
 			})
 		} else {
@@ -631,17 +657,25 @@ function CreateEventForm({
 					inputProps={conform.input(fields.title)}
 					errors={fields.title.errors}
 				/>
+				<DatePickerField
+					className="col-span-2 sm:col-span-1"
+					labelProps={{
+						htmlFor: fields.dates.id,
+						children: 'Dates',
+					}}
+					errors={fields.dates.errors}
+				/>
 				<Field
 					className="col-span-2 sm:col-span-1"
 					labelProps={{
-						htmlFor: fields.startDate.id,
-						children: 'Start Date',
+						htmlFor: fields.startTime.id,
+						children: 'Start Time',
 					}}
 					inputProps={{
-						...conform.input(fields.startDate),
-						type: 'datetime-local',
+						...conform.input(fields.startTime),
+						type: 'time',
 					}}
-					errors={fields.startDate.errors}
+					errors={fields.startTime.errors}
 				/>
 				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="duration">Duration</Label>

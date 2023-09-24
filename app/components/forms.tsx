@@ -4,6 +4,16 @@ import { Input } from '~/components/ui/input.tsx'
 import { Label } from '~/components/ui/label.tsx'
 import { Checkbox, type CheckboxProps } from '~/components/ui/checkbox.tsx'
 import { Textarea } from '~/components/ui/textarea.tsx'
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '~/components/ui/popover.tsx'
+import { Button } from '~/components/ui/button.tsx'
+import { Calendar } from '~/components/ui/calendar.tsx'
+import { cn } from '~/utils/misc.ts'
+import { format } from 'date-fns'
+import { Calendar as CalendarIcon } from 'lucide-react'
 
 export type ListOfErrors = Array<string | null | undefined> | null | undefined
 
@@ -49,6 +59,61 @@ export function Field({
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
 				{...inputProps}
+			/>
+			<div className="min-h-[32px] px-4 pb-3 pt-1">
+				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
+			</div>
+		</div>
+	)
+}
+
+export function DatePickerField({
+	labelProps,
+	errors,
+	className,
+}: {
+	labelProps: Omit<React.LabelHTMLAttributes<HTMLLabelElement>, 'className'>
+	errors?: ListOfErrors
+	className?: string
+}) {
+	const fallbackId = useId()
+	const id = fallbackId
+	const errorId = errors?.length ? `${id}-error` : undefined
+	const [dates, setDates] = React.useState<Date[] | undefined>()
+
+	return (
+		<div className={className}>
+			<Label htmlFor={id} {...labelProps} />
+			<Popover>
+				<PopoverTrigger asChild>
+					<Button
+						variant={'outline'}
+						className={cn(
+							'w-full justify-start text-left font-normal',
+							!dates && 'text-muted-foreground',
+						)}
+					>
+						<CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+						<span className="overflow-hidden text-ellipsis whitespace-nowrap">
+							{dates
+								? dates.map(date => format(date, 'P')).join(', ')
+								: 'Pick dates'}
+						</span>
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-auto p-0">
+					<Calendar
+						mode="multiple"
+						selected={dates}
+						onSelect={setDates}
+						initialFocus
+					/>
+				</PopoverContent>
+			</Popover>
+			<input
+				type="hidden"
+				name="dates"
+				value={dates?.map(date => format(date, 'yyyy-MM-dd')).join(', ') ?? ''}
 			/>
 			<div className="min-h-[32px] px-4 pb-3 pt-1">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
