@@ -691,6 +691,7 @@ function CreateEventForm({
 						</SelectContent>
 					</Select>
 				</div>
+				<Separator className="col-span-2 border" />
 				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="horses">Horses</Label>
 					<HorseListbox
@@ -703,7 +704,6 @@ function CreateEventForm({
 					<Label htmlFor="instructor">Instructor</Label>
 					<InstructorListbox name="instructor" instructors={instructors} />
 				</div>
-				<Separator className="col-span-2 border" />
 				<Field
 					className="col-span-2 sm:col-span-1"
 					labelProps={{
