@@ -140,7 +140,7 @@ const instructorSchema = z
 const createEventSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
 	dates: z.string().regex(new RegExp(/^(\d{4}-\d{2}-\d{2},?\s?)+$/g), 'Invalid dates'),
-	startTime: z.string().regex(new RegExp(/\d{2}:\d{2}/g), 'Invalid start time'),
+	startTime: z.string().regex(new RegExp(/^\d{2}:\d{2}$/g), 'Invalid start time'),
 	duration: z.coerce.number().gt(0),
 	horses: z.array(horseSchema).optional(),
 	instructor: instructorSchema,
@@ -246,19 +246,15 @@ export async function action({ request }: ActionArgs) {
 			}),
 		)
 	}
-	try {
-		await prisma.$transaction(transactions)
-		return json(
-			{
-				status: 'success',
-				submission,
-				message: null,
-			} as const,
-			{ status: 200 },
-		)
-	} catch (e) {
-		console.log(e)
-	}
+	await prisma.$transaction(transactions)
+	return json(
+		{
+			status: 'success',
+			submission,
+			message: null,
+		} as const,
+		{ status: 200 },
+	)
 }
 
 export default function Schedule() {
