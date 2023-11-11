@@ -23,6 +23,7 @@ import { getDomainUrl } from '~/utils/misc.ts'
 import { generateTOTP } from '~/utils/totp.server.ts'
 import { emailSchema } from '~/utils/user-validation.ts'
 import { SignupEmail } from './email.server.tsx'
+import { verifySignupPassword } from '~/utils/auth.server.ts'
 
 export const onboardingOTPQueryParam = 'code'
 export const onboardingEmailQueryParam = 'email'
@@ -30,6 +31,7 @@ export const verificationType = 'onboarding'
 
 const signupSchema = z.object({
 	email: emailSchema,
+	signupPassword: z.string().min(1, { message: "Please fill this in with the password given to you by the volunteer coordinator." }),
 })
 
 export async function action({ request }: DataFunctionArgs) {
@@ -46,6 +48,16 @@ export async function action({ request }: DataFunctionArgs) {
 						path: ['email'],
 						code: z.ZodIssueCode.custom,
 						message: 'A user already exists with this email',
+					})
+					return
+				}
+
+				const validSignupPassword = await verifySignupPassword(data.signupPassword)
+				if (!validSignupPassword) {
+					ctx.addIssue({
+						path: ['signupPassword'],
+						code: z.ZodIssueCode.custom,
+						message: 'Incorrect signup password'
 					})
 					return
 				}
@@ -66,6 +78,7 @@ export async function action({ request }: DataFunctionArgs) {
 			{ status: 400 },
 		)
 	}
+
 	const { email } = submission.value
 
 	const thirtyMinutesInSeconds = 30 * 60
@@ -141,7 +154,7 @@ export default function SignupRoute() {
 			<div className="text-center">
 				<h1 className="text-4xl sm:text-h1">Let's saddle up!</h1>
 				<p className="mt-3 text-body-md text-muted-foreground">
-					Please enter your email.
+					Please enter your email and the secret password given to you by the volunteer coordinator.
 				</p>
 			</div>
 			<Form
@@ -156,6 +169,14 @@ export default function SignupRoute() {
 					}}
 					inputProps={{ ...conform.input(fields.email), autoFocus: true }}
 					errors={fields.email.errors}
+				/>
+				<Field
+					labelProps={{
+						htmlFor: fields.signupPassword.id,
+						children: 'Secret',
+					}}
+					inputProps={{ ...conform.input(fields.signupPassword), autoFocus: true, type: "password" }}
+					errors={fields.signupPassword.errors}
 				/>
 				<ErrorList errors={form.errors} id={form.errorId} />
 				<StatusButton

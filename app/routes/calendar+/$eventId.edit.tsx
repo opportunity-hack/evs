@@ -242,7 +242,7 @@ export default function EventEditor() {
 			toast({
 				variant: 'destructive',
 				title:
-					'The following horses are scheduled for cooldown on the selected date:',
+					'The following horses are scheduled for cooldown on the selected dates:',
 				description: actionData.message,
 			})
 		}

@@ -44,7 +44,7 @@ export function HorseListbox({
 			name={name}
 			multiple
 		>
-			<div className="relative mt-1">
+			<div className="relative">
 				<div className={''}>
 					<Listbox.Button
 						className={listboxButtonClassName}
@@ -123,7 +123,7 @@ export function InstructorListbox({
 
 	return (
 		<Listbox value={selected} onChange={setSelected} name={name}>
-			<div className="relative mt-1">
+			<div className="relative">
 				<Listbox.Button className={listboxButtonClassName}>
 					<span className="block truncate">{selected?.name}</span>
 					<span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">

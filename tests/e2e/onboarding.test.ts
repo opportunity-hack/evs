@@ -5,6 +5,7 @@ import {
 	expect,
 	insertNewUser,
 	test,
+	setSignupPassword,
 } from '../playwright-utils.ts'
 import { readEmail } from '../mocks/utils.ts'
 import { siteEmailAddress } from '~/data.ts'
@@ -31,6 +32,8 @@ test('onboarding with link', async ({ page }) => {
 		password: faker.internet.password(),
 	}
 
+	await setSignupPassword()
+
 	await page.goto('/')
 
 	await page.getByRole('link', { name: /log in/i }).click()
@@ -46,6 +49,10 @@ test('onboarding with link', async ({ page }) => {
 	const emailTextbox = page.getByRole('textbox', { name: /email/i })
 	await emailTextbox.click()
 	await emailTextbox.fill(onboardingData.email)
+
+	const secretTextbox = page.getByRole('textbox', { name: /secret/i })
+	await secretTextbox.click()
+	await secretTextbox.fill("horses are cool")
 
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
@@ -111,12 +118,18 @@ test('onboarding with a short code', async ({ page }) => {
 		password: faker.internet.password(),
 	}
 
+	await setSignupPassword()
+
 	await page.goto('/signup')
 
 	const emailTextbox = page.getByRole('textbox', { name: /email/i })
 	await emailTextbox.click()
 	await emailTextbox.fill(onboardingData.email)
 
+	const secretTextbox = page.getByRole('textbox', { name: /secret/i })
+	await secretTextbox.click()
+	await secretTextbox.fill("horses are cool")
+	
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
 		page.getByRole('button', { name: /submit/i, disabled: true }),

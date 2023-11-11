@@ -88,6 +88,15 @@ export async function loginPage({
 	return user
 }
 
+export async function setSignupPassword() {
+	await prisma.signupPassword.deleteMany()
+	await prisma.signupPassword.create({
+			data: {
+				hash: await getPasswordHash('horses are cool'),
+			}
+	})
+}
+
 test.afterEach(async () => {
 	type Delegate = {
 		deleteMany: (opts: {

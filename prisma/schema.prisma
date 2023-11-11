@@ -183,3 +183,7 @@ model HorseAssignment {
 
   @@unique([eventId, userId])
 }
+
+model SignupPassword {
+  hash String @unique
+}

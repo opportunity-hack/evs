@@ -181,3 +181,14 @@ export async function verifyLogin(
 
 	return { id: userWithPassword.id }
 }
+
+export async function verifySignupPassword(password: string) {
+	const signUpPassword = await prisma.signupPassword.findFirst();
+
+	if (!signUpPassword) {
+		throw "No signup password has been set"
+	}
+
+	const isValid = await bcrypt.compare(password, signUpPassword.hash)
+	return isValid
+}
