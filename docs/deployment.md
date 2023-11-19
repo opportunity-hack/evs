@@ -1,3 +1,11 @@
+# Initial setup
+
+To create a new app, use the following two commands:
+```
+fly launch --name evs-production --org opportunity-hack -r sjc
+fly deploy --app evs-production
+```
+
 # Deployment
 
 ## First time setup
