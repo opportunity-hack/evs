@@ -1,4 +1,6 @@
 # Equestrian Volunteer Scheduler 🐎
+- dev = [Staging](https://staging.trottrack.org/)
+- main = [Prod](https://thebarn.trottrack.org/)
 
 EVS is a web application intended to help equestrian non-profit organizations to
 coordinate volunteers in their day-to-day operations. It is in ongoing
