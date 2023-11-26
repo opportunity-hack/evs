@@ -1,8 +1,15 @@
 # Initial setup
+[Pre-read](https://github.com/epicweb-dev/epic-stack/blob/main/docs/deployment.md) epic stack deployment
+
+First add secrets (via flyctl or Fly web)
+- INTERNAL_COMMAND_TOKEN
+- RESEND_API_KEY
+- SESSION_SECRET
 
 To create a new app, use the following two commands:
 ```
 fly launch --name evs-production --org opportunity-hack -r sjc
+fly consul attach --app evs-production
 fly deploy --app evs-production
 ```
 
