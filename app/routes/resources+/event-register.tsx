@@ -124,14 +124,11 @@ export async function action({ request }: DataFunctionArgs) {
 		)
 	}
 	
-	// Transform invite to be sent as an attachment
-	const inviteAttachment = new Blob([invite], { type: 'text/calendar' })
-		
 
 	sendEmail({
 		to: user.email,
 		subject: `Event Registration Notification`,
-		attachments: [{ filename: 'invite.ics', content: inviteAttachment }],
+		attachments: [{ filename: 'invite.ics', content: invite }],
 		react: <RegistrationEmail event={event} role={submission.value.role} />,
 	}).then(result => {
 		if (result.status == 'error') {
@@ -187,7 +184,14 @@ function generateInvite(event: Event) {
 	// Log the event as a string
 	console.log("Calendar invite: " + invite.value);		
 	
-	return invite
+	// Check if invite.value is a string
+	if (typeof invite.value === 'string') {
+		// Convert to a buffer
+		const inviteBuffer = Buffer.from(invite.value);
+		return inviteBuffer
+	}
+
+	return "";
 }
 
 async function notifyAdmins({
