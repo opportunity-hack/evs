@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 
-export const siteName = 'The Barn: Volunteer Portal'
+export const siteName = 'The Barn Volunteer Portal'
 export const siteEmailAddress = 'hello@email.trottrack.org'
 export const siteEmailAddressWithName = siteName + ' <hello@email.trottrack.org>'
 
