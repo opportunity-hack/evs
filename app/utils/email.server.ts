@@ -64,11 +64,16 @@ export async function sendEmail({
 			data: response,
 		} as const
 
-	} catch (e) {
+		// Catch full exception
+	} catch (e : any) {
 		console.error('🔴 error sending email:', JSON.stringify(email))		
 		return {
 				status: 'error',
-				error: e
+				error: {
+					message: e.message || 'Unknown error',
+					code: e.code || 'Unknown code',
+					response: e.response || 'Unknown response',
+				}								
 			}
 	}
 }
