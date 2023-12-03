@@ -118,7 +118,11 @@ export async function action({ request }: DataFunctionArgs) {
 	if (response.status === 'success') {
 		return redirect(redirectTo.pathname + redirectTo.search)
 	} else {
-		submission.error[''] = response.error.message
+		submission.error[''] = 'There was an error sending the email.' + response.error;
+		if ( response.error?.message ){
+			submission.error[''] += ' ' + response.error.message;
+		}
+		
 		return json(
 			{
 				status: 'error',

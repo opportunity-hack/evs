@@ -108,6 +108,7 @@ export async function action({ request }: DataFunctionArgs) {
 	}
 
 	const invite = generateInvite(event)
+
 	if (invite === "") {
 		console.error(
 			'There was an error generating an invite for the following event:',
@@ -123,6 +124,7 @@ export async function action({ request }: DataFunctionArgs) {
 		)
 	}
 	
+
 	sendEmail({
 		to: user.email,
 		subject: `Event Registration Notification`,
@@ -164,23 +166,32 @@ function generateInvite(event: Event) {
 
 	const duration = differenceInMinutes(event.end, event.start)
 	
+	const endDate = new Date(event.start.getTime() + duration * 60000);
+
 	let icalEvent = {
 	  start: [year, month, day, hour, minute] as DateArray,
-	  duration: { minutes: duration },
+	  end: [endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate(), endDate.getHours(), endDate.getMinutes()] as DateArray,
+	  // duration: { minutes: duration }, // Not sure this is used	  
 	  title: event.title,
 	  organizer: { name: 'Volunteer Coordinator', email: siteEmailAddress },
 	};
 
-	let invite: string = "";
-	createEvent(icalEvent, (error, value) => {
-		if (error) {
-			console.log(error);
-			return;
-		}
-		invite = value;
-	})
+	const invite = createEvent(icalEvent)
+	if (invite.error) {
+		console.error((invite.error));
+		return "";
+	}
+	// Log the event as a string
+	console.log("Calendar invite: " + invite.value);		
+	
+	// Check if invite.value is a string
+	if (typeof invite.value === 'string') {
+		// Convert to a buffer
+		const inviteBuffer = Buffer.from(invite.value);
+		return inviteBuffer
+	}
 
-	return invite
+	return "";
 }
 
 async function notifyAdmins({

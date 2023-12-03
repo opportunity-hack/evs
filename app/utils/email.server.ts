@@ -1,26 +1,9 @@
 import { type ReactElement } from 'react'
 import { renderAsync } from '@react-email/components'
-import { z } from 'zod'
-import { siteEmailAddress } from '~/data.ts'
+import { siteEmailAddressWithName } from '~/data.ts'
+import { Resend } from 'resend';
 
-const resendErrorSchema = z.union([
-	z.object({
-		name: z.string(),
-		message: z.string(),
-		statusCode: z.number(),
-	}),
-	z.object({
-		name: z.literal('UnknownError'),
-		message: z.literal('Unknown Error'),
-		statusCode: z.literal(500),
-		cause: z.any(),
-	}),
-])
-type ResendError = z.infer<typeof resendErrorSchema>
-
-const resendSuccessSchema = z.object({
-	id: z.string(),
-})
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendEmail({
 	react,
@@ -34,10 +17,10 @@ export async function sendEmail({
 	| { react: ReactElement; html?: never; text?: never }
 )) {
 	// TODO: find out what email address to use here
-	const from = siteEmailAddress
+	const from = siteEmailAddressWithName
 
 	const email = {
-		from,
+		from,		
 		...options,
 		...(react ? await renderReactEmail(react) : null),
 	}
@@ -55,40 +38,43 @@ export async function sendEmail({
 		} as const
 	}
 
-	const response = await fetch('https://api.resend.com/emails', {
-		method: 'POST',
-		body: JSON.stringify(email),
-		headers: {
-			Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-			'Content-Type': 'application/json',
-		},
-	})
-	const data = await response.json()
-	const parsedData = resendSuccessSchema.safeParse(data)
+	// Make HTML an empty string if it's not provided
+	if (!email.html) {
+		email.html = ''
+	}
+	// Make text an empty string if it's not provided
+	if (!email.text) {
+		email.text = ''
+	}
+	// Log the email contents
+	console.info('🔶 sending email:', JSON.stringify(email))
 
-	if (response.ok && parsedData.success) {
+	try {
+		const response = await resend.emails.send({
+			from: email.from,
+			to: email.to,
+			subject: email.subject,
+			html: email.html,
+			text: email.text,
+			attachments: email.attachments,
+		});
+
 		return {
 			status: 'success',
-			data: parsedData,
+			data: response,
 		} as const
-	} else {
-		const parseResult = resendErrorSchema.safeParse(data)
-		if (parseResult.success) {
-			return {
-				status: 'error',
-				error: parseResult.data,
-			} as const
-		} else {
-			return {
+
+		// Catch full exception
+	} catch (e : any) {
+		console.error('🔴 error sending email:', JSON.stringify(email))		
+		return {
 				status: 'error',
 				error: {
-					name: 'UnknownError',
-					message: 'Unknown Error',
-					statusCode: 500,
-					cause: data,
-				} satisfies ResendError,
-			} as const
-		}
+					message: e.message || 'Unknown error',
+					code: e.code || 'Unknown code',
+					response: e.response || 'Unknown response',
+				}								
+			}
 	}
 }
 
