@@ -6,7 +6,7 @@ import parse from 'date-fns/parse/index.js'
 import startOfWeek from 'date-fns/startOfWeek/index.js'
 import getDay from 'date-fns/getDay/index.js'
 import enUS from 'date-fns/locale/en-US/index.js'
-import 'react-big-calendar/lib/css/react-big-calendar.css'
+import '~/styles/react-big-calendar.css'
 import { Icon } from '~/components/ui/icon.tsx'
 
 import {
