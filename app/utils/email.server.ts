@@ -9,7 +9,7 @@ export async function sendEmail({
 	react,
 	...options
 }: {
-	to: string
+	to: string | string[]
 	subject: string
 	attachments?: { filename?: string, path?: string, content?: string | Buffer }[]
 } & (

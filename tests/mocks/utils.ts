@@ -21,7 +21,7 @@ export async function createFixture(
 }
 
 export const emailSchema = z.object({
-	to: z.string(),
+	to: z.union([z.string(), z.array(z.string())]),
 	from: z.string(),
 	subject: z.string(),
 	text: z.string(),
