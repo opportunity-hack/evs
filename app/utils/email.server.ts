@@ -1,17 +1,21 @@
 import { type ReactElement } from 'react'
 import { renderAsync } from '@react-email/components'
 import { siteEmailAddressWithName } from '~/data.ts'
-import { Resend } from 'resend';
+import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function sendEmail({
 	react,
 	...options
 }: {
-	to: string | string[]
+	to: string
 	subject: string
-	attachments?: { filename?: string, path?: string, content?: string | Buffer }[]
+	attachments?: {
+		filename?: string
+		path?: string
+		content?: string | Buffer
+	}[]
 } & (
 	| { html: string; text: string; react?: never }
 	| { react: ReactElement; html?: never; text?: never }
@@ -20,7 +24,7 @@ export async function sendEmail({
 	const from = siteEmailAddressWithName
 
 	const email = {
-		from,		
+		from,
 		...options,
 		...(react ? await renderReactEmail(react) : null),
 	}
@@ -57,7 +61,7 @@ export async function sendEmail({
 			html: email.html,
 			text: email.text,
 			attachments: email.attachments,
-		});
+		})
 
 		return {
 			status: 'success',
@@ -65,16 +69,16 @@ export async function sendEmail({
 		} as const
 
 		// Catch full exception
-	} catch (e : any) {
-		console.error('🔴 error sending email:', JSON.stringify(email))		
+	} catch (e: any) {
+		console.error('🔴 error sending email:', JSON.stringify(email))
 		return {
-				status: 'error',
-				error: {
-					message: e.message || 'Unknown error',
-					code: e.code || 'Unknown code',
-					response: e.response || 'Unknown response',
-				}								
-			}
+			status: 'error',
+			error: {
+				message: e.message || 'Unknown error',
+				code: e.code || 'Unknown code',
+				response: e.response || 'Unknown response',
+			},
+		}
 	}
 }
 
