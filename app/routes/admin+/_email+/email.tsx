@@ -17,6 +17,7 @@ import {
 	TextareaField,
 } from '~/components/forms.tsx'
 import { conform, useForm } from '@conform-to/react'
+import { CustomEmail } from './CustomEmail.server.tsx'
 
 const emailFormSchema = z
 	.object({
@@ -60,13 +61,14 @@ export async function action({ request, params }: DataFunctionArgs) {
 		sendEmail({
 			to: recipient,
 			subject: submission.payload.subject,
-			react: <>{submission.payload.message}</>,
+			react: <CustomEmail message={submission.payload.message} />,
 		}).then(result => {
 			if (result.status === 'error') {
 				console.error(
 					'There was an error sending emails',
 					JSON.stringify(result.error),
 				)
+				return json({ status: 'error', result }, { status: 400 })
 			}
 		})
 	}
@@ -85,21 +87,24 @@ export default function Email() {
 		id: 'email-form',
 		constraint: getFieldsetConstraint(emailFormSchema),
 		lastSubmission: actionData?.submission,
+		onValidate({ form, formData }) {
+			return parse(formData, { schema: emailFormSchema })
+		},
 	})
 	const { toast } = useToast()
 	useResetCallback(actionData, () => {
 		if (!actionData) return
 		if (actionData?.status === 'ok') {
 			toast({
-				title: 'Emails sent!',
+				title: 'Success',
+				description: 'Emails sent',
 			})
 		} else {
-			if (actionData.submission.error.needRecipients) {
-				toast({
-					variant: 'destructive',
-					title: 'Error sending emails',
-				})
-			}
+			toast({
+				variant: 'destructive',
+				title: 'Error',
+				description: 'There was an error sending emails',
+			})
 		}
 	})
 
