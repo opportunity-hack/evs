@@ -281,7 +281,7 @@ function AdminDropdown() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary" className="min-w-[8rem]">
+				<Button asChild variant="secondary" className="min-w-[8rem] gap-2">
 					<Link
 						to="/admin/users"
 						// this is for progressive enhancement
@@ -305,6 +305,13 @@ function AdminDropdown() {
 						<Link prefetch="intent" to={`/admin/horses`}>
 							<Icon className="text-body-md" name="horse">
 								Horses
+							</Icon>
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link prefetch="intent" to={`/admin/email`}>
+							<Icon className="text-body-md" name="email">
+								Email
 							</Icon>
 						</Link>
 					</DropdownMenuItem>
