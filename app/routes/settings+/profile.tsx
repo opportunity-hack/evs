@@ -20,7 +20,7 @@ import {
 	verifyLogin,
 } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
-import { ErrorList, Field } from '~/components/forms.tsx'
+import { CheckboxField, ErrorList, Field } from '~/components/forms.tsx'
 import { Button } from '~/components/ui/button.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { getUserImgSrc } from '~/utils/misc.ts'
@@ -34,12 +34,16 @@ import {
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
 import { format } from 'date-fns'
-import { optionalDateTimeZoneSchema } from '~/utils/zod-extensions.ts'
+import {
+	checkboxSchema,
+	optionalDateTimeZoneSchema,
+} from '~/utils/zod-extensions.ts'
 
 const profileFormSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
 	email: emailSchema.optional(),
+	mailingList: checkboxSchema(),
 	birthdate: optionalDateTimeZoneSchema,
 	phone: phoneSchema,
 	height: z.coerce.number().min(0).optional(),
@@ -63,6 +67,7 @@ export async function loader({ request }: DataFunctionArgs) {
 			height: true,
 			yearsOfExperience: true,
 			email: true,
+			mailingList: true,
 			imageId: true,
 		},
 	})
@@ -120,6 +125,7 @@ export async function action({ request }: DataFunctionArgs) {
 		name,
 		username,
 		email,
+		mailingList,
 		phone,
 		birthdate,
 		height,
@@ -138,6 +144,7 @@ export async function action({ request }: DataFunctionArgs) {
 			name,
 			username,
 			phone,
+			mailingList,
 			birthdate: birthdate ?? null,
 			height,
 			yearsOfExperience,
@@ -181,6 +188,7 @@ export default function EditUserProfile() {
 			username: data.user.username,
 			name: data.user.name ?? '',
 			email: data.user.email,
+			mailingList: data.user.mailingList,
 			phone: data.user.phone,
 			birthdate: formattedBirthdate ?? '',
 			height: data.user.height ?? '',
@@ -257,13 +265,27 @@ export default function EditUserProfile() {
 							}}
 							errors={fields.email.errors}
 						/>
-						<Field 
+						<Field
 							className="col-span-3"
-							labelProps={{ htmlFor: fields.phone.id, children: "Phone Number"}}
+							labelProps={{
+								htmlFor: fields.phone.id,
+								children: 'Phone Number',
+							}}
 							inputProps={{
 								...conform.input(fields.phone, { type: 'tel' }),
 							}}
 							errors={fields.phone.errors}
+						/>
+						<CheckboxField
+							className="col-span-6"
+							labelProps={{
+								htmlFor: fields.mailingList.id,
+								children: 'Subscribed to all emails',
+							}}
+							buttonProps={conform.input(fields.mailingList, {
+								type: 'checkbox',
+							})}
+							errors={fields.mailingList.errors}
 						/>
 						<div className="col-span-3"></div>
 

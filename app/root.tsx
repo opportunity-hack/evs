@@ -231,7 +231,7 @@ function UserDropdown() {
 			<DropdownMenuTrigger asChild>
 				<Button asChild variant="secondary" className="min-w-[8rem]">
 					<Link
-						to={`/users/${user.username}`}
+						to={`/settings/profile`}
 						// this is for progressive enhancement
 						onClick={e => e.preventDefault()}
 					>
@@ -249,9 +249,9 @@ function UserDropdown() {
 			<DropdownMenuPortal>
 				<DropdownMenuContent sideOffset={8} align="start">
 					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/users/${user.username}`}>
+						<Link prefetch="intent" to={`/settings/profile`}>
 							<Icon className="text-body-md" name="avatar">
-								Profile
+								Account
 							</Icon>
 						</Link>
 					</DropdownMenuItem>
