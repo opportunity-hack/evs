@@ -1,8 +1,12 @@
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { type DataFunctionArgs, json } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { type DataFunctionArgs, json, type LoaderArgs } from '@remix-run/node'
+import {
+	Form,
+	useActionData,
+	useFormAction,
+	useNavigation,
+} from '@remix-run/react'
 import { z } from 'zod'
-import { Button } from '~/components/ui/button.tsx'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 import { checkboxSchema } from '~/utils/zod-extensions.ts'
@@ -18,6 +22,8 @@ import {
 } from '~/components/forms.tsx'
 import { conform, useForm } from '@conform-to/react'
 import { CustomEmail } from './CustomEmail.server.tsx'
+import { StatusButton } from '~/components/ui/status-button.tsx'
+import { useRef } from 'react'
 
 const emailFormSchema = z
 	.object({
@@ -37,6 +43,11 @@ const emailFormSchema = z
 		message: 'Must check at least one checkbox',
 	})
 
+export const loader = async ({ request }: LoaderArgs) => {
+	await requireAdmin(request)
+	return null
+}
+
 export async function action({ request, params }: DataFunctionArgs) {
 	await requireAdmin(request)
 	const formData = await request.formData()
@@ -44,7 +55,6 @@ export async function action({ request, params }: DataFunctionArgs) {
 	if (!submission.value) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
-	console.log('submission', submission)
 	// Get list of people to email
 	const roles = [
 		'allVolunteers',
@@ -55,7 +65,6 @@ export async function action({ request, params }: DataFunctionArgs) {
 	]
 	const selectedRoles = roles.filter(role => submission.payload[role] === 'on')
 	const recipients = await getRecipientsFromRoles(selectedRoles)
-	console.log('resulting list of recipients', recipients)
 
 	for (let recipient of recipients) {
 		sendEmail({
@@ -68,20 +77,25 @@ export async function action({ request, params }: DataFunctionArgs) {
 					'There was an error sending emails',
 					JSON.stringify(result.error),
 				)
-				return json({ status: 'error', result }, { status: 400 })
+				return json({ status: 'error', result } as const, { status: 400 })
 			}
 		})
 	}
 	return json(
 		{
-			status: 'ok',
+			status: 'success',
 			submission,
-		},
+			recipients,
+		} as const,
 		{ status: 200 },
 	)
 }
 
 export default function Email() {
+	const formAction = useFormAction()
+	const navigation = useNavigation()
+	const isSubmitting = navigation.formAction === formAction
+	const formRef = useRef<HTMLFormElement>(null)
 	const actionData = useActionData<typeof action>()
 	const [form, fields] = useForm({
 		id: 'email-form',
@@ -94,10 +108,15 @@ export default function Email() {
 	const { toast } = useToast()
 	useResetCallback(actionData, () => {
 		if (!actionData) return
-		if (actionData?.status === 'ok') {
+		if (actionData?.status === 'success') {
+			formRef.current?.reset()
+			const recipients = actionData.recipients
+			const plural = recipients.length > 1
 			toast({
 				title: 'Success',
-				description: 'Emails sent',
+				description: `Sent email${plural ? 's' : ''} to ${
+					recipients.length
+				} recipient${plural ? 's' : ''}`,
 			})
 		} else {
 			toast({
@@ -112,7 +131,12 @@ export default function Email() {
 		<div>
 			<h1 className="text-center text-5xl">Email</h1>
 			<div className="container pt-10">
-				<Form method="POST" {...form.props} className="mx-auto max-w-lg">
+				<Form
+					method="POST"
+					{...form.props}
+					className="mx-auto max-w-lg"
+					ref={formRef}
+				>
 					<section className="flex flex-col gap-2">
 						<Label>To:</Label>
 						<CheckboxField
@@ -190,7 +214,14 @@ export default function Email() {
 						/>
 					</section>
 					<section className="mt-4">
-						<Button type="submit">Send</Button>
+						<StatusButton
+							className="w-full"
+							status={isSubmitting ? 'pending' : actionData?.status ?? 'idle'}
+							type="submit"
+							disabled={isSubmitting}
+						>
+							Submit
+						</StatusButton>
 					</section>
 				</Form>
 			</div>
@@ -211,5 +242,5 @@ async function getRecipientsFromRoles(roles: string[]) {
 			users.map(user => user.email).forEach(email => recipients.add(email))
 		}
 	}
-	return recipients
+	return Array.from(recipients)
 }

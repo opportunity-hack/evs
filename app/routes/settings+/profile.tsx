@@ -188,7 +188,7 @@ export default function EditUserProfile() {
 			username: data.user.username,
 			name: data.user.name ?? '',
 			email: data.user.email,
-			mailingList: data.user.mailingList,
+			mailingList: data.user.mailingList ? 'on' : undefined,
 			phone: data.user.phone,
 			birthdate: formattedBirthdate ?? '',
 			height: data.user.height ?? '',
