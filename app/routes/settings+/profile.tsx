@@ -241,7 +241,7 @@ export default function EditUserProfile() {
 							Account
 						</legend>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.username.id,
 								children: 'Username',
@@ -250,13 +250,13 @@ export default function EditUserProfile() {
 							errors={fields.username.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
 							inputProps={conform.input(fields.name)}
 							errors={fields.name.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.email.id, children: 'Email' }}
 							inputProps={{
 								...conform.input(fields.email),
@@ -266,7 +266,7 @@ export default function EditUserProfile() {
 							errors={fields.email.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.phone.id,
 								children: 'Phone Number',
@@ -294,7 +294,7 @@ export default function EditUserProfile() {
 							Additional Information
 						</legend>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.birthdate.id,
 								children: 'Birthdate',
@@ -306,7 +306,7 @@ export default function EditUserProfile() {
 							errors={fields.birthdate.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.height.id,
 								children: 'Height (inches)',
@@ -318,7 +318,7 @@ export default function EditUserProfile() {
 							errors={fields.height.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.yearsOfExperience.id,
 								children: 'Years of experience with horses',
@@ -335,7 +335,7 @@ export default function EditUserProfile() {
 							<legend className="pb-6 text-lg text-night-200">
 								Change password
 							</legend>
-							<div className="flex justify-between gap-10">
+							<div className="flex flex-col justify-between gap-x-10 sm:flex-row">
 								<Field
 									className="flex-1"
 									labelProps={{
