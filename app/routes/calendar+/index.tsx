@@ -259,7 +259,7 @@ export async function action({ request }: ActionArgs) {
 
 export default function Schedule() {
 	const data = useLoaderData<typeof loader>()
-	const events = data.events
+	var events = data.events
 	const horses = data.horses
 	const instructors = data.instructors
 	const user = useUser()
@@ -268,6 +268,13 @@ export default function Schedule() {
 	const [selectedEvent, setSelectedEvent] = useState(events[0])
 
 	const [filterFlag, setFilterFlag] = useState(false)
+
+	// Modify event.title to include the count of volunteers registered
+	events.forEach(event => {		
+		// event.tooltop is a string that should include how many volunteers are registered for each role and how many are needed
+
+		event.tooltip = `Cleaning Crew: ${event.cleaningCrew.length} / ${event.cleaningCrewReq}\nSidewalkers: ${event.sideWalkers.length} / ${event.sideWalkersReq}\nLesson Assistants: ${event.lessonAssistants.length} / ${event.lessonAssistantsReq}\nHorse Leaders: ${event.horseLeaders.length} / ${event.horseLeadersReq}`		
+	})
 
 	const eventsThatNeedHelp = events.filter((event: (typeof events)[number]) => {
 		return (
@@ -285,8 +292,8 @@ export default function Schedule() {
 
 	return (
 		<div className="grid place-items-center gap-2">
-			<h1 className="mb-5 text-5xl">Calendar</h1>
-			<div className="flex gap-2">
+			<h1 className="mb-3 text-5xl">Calendar</h1>			
+			<div className="flex gap-2 mb-0">
 				<Checkbox
 					checked={filterFlag}
 					onCheckedChange={() => setFilterFlag(!filterFlag)}
@@ -296,16 +303,22 @@ export default function Schedule() {
 					Show only events that need more volunteers
 				</Label>
 			</div>
-			<div className="h-screen min-h-[700px] w-screen max-w-6xl">
+		
+			{userIsAdmin ? (
+					<CreateEventDialog horses={horses} instructors={instructors} />
+				) : null}
+
+			<div className="h-screen w-full flex justify-center">				
 				<Calendar
 					localizer={localizer}
 					events={filterFlag ? eventsThatNeedHelp : events}
+					tooltipAccessor={event => event.tooltip}
 					startAccessor="start"
 					endAccessor="end"
 					onSelectEvent={handleSelectEvent}
-					style={{
-						height: '100%',
-						width: '100%',
+					style={{						
+						height: '95%',
+						width: '95%',
 						backgroundColor: 'white',
 						color: 'black',
 						padding: 20,
@@ -313,7 +326,7 @@ export default function Schedule() {
 					}}
 				/>
 			</div>
-
+			
 			<Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
 				<RegistrationDialogue
 					selectedEventId={selectedEvent?.id}
@@ -321,9 +334,7 @@ export default function Schedule() {
 				/>
 			</Dialog>
 
-			{userIsAdmin ? (
-				<CreateEventDialog horses={horses} instructors={instructors} />
-			) : null}
+			
 		</div>
 	)
 }
@@ -552,7 +563,7 @@ function CreateEventDialog({ horses, instructors }: CreateEventDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button className="mt-5">
+				<Button className="mt-0 mb-1" style={{ backgroundColor: '#58d5fe' }}>
 					<Icon className="text-body-md" name="plus">
 						Create New Event
 					</Icon>
