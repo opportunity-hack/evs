@@ -1,8 +1,12 @@
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { type DataFunctionArgs, json } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { type DataFunctionArgs, json, type LoaderArgs } from '@remix-run/node'
+import {
+	Form,
+	useActionData,
+	useFormAction,
+	useNavigation,
+} from '@remix-run/react'
 import { z } from 'zod'
-import { Button } from '~/components/ui/button.tsx'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 import { checkboxSchema } from '~/utils/zod-extensions.ts'
@@ -18,6 +22,8 @@ import {
 } from '~/components/forms.tsx'
 import { conform, useForm } from '@conform-to/react'
 import { CustomEmail } from './CustomEmail.server.tsx'
+import { StatusButton } from '~/components/ui/status-button.tsx'
+import { useRef } from 'react'
 
 const emailFormSchema = z
 	.object({
@@ -25,7 +31,6 @@ const emailFormSchema = z
 		lessonAssistant: checkboxSchema(),
 		horseLeader: checkboxSchema(),
 		instructor: checkboxSchema(),
-		admin: checkboxSchema(),
 		subject: z
 			.string()
 			.min(1, { message: 'Your email must include a subject' }),
@@ -37,25 +42,41 @@ const emailFormSchema = z
 		message: 'Must check at least one checkbox',
 	})
 
+export const loader = async ({ request }: LoaderArgs) => {
+	await requireAdmin(request)
+	return null
+}
+
 export async function action({ request, params }: DataFunctionArgs) {
 	await requireAdmin(request)
 	const formData = await request.formData()
 	const submission = parse(formData, { schema: emailFormSchema })
 	if (!submission.value) {
-		return json({ status: 'error', submission } as const, { status: 400 })
+		return json({ status: 'error', submission, error: 'error' } as const, {
+			status: 400,
+		})
 	}
-	console.log('submission', submission)
 	// Get list of people to email
 	const roles = [
 		'allVolunteers',
 		'lessonAssistant',
 		'horseLeader',
 		'instructor',
-		'admin',
 	]
 	const selectedRoles = roles.filter(role => submission.payload[role] === 'on')
 	const recipients = await getRecipientsFromRoles(selectedRoles)
-	console.log('resulting list of recipients', recipients)
+
+	if (recipients.length === 0) {
+		return json(
+			{
+				status: 'error',
+				error: 'no-recipients',
+				submission,
+				recipients,
+			} as const,
+			{ status: 400 },
+		)
+	}
 
 	for (let recipient of recipients) {
 		sendEmail({
@@ -68,20 +89,28 @@ export async function action({ request, params }: DataFunctionArgs) {
 					'There was an error sending emails',
 					JSON.stringify(result.error),
 				)
-				return json({ status: 'error', result }, { status: 400 })
+				return json({ status: 'error', error: 'error', result } as const, {
+					status: 400,
+				})
 			}
 		})
 	}
 	return json(
 		{
-			status: 'ok',
+			status: 'success',
 			submission,
-		},
+			error: null,
+			recipients,
+		} as const,
 		{ status: 200 },
 	)
 }
 
 export default function Email() {
+	const formAction = useFormAction()
+	const navigation = useNavigation()
+	const isSubmitting = navigation.formAction === formAction
+	const formRef = useRef<HTMLFormElement>(null)
 	const actionData = useActionData<typeof action>()
 	const [form, fields] = useForm({
 		id: 'email-form',
@@ -94,10 +123,22 @@ export default function Email() {
 	const { toast } = useToast()
 	useResetCallback(actionData, () => {
 		if (!actionData) return
-		if (actionData?.status === 'ok') {
+		if (actionData?.status === 'success') {
+			formRef.current?.reset()
+			const recipients = actionData.recipients
+			const plural = recipients.length > 1
 			toast({
 				title: 'Success',
-				description: 'Emails sent',
+				description: `Sent email${plural ? 's' : ''} to ${
+					recipients.length
+				} recipient${plural ? 's' : ''}`,
+			})
+		} else if (actionData?.error === 'no-recipients') {
+			toast({
+				variant: 'destructive',
+				title: 'No recipients',
+				description:
+					'There are no users with that role that are accepting emails',
 			})
 		} else {
 			toast({
@@ -112,7 +153,12 @@ export default function Email() {
 		<div>
 			<h1 className="text-center text-5xl">Email</h1>
 			<div className="container pt-10">
-				<Form method="POST" {...form.props} className="mx-auto max-w-lg">
+				<Form
+					method="POST"
+					{...form.props}
+					className="mx-auto max-w-lg"
+					ref={formRef}
+				>
 					<section className="flex flex-col gap-2">
 						<Label>To:</Label>
 						<CheckboxField
@@ -155,16 +201,6 @@ export default function Email() {
 							}}
 							errors={fields.instructor.errors}
 						/>
-						<CheckboxField
-							labelProps={{
-								htmlFor: fields.admin.id,
-								children: 'Administrators',
-							}}
-							buttonProps={{
-								...conform.input(fields.admin, { type: 'checkbox' }),
-							}}
-							errors={fields.admin.errors}
-						/>
 						<div className="min-h-[32px] px-4">
 							<ErrorList id={form.errorId} errors={form.errors} />
 						</div>
@@ -190,7 +226,14 @@ export default function Email() {
 						/>
 					</section>
 					<section className="mt-4">
-						<Button type="submit">Send</Button>
+						<StatusButton
+							className="w-full"
+							status={isSubmitting ? 'pending' : actionData?.status ?? 'idle'}
+							type="submit"
+							disabled={isSubmitting}
+						>
+							Submit
+						</StatusButton>
 					</section>
 				</Form>
 			</div>
@@ -202,14 +245,29 @@ async function getRecipientsFromRoles(roles: string[]) {
 	const recipients = new Set<string>()
 	if (roles.includes('allVolunteers')) {
 		const users = await prisma.user.findMany()
-		users.map(user => user.email).forEach(email => recipients.add(email))
+		users
+			.filter(user => user.mailingList)
+			.map(user => user.email)
+			.forEach(email => recipients.add(email))
 	} else {
 		for (let role of roles) {
 			const users = await prisma.user.findMany({
 				where: { roles: { some: { name: role } } },
 			})
-			users.map(user => user.email).forEach(email => recipients.add(email))
+			users
+				.filter(user => user.mailingList)
+				.map(user => user.email)
+				.forEach(email => recipients.add(email))
+
+			// Include admin on all emails
+			const admin = await prisma.user.findMany({
+				where: { roles: { some: { name: 'admin' } } },
+			})
+			admin
+				.filter(user => user.mailingList)
+				.map(user => user.email)
+				.forEach(email => recipients.add(email))
 		}
 	}
-	return recipients
+	return Array.from(recipients)
 }

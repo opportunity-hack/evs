@@ -231,7 +231,7 @@ function UserDropdown() {
 			<DropdownMenuTrigger asChild>
 				<Button asChild variant="secondary" className="min-w-[8rem]">
 					<Link
-						to={`/users/${user.username}`}
+						to={`/settings/profile`}
 						// this is for progressive enhancement
 						onClick={e => e.preventDefault()}
 					>

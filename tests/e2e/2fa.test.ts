@@ -39,6 +39,7 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 	await page.getByRole('link', { name: user.name ?? user.username }).click()
 	await page.getByRole('menuitem', { name: /logout/i }).click()
 
+	await page.goto('/login') // added to fix persistent flaky behavior
 	await page.goto('/login')
 	await expect(page).toHaveURL(`/login`)
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
