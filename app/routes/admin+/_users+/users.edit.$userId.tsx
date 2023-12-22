@@ -41,7 +41,8 @@ import { format } from 'date-fns'
 const editUserSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
-	email: emailSchema.optional(),
+	email: emailSchema.optional(),	
+	mailingList: checkboxSchema(),
 	phone: phoneSchema,
 	birthdate: optionalDateSchema,
 	height: z.coerce.number().min(0).optional(),
@@ -93,6 +94,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 		username,
 		birthdate,
 		phone,
+		mailingList,
 		height,
 		yearsOfExperience,
 		isInstructor,
@@ -125,6 +127,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 			name,
 			username,
 			phone,
+			mailingList : mailingList ?? false,
 			birthdate: birthdate ?? null,
 			height: height ?? null,
 			yearsOfExperience: yearsOfExperience ?? null,
@@ -184,6 +187,7 @@ export default function EditUser() {
 			name: data.user?.name ?? '',
 			username: data.user?.username ?? '',
 			email: data.user?.email,
+			mailingList: data.user?.mailingList ?? false,
 			phone: data.user?.phone,
 			birthdate: formattedBirthdate ?? '',
 			height: data.user?.height ?? '',
@@ -247,7 +251,7 @@ export default function EditUser() {
 								disabled: true,
 							}}
 							errors={fields.email.errors}
-						/>
+						/>						
 						<Field
 							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.phone.id, children: 'Phone' }}
@@ -303,7 +307,24 @@ export default function EditUser() {
 							}}
 							errors={fields.notes.errors}
 						/>
-						<div className="col-span-6 grid grid-col-1">
+						<div className="col-span-6">
+							<CheckboxField 
+								labelProps={{
+									htmlFor: fields.mailingList.id,
+									children: 'Subscribed to Mailing List',
+								}}
+								buttonProps={{
+									...conform.input(fields.mailingList, {
+										type: 'checkbox',
+									}),
+									defaultChecked: data.user?.mailingList ?? false,
+								}}
+								errors={fields.mailingList.errors}
+							/>
+						</div>
+						<hr className="col-span-6" />
+						
+						<div className="col-span-6 grid grid-col-1 mt-4">
 							<CheckboxField
 								labelProps={{
 									htmlFor: fields.isInstructor.id,
@@ -342,7 +363,7 @@ export default function EditUser() {
 									defaultChecked: isHorseLeader,
 								}}
 								errors={fields.isHorseLeader.errors}
-							/>
+							/>							
 						</div>
 					</div>
 					<DialogFooter className="mt-4">

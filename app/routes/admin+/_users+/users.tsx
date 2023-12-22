@@ -45,6 +45,13 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		accessorKey: 'email',
 		header: 'email',
 	},
+	{		
+		header: 'mailing list',
+		accessorFn: (row) => {
+			const isMailingList = row.mailingList
+			return isMailingList ? 'Yes' : 'No'
+		},
+	},
 	{
 		accessorKey: 'name',
 		header: 'name',
