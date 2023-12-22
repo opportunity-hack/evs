@@ -269,13 +269,7 @@ export default function Schedule() {
 
 	const [filterFlag, setFilterFlag] = useState(false)
 
-	// Modify event.title to include the count of volunteers registered
-	events.forEach(event => {		
-		// event.tooltop is a string that should include how many volunteers are registered for each role and how many are needed
-
-		event.tooltip = `Cleaning Crew: ${event.cleaningCrew.length} / ${event.cleaningCrewReq}\nSidewalkers: ${event.sideWalkers.length} / ${event.sideWalkersReq}\nLesson Assistants: ${event.lessonAssistants.length} / ${event.lessonAssistantsReq}\nHorse Leaders: ${event.horseLeaders.length} / ${event.horseLeadersReq}`		
-	})
-
+	
 	const eventsThatNeedHelp = events.filter((event: (typeof events)[number]) => {
 		return (
 			event.cleaningCrewReq > event.cleaningCrew.length ||
@@ -312,7 +306,7 @@ export default function Schedule() {
 				<Calendar
 					localizer={localizer}
 					events={filterFlag ? eventsThatNeedHelp : events}
-					tooltipAccessor={event => event.tooltip}
+					tooltipAccessor={event => `Cleaning Crew: ${event.cleaningCrew.length} / ${event.cleaningCrewReq}\nSidewalkers: ${event.sideWalkers.length} / ${event.sideWalkersReq}\nLesson Assistants: ${event.lessonAssistants.length} / ${event.lessonAssistantsReq}\nHorse Leaders: ${event.horseLeaders.length} / ${event.horseLeadersReq}`}
 					startAccessor="start"
 					endAccessor="end"
 					onSelectEvent={handleSelectEvent}
