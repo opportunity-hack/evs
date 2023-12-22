@@ -244,7 +244,11 @@ export default function Email() {
 
 async function getUpcomingEvents(limit: number) {
 	const events = await prisma.event.findMany({
-		where: { start: { gt: new Date() } },
+		where: { 
+			start: { gt: new Date() },
+			// Don't include private events in upcoming events
+			isPrivate: false,
+		},
 		take: limit,
 	})
 	return events
