@@ -9,7 +9,7 @@ import {
 	DialogFooter,
 } from '~/components/ui/dialog.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import { CheckboxField, Field } from '~/components/forms.tsx'
+import { CheckboxField, Field, TextareaField } from '~/components/forms.tsx'
 import {
 	Form,
 	useLoaderData,
@@ -32,6 +32,7 @@ import { z } from 'zod'
 import {
 	emailSchema,
 	nameSchema,
+	phoneSchema,
 	usernameSchema,
 } from '~/utils/user-validation.ts'
 import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
@@ -40,17 +41,25 @@ import { format } from 'date-fns'
 const editUserSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
-	email: emailSchema.optional(),
+	email: emailSchema.optional(),	
+	mailingList: checkboxSchema(),
+	phone: phoneSchema,
 	birthdate: optionalDateSchema,
 	height: z.coerce.number().min(0).optional(),
 	yearsOfExperience: z.coerce.number().min(0).optional(),
 	isInstructor: checkboxSchema(),
+	isLessonAssistant: checkboxSchema(),
+	isHorseLeader: checkboxSchema(),
+	notes: z.string(),
 })
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
 	invariant(params.userId, 'Missing user id')
-	const user = await prisma.user.findUnique({ where: { id: params.userId } })
+	const user = await prisma.user.findUnique({
+		where: { id: params.userId },
+		include: { roles: true },
+	})
 	if (!user) {
 		throw new Response('not found', { status: 404 })
 	}
@@ -80,18 +89,53 @@ export async function action({ request, params }: DataFunctionArgs) {
 		)
 	}
 
-	const { name, username, birthdate, height, yearsOfExperience, isInstructor } =
-		submission.value
+	const {
+		name,
+		username,
+		birthdate,
+		phone,
+		mailingList,
+		height,
+		yearsOfExperience,
+		isInstructor,
+		isHorseLeader,
+		isLessonAssistant,
+		notes,
+	} = submission.value
+
+	const roleConnectArray = []
+	const roleDisconnectArray = []
+	if (isInstructor) {
+		roleConnectArray.push({ name: 'instructor'})
+	} else {
+		roleDisconnectArray.push({ name: 'instructor'})
+	}
+	if (isHorseLeader) {
+		roleConnectArray.push({ name: 'horseLeader' })
+	} else {
+		roleDisconnectArray.push({ name: 'horseLeader' })
+	}
+	if (isLessonAssistant) {
+		roleConnectArray.push({ name: 'lessonAssistant'})
+	} else {
+		roleDisconnectArray.push({ name: 'lessonAssistant'})
+	}
 
 	const updatedUser = await prisma.user.update({
 		where: { id: params.userId },
 		data: {
 			name,
 			username,
+			phone,
+			mailingList : mailingList ?? false,
 			birthdate: birthdate ?? null,
 			height: height ?? null,
 			yearsOfExperience: yearsOfExperience ?? null,
-			instructor: isInstructor,
+			notes,
+			roles: {
+				connect: roleConnectArray,
+				disconnect: roleDisconnectArray,
+			},
 		},
 	})
 
@@ -127,12 +171,12 @@ export default function EditUser() {
 		setOpen(false)
 		navigate('..', { preventScrollReset: true })
 	}
-	
+
 	let formattedBirthdate = null
 	if (data.user.birthdate) {
 		formattedBirthdate = format(new Date(data.user.birthdate), 'yyyy-MM-dd')
 	}
-	
+
 	const [form, fields] = useForm({
 		id: 'edit-user',
 		lastSubmission: actionData?.submission,
@@ -143,13 +187,31 @@ export default function EditUser() {
 			name: data.user?.name ?? '',
 			username: data.user?.username ?? '',
 			email: data.user?.email,
+			mailingList: data.user?.mailingList ?? false,
+			phone: data.user?.phone,
 			birthdate: formattedBirthdate ?? '',
 			height: data.user?.height ?? '',
 			yearsOfExperience: data.user?.yearsOfExperience ?? '',
+			notes: data.user?.notes ?? '',
 		},
 		shouldRevalidate: 'onSubmit',
 		onSubmit: dismissModal,
 	})
+
+	let isLessonAssistant = false
+	let isHorseLeader = false
+	let isInstructor = false
+	for (const role of data.user?.roles) {
+		if (role.name === 'lessonAssistant') {
+			isLessonAssistant = true
+		}
+		if (role.name === 'horseLeader') {
+			isHorseLeader = true
+		}
+		if (role.name === 'instructor') {
+			isInstructor = true
+		}
+ 	}
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -166,7 +228,7 @@ export default function EditUser() {
 				<Form method="PUT" {...form.props}>
 					<div className="grid grid-cols-6 gap-x-10">
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.username.id,
 								children: 'Username',
@@ -175,13 +237,13 @@ export default function EditUser() {
 							errors={fields.username.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
 							inputProps={conform.input(fields.name)}
 							errors={fields.name.errors}
 						/>
 						<Field
-							className="col-span-6"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.email.id, children: 'Email' }}
 							inputProps={{
 								...conform.input(fields.email),
@@ -189,9 +251,17 @@ export default function EditUser() {
 								disabled: true,
 							}}
 							errors={fields.email.errors}
+						/>						
+						<Field
+							className="col-span-6 sm:col-span-3"
+							labelProps={{ htmlFor: fields.phone.id, children: 'Phone' }}
+							inputProps={{
+								...conform.input(fields.phone),
+							}}
+							errors={fields.phone.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.birthdate.id,
 								children: 'Birthdate',
@@ -203,7 +273,7 @@ export default function EditUser() {
 							errors={fields.birthdate.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.height.id,
 								children: 'Height (inches)',
@@ -215,7 +285,7 @@ export default function EditUser() {
 							errors={fields.height.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.yearsOfExperience.id,
 								children: 'Years of experience with horses',
@@ -226,17 +296,75 @@ export default function EditUser() {
 							}}
 							errors={fields.yearsOfExperience.errors}
 						/>
-						<CheckboxField
-							className="col-span-3 place-self-center"
+						<TextareaField 
+							className="col-span-6"
 							labelProps={{
-								htmlFor: fields.isInstructor.id,
-								children: 'Is an instructor',
+								htmlFor: fields.notes.id,
+								children: 'Notes',
 							}}
-							buttonProps={conform.input(fields.isInstructor, {
-								type: 'checkbox',
-							})}
-							errors={fields.isInstructor.errors}
+							textareaProps={{
+								...conform.input(fields.notes),
+							}}
+							errors={fields.notes.errors}
 						/>
+						<div className="col-span-6">
+							<CheckboxField 
+								labelProps={{
+									htmlFor: fields.mailingList.id,
+									children: 'Subscribed to Mailing List',
+								}}
+								buttonProps={{
+									...conform.input(fields.mailingList, {
+										type: 'checkbox',
+									}),
+									defaultChecked: data.user?.mailingList ?? false,
+								}}
+								errors={fields.mailingList.errors}
+							/>
+						</div>
+						<hr className="col-span-6" />
+						
+						<div className="col-span-6 grid grid-col-1 mt-4">
+							<CheckboxField
+								labelProps={{
+									htmlFor: fields.isInstructor.id,
+									children: 'Instructor',
+								}}
+								buttonProps={{
+									...conform.input(fields.isInstructor, {
+										type: 'checkbox',
+									}),
+									defaultChecked: isInstructor,
+								}}
+								errors={fields.isInstructor.errors}
+							/>
+							<CheckboxField
+								labelProps={{
+									htmlFor: fields.isLessonAssistant.id,
+									children: 'Lesson Assistant',
+								}}
+								buttonProps={{
+									...conform.input(fields.isLessonAssistant, {
+										type: 'checkbox',
+									}),
+									defaultChecked: isLessonAssistant,
+								}}
+								errors={fields.isLessonAssistant.errors}
+							/>
+							<CheckboxField
+								labelProps={{
+									htmlFor: fields.isHorseLeader.id,
+									children: 'Horse Leader',
+								}}
+								buttonProps={{
+									...conform.input(fields.isHorseLeader, {
+										type: 'checkbox',
+									}),
+									defaultChecked: isHorseLeader,
+								}}
+								errors={fields.isHorseLeader.errors}
+							/>							
+						</div>
 					</div>
 					<DialogFooter className="mt-4">
 						<StatusButton

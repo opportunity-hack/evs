@@ -24,7 +24,7 @@ import { Icon } from '~/components/ui/icon.tsx'
 import { prisma } from '~/utils/db.server.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
-import { addMinutes, differenceInMinutes, format } from 'date-fns'
+import { addMinutes, differenceInMinutes, format, add } from 'date-fns'
 import { redirectWithToast } from '~/utils/flash-session.server.ts'
 import { conform, useForm } from '@conform-to/react'
 import { CheckboxField, Field } from '~/components/forms.tsx'
@@ -38,14 +38,16 @@ import {
 import { Label } from '~/components/ui/label.tsx'
 import { Separator } from '@radix-ui/react-dropdown-menu'
 import { StatusButton } from '~/components/ui/status-button.tsx'
-import { checkboxSchema } from '~/utils/zod-extensions.ts'
+import { useToast } from '~/components/ui/use-toast.ts'
+import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
+import { useResetCallback } from '~/utils/misc.ts'
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
 	invariant(params.eventId, 'Missing event id')
 
 	const instructors = await prisma.user.findMany({
-		where: { instructor: true },
+		where: { roles: { some: { name: 'instructor' } } },
 	})
 	const horses = await prisma.horse.findMany()
 	const event = await prisma.event.findUnique({
@@ -65,19 +67,23 @@ export const loader = async ({ request, params }: DataFunctionArgs) => {
 const horseSchema = z.object({
 	id: z.string(),
 	name: z.string(),
+	cooldownStartDate: optionalDateSchema,
+	cooldownEndDate: optionalDateSchema,
 })
 
-const instructorSchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	username: z.string(),
-})
+const instructorSchema = z
+	.object({
+		id: z.string(),
+		name: z.string(),
+		username: z.string(),
+	})
+	.optional()
 
 const editEventSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
 	startDate: z.coerce.date(),
 	duration: z.coerce.number().gt(0),
-	horses: z.array(horseSchema),
+	horses: z.array(horseSchema).optional(),
 	instructor: instructorSchema,
 	cleaningCrewReq: z.coerce.number().gt(-1),
 	lessonAssistantsReq: z.coerce.number().gt(-1),
@@ -100,6 +106,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 			{
 				status: 'error',
 				submission,
+				message: null,
 			} as const,
 			{ status: 400 },
 		)
@@ -109,10 +116,35 @@ export async function action({ request, params }: DataFunctionArgs) {
 	const start = submission.value.startDate
 	const end = addMinutes(start, submission.value.duration)
 
-	const instructorId = submission.value.instructor.id
-	const horseIds = submission.value.horses.map(e => {
+	const instructorId = submission.value.instructor?.id
+	let instructorData: { id: string }[] = []
+	if (instructorId) {
+		instructorData = [{ id: instructorId }]
+	}
+	const horseIds = submission.value.horses?.map(e => {
 		return { id: e.id }
 	})
+
+	// check that horses selected are not in cooldown period
+	if (submission.value.horses) {
+		const selectedHorsesArray = submission.value.horses
+		const errorHorses = selectedHorsesArray.filter(horse => {
+			if (horse.cooldownStartDate && horse.cooldownEndDate) {
+				return (
+					horse.cooldownStartDate <= start &&
+					start < add(horse.cooldownEndDate, { days: 1 })
+				)
+			} else return false
+		})
+		const listOfHorses = errorHorses.map(h => h.name).join(', ')
+		if (errorHorses.length > 0) {
+			return json({
+				status: 'horse-error',
+				submission,
+				message: listOfHorses,
+			} as const)
+		}
+	}
 
 	const cleaningCrewReq = submission.value.cleaningCrewReq
 	const lessonAssistantsReq = submission.value.lessonAssistantsReq
@@ -130,10 +162,10 @@ export async function action({ request, params }: DataFunctionArgs) {
 			start,
 			end,
 			instructors: {
-				set: { id: instructorId },
+				set: instructorData,
 			},
 			horses: {
-				set: horseIds,
+				set: horseIds ?? [],
 			},
 			cleaningCrewReq,
 			lessonAssistantsReq,
@@ -160,6 +192,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 export default function EventEditor() {
 	const data = useLoaderData<typeof loader>() || {}
 	const actionData = useActionData<typeof action>()
+	const { toast } = useToast()
 	const [open, setOpen] = useState(true)
 
 	const navigation = useNavigation()
@@ -201,6 +234,20 @@ export default function EventEditor() {
 		shouldRevalidate: 'onSubmit',
 	})
 
+	useResetCallback(actionData, () => {
+		if (!actionData) {
+			return
+		}
+		if (actionData.status === 'horse-error') {
+			toast({
+				variant: 'destructive',
+				title:
+					'The following horses are scheduled for cooldown on the selected dates:',
+				description: actionData.message,
+			})
+		}
+	})
+
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogContent
@@ -225,6 +272,7 @@ export default function EventEditor() {
 							errors={fields.title.errors}
 						/>
 						<Field
+							className="col-span-2 sm:col-span-1"
 							labelProps={{
 								htmlFor: fields.startDate.id,
 								children: 'Start Date',
@@ -235,7 +283,7 @@ export default function EventEditor() {
 							}}
 							errors={fields.startDate.errors}
 						/>
-						<div>
+						<div className="col-span-2 sm:col-span-1">
 							<Label htmlFor="duration">Duration</Label>
 							<Select name="duration" defaultValue={defaultDuration.toString()}>
 								<SelectTrigger>
@@ -249,15 +297,16 @@ export default function EventEditor() {
 								</SelectContent>
 							</Select>
 						</div>
-						<div>
+						<div className="col-span-2 sm:col-span-1">
 							<Label htmlFor="horses">Horses</Label>
 							<HorseListbox
 								name="horses"
 								horses={data.horses}
 								defaultValues={data.event?.horses}
+								error={actionData?.status === 'horse-error' ?? false}
 							/>
 						</div>
-						<div>
+						<div className="col-span-2 sm:col-span-1">
 							<Label htmlFor="instructor">Instructor</Label>
 							<InstructorListbox
 								name="instructor"
@@ -267,6 +316,7 @@ export default function EventEditor() {
 						</div>
 						<Separator className="col-span-2 border" />
 						<Field
+							className="col-span-2 sm:col-span-1"
 							labelProps={{
 								htmlFor: fields.cleaningCrewReq.id,
 								children: 'cleaning crew needed',
@@ -278,6 +328,7 @@ export default function EventEditor() {
 							errors={fields.cleaningCrewReq.errors}
 						/>
 						<Field
+							className="col-span-2 sm:col-span-1"
 							labelProps={{
 								htmlFor: fields.lessonAssistantsReq.id,
 								children: 'Lesson assistants needed',
@@ -289,6 +340,7 @@ export default function EventEditor() {
 							errors={fields.lessonAssistantsReq.errors}
 						/>
 						<Field
+							className="col-span-2 sm:col-span-1"
 							labelProps={{
 								htmlFor: fields.sideWalkersReq.id,
 								children: 'Sidewalkers needed',
@@ -300,6 +352,7 @@ export default function EventEditor() {
 							errors={fields.sideWalkersReq.errors}
 						/>
 						<Field
+							className="col-span-2 sm:col-span-1"
 							labelProps={{
 								htmlFor: fields.horseLeadersReq.id,
 								children: 'Horse leaders needed',
@@ -311,6 +364,7 @@ export default function EventEditor() {
 							errors={fields.horseLeadersReq.errors}
 						/>
 						<CheckboxField
+							className="col-span-2"
 							labelProps={{
 								htmlFor: fields.isPrivate.id,
 								children: 'Private (only visible to admins)',
@@ -325,7 +379,13 @@ export default function EventEditor() {
 						<StatusButton
 							className="mr-5"
 							type="submit"
-							status={isSubmitting ? 'pending' : actionData?.status ?? 'idle'}
+							status={
+								isSubmitting
+									? 'pending'
+									: actionData?.status == 'error'
+									? 'error'
+									: 'idle'
+							}
 						>
 							Save
 						</StatusButton>

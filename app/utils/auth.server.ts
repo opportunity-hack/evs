@@ -123,11 +123,13 @@ export async function signup({
 	username,
 	password,
 	name,
+	phone,
 }: {
 	email: User['email']
 	username: User['username']
 	name: User['name']
 	password: string
+	phone: string
 }) {
 	const hashedPassword = await getPasswordHash(password)
 
@@ -139,6 +141,7 @@ export async function signup({
 					email,
 					username,
 					name,
+					phone,
 					password: {
 						create: {
 							hash: hashedPassword,
@@ -177,4 +180,15 @@ export async function verifyLogin(
 	}
 
 	return { id: userWithPassword.id }
+}
+
+export async function verifySignupPassword(password: string) {
+	const signUpPassword = await prisma.signupPassword.findFirst();
+
+	if (!signUpPassword) {
+		throw "No signup password has been set"
+	}
+
+	const isValid = await bcrypt.compare(password, signUpPassword.hash)
+	return isValid
 }

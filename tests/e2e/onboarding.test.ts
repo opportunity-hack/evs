@@ -5,9 +5,10 @@ import {
 	expect,
 	insertNewUser,
 	test,
+	setSignupPassword,
 } from '../playwright-utils.ts'
 import { readEmail } from '../mocks/utils.ts'
-import { siteEmailAddress } from '~/data.ts'
+import { siteEmailAddressWithName } from '~/data.ts'
 
 const urlRegex = /(?<url>https?:\/\/[^\s$.?#].[^\s]*)/
 function extractUrl(text: string) {
@@ -22,12 +23,16 @@ test('onboarding with link', async ({ page }) => {
 		.userName({ firstName, lastName })
 		.slice(0, 20)
 		.replace(/[^a-z0-9_]/g, '_')
+	const phone = faker.phone.number('###-###-####')
 	const onboardingData = {
 		name: `${firstName} ${lastName}`,
 		username,
+		phone,
 		email: `${username}@example.com`,
 		password: faker.internet.password(),
 	}
+
+	await setSignupPassword()
 
 	await page.goto('/')
 
@@ -45,6 +50,10 @@ test('onboarding with link', async ({ page }) => {
 	await emailTextbox.click()
 	await emailTextbox.fill(onboardingData.email)
 
+	const secretTextbox = page.getByRole('textbox', { name: /secret/i })
+	await secretTextbox.click()
+	await secretTextbox.fill('horses are cool')
+
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
 		page.getByRole('button', { name: /submit/i, disabled: true }),
@@ -54,7 +63,7 @@ test('onboarding with link', async ({ page }) => {
 	const email = await readEmail(onboardingData.email)
 	invariant(email, 'Email not found')
 	expect(email.to).toBe(onboardingData.email)
-	expect(email.from).toBe(siteEmailAddress)
+	expect(email.from).toBe(siteEmailAddressWithName)
 	expect(email.subject).toMatch(/welcome/i)
 	const onboardingUrl = extractUrl(email.text)
 	invariant(onboardingUrl, 'Onboarding URL not found')
@@ -67,13 +76,15 @@ test('onboarding with link', async ({ page }) => {
 
 	await page.getByRole('textbox', { name: /^name/i }).fill(onboardingData.name)
 
+	await page
+		.getByRole('textbox', { name: /number/i })
+		.fill(onboardingData.phone)
+
 	await page.getByLabel(/^password/i).fill(onboardingData.password)
 
 	await page.getByLabel(/^confirm password/i).fill(onboardingData.password)
 
 	await page.getByLabel(/terms/i).check()
-
-	await page.getByLabel(/offers/i).check()
 
 	await page.getByLabel(/remember me/i).check()
 
@@ -98,18 +109,26 @@ test('onboarding with a short code', async ({ page }) => {
 	const firstName = faker.person.firstName()
 	const lastName = faker.person.lastName()
 	const username = faker.internet.userName({ firstName, lastName }).slice(0, 15)
+	const phone = faker.phone.number('###-###-####')
 	const onboardingData = {
 		name: `${firstName} ${lastName}`,
 		username,
-		email: `${username}@example.com`,
+		phone,
+		email: `${username}@example.com`.toLowerCase(),
 		password: faker.internet.password(),
 	}
+
+	await setSignupPassword()
 
 	await page.goto('/signup')
 
 	const emailTextbox = page.getByRole('textbox', { name: /email/i })
 	await emailTextbox.click()
 	await emailTextbox.fill(onboardingData.email)
+
+	const secretTextbox = page.getByRole('textbox', { name: /secret/i })
+	await secretTextbox.click()
+	await secretTextbox.fill('horses are cool')
 
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
@@ -120,7 +139,7 @@ test('onboarding with a short code', async ({ page }) => {
 	const email = await readEmail(onboardingData.email)
 	invariant(email, 'Email not found')
 	expect(email.to).toBe(onboardingData.email)
-	expect(email.from).toBe(siteEmailAddress)
+	expect(email.from).toBe(siteEmailAddressWithName)
 	expect(email.subject).toMatch(/welcome/i)
 	const codeMatch = email.text.match(
 		/Here's your verification code: (?<code>\d+)/,
@@ -169,7 +188,7 @@ test('reset password with a link', async ({ page }) => {
 	invariant(email, 'Email not found')
 	expect(email.subject).toMatch(/password reset/i)
 	expect(email.to).toBe(user.email)
-	expect(email.from).toBe(siteEmailAddress)
+	expect(email.from).toBe(siteEmailAddressWithName)
 	const resetPasswordUrl = extractUrl(email.text)
 	invariant(resetPasswordUrl, 'Reset password URL not found')
 	await page.goto(resetPasswordUrl)
@@ -220,7 +239,7 @@ test('reset password with a short code', async ({ page }) => {
 	invariant(email, 'Email not found')
 	expect(email.subject).toMatch(/password reset/i)
 	expect(email.to).toBe(user.email)
-	expect(email.from).toBe(siteEmailAddress)
+	expect(email.from).toBe(siteEmailAddressWithName)
 	const codeMatch = email.text.match(
 		/Here's your verification code: (?<code>\d+)/,
 	)

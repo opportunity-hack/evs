@@ -235,7 +235,7 @@ function UserDropdown() {
 			<DropdownMenuTrigger asChild>
 				<Button asChild variant="secondary" className="gap-2 px-2">
 					<Link
-						to={`/users/${user.username}`}
+						to={`/settings/profile`}
 						// this is for progressive enhancement
 						onClick={e => e.preventDefault()}
 					>
@@ -309,6 +309,13 @@ function AdminDropdown() {
 						<Link prefetch="intent" to={`/admin/horses`}>
 							<Icon className="text-body-md" name="horse">
 								Horses
+							</Icon>
+						</Link>
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link prefetch="intent" to={`/admin/email`}>
+							<Icon className="text-body-md" name="email">
+								Email
 							</Icon>
 						</Link>
 					</DropdownMenuItem>

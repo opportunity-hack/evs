@@ -20,7 +20,7 @@ import {
 	verifyLogin,
 } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
-import { ErrorList, Field } from '~/components/forms.tsx'
+import { CheckboxField, ErrorList, Field } from '~/components/forms.tsx'
 import { Button } from '~/components/ui/button.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { getUserImgSrc } from '~/utils/misc.ts'
@@ -28,18 +28,24 @@ import {
 	emailSchema,
 	nameSchema,
 	passwordSchema,
+	phoneSchema,
 	usernameSchema,
 } from '~/utils/user-validation.ts'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
 import { format } from 'date-fns'
-import { optionalDateSchema } from '~/utils/zod-extensions.ts'
+import {
+	checkboxSchema,
+	optionalDateTimeZoneSchema,
+} from '~/utils/zod-extensions.ts'
 
 const profileFormSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
 	email: emailSchema.optional(),
-	birthdate: optionalDateSchema,
+	mailingList: checkboxSchema(),
+	birthdate: optionalDateTimeZoneSchema,
+	phone: phoneSchema,
 	height: z.coerce.number().min(0).optional(),
 	yearsOfExperience: z.coerce.number().min(0).optional(),
 	currentPassword: z
@@ -56,10 +62,12 @@ export async function loader({ request }: DataFunctionArgs) {
 			id: true,
 			name: true,
 			username: true,
+			phone: true,
 			birthdate: true,
 			height: true,
 			yearsOfExperience: true,
 			email: true,
+			mailingList: true,
 			imageId: true,
 		},
 	})
@@ -117,6 +125,8 @@ export async function action({ request }: DataFunctionArgs) {
 		name,
 		username,
 		email,
+		mailingList,
+		phone,
 		birthdate,
 		height,
 		yearsOfExperience,
@@ -133,6 +143,8 @@ export async function action({ request }: DataFunctionArgs) {
 		data: {
 			name,
 			username,
+			phone,
+			mailingList,
 			birthdate: birthdate ?? null,
 			height,
 			yearsOfExperience,
@@ -176,6 +188,8 @@ export default function EditUserProfile() {
 			username: data.user.username,
 			name: data.user.name ?? '',
 			email: data.user.email,
+			mailingList: data.user.mailingList ? 'on' : undefined,
+			phone: data.user.phone,
 			birthdate: formattedBirthdate ?? '',
 			height: data.user.height ?? '',
 			yearsOfExperience: data.user.yearsOfExperience ?? '',
@@ -227,7 +241,7 @@ export default function EditUserProfile() {
 							Account
 						</legend>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.username.id,
 								children: 'Username',
@@ -236,13 +250,13 @@ export default function EditUserProfile() {
 							errors={fields.username.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
 							inputProps={conform.input(fields.name)}
 							errors={fields.name.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.email.id, children: 'Email' }}
 							inputProps={{
 								...conform.input(fields.email),
@@ -251,6 +265,28 @@ export default function EditUserProfile() {
 							}}
 							errors={fields.email.errors}
 						/>
+						<Field
+							className="col-span-6 sm:col-span-3"
+							labelProps={{
+								htmlFor: fields.phone.id,
+								children: 'Phone Number',
+							}}
+							inputProps={{
+								...conform.input(fields.phone, { type: 'tel' }),
+							}}
+							errors={fields.phone.errors}
+						/>
+						<CheckboxField
+							className="col-span-6"
+							labelProps={{
+								htmlFor: fields.mailingList.id,
+								children: 'Subscribed to all emails',
+							}}
+							buttonProps={conform.input(fields.mailingList, {
+								type: 'checkbox',
+							})}
+							errors={fields.mailingList.errors}
+						/>
 						<div className="col-span-3"></div>
 
 						<div className="col-span-6 mb-6 mt-6 h-1 border-b-[1.5px]" />
@@ -258,7 +294,7 @@ export default function EditUserProfile() {
 							Additional Information
 						</legend>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.birthdate.id,
 								children: 'Birthdate',
@@ -270,7 +306,7 @@ export default function EditUserProfile() {
 							errors={fields.birthdate.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.height.id,
 								children: 'Height (inches)',
@@ -282,7 +318,7 @@ export default function EditUserProfile() {
 							errors={fields.height.errors}
 						/>
 						<Field
-							className="col-span-3"
+							className="col-span-6 sm:col-span-3"
 							labelProps={{
 								htmlFor: fields.yearsOfExperience.id,
 								children: 'Years of experience with horses',
@@ -299,7 +335,7 @@ export default function EditUserProfile() {
 							<legend className="pb-6 text-lg text-night-200">
 								Change password
 							</legend>
-							<div className="flex justify-between gap-10">
+							<div className="flex flex-col justify-between gap-x-10 sm:flex-row">
 								<Field
 									className="flex-1"
 									labelProps={{

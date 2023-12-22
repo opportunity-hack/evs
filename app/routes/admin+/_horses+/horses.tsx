@@ -43,13 +43,54 @@ import {
 	DropdownMenuSeparator,
 } from '~/components/ui/dropdown-menu.tsx'
 import { Button } from '~/components/ui/button.tsx'
+import {
+	checkboxSchema,
+	optionalDateTimeZoneSchema,
+} from '~/utils/zod-extensions.ts'
 
-export const horseFormSchema = z.object({
-	_action: z.enum(['create', 'update']),
-	name: z.string().min(1, { message: 'Name is required' }),
-	notes: z.string().optional(),
-	status: z.string().optional(),
-})
+export const horseFormSchema = z
+	.object({
+		_action: z.enum(['create', 'update']),
+		name: z.string().min(1, { message: 'Name is required' }),
+		notes: z.string().optional(),
+		status: z.string().optional(),
+		cooldown: checkboxSchema(),
+		cooldownStartDate: optionalDateTimeZoneSchema,
+		cooldownEndDate: optionalDateTimeZoneSchema,
+	})
+	.refine(
+		/**
+		 * This makes sure that if cooldown is checked, there is both a start and end date,
+		 * and if cooldown is not checked, there are no start and end dates
+		 */
+		schema =>
+			(schema.cooldownStartDate === null &&
+				schema.cooldownEndDate === null &&
+				!schema.cooldown) ||
+			(schema.cooldownStartDate !== null &&
+				schema.cooldownEndDate !== null &&
+				schema.cooldown)
+				? true
+				: false,
+		{
+			message:
+				'If "Schedule Cooldown" is checked, you must choose a start and end date',
+		},
+	)
+	.refine(
+		/**
+		 * Checks that end date is after or equal to start date
+		 */
+		schema => {
+			const { cooldownStartDate, cooldownEndDate } = schema
+			if (cooldownStartDate && cooldownEndDate) {
+				return cooldownStartDate <= cooldownEndDate
+			} else return true
+		},
+		{
+			message: "End date must not be before start date."
+		}
+	)
 
 export const loader = async ({ request }: DataFunctionArgs) => {
 	await requireAdmin(request)
@@ -176,7 +217,7 @@ export const columns: ColumnDef<Horse>[] = [
 		cell: ({ row }) => {
 			const timeStamp = new Date(row.getValue('updatedAt'))
 			const formatted = formatRelative(timeStamp, new Date())
-			return <div>{formatted}</div>
+			return formatted
 		},
 	},
 	{

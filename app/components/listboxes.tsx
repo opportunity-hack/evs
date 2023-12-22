@@ -3,7 +3,7 @@ import { Listbox, Transition } from '@headlessui/react'
 import { Icon } from '~/components/ui/icon.tsx'
 
 const listboxButtonClassName =
-	'flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+	'flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid'
 
 const listBoxOptionsClassname =
 	'z-50 absolute mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border-input border border-1'
@@ -17,12 +17,14 @@ interface HorseListboxProps {
 	horses: HorseData[]
 	name: string
 	defaultValues?: HorseData[]
+	error: boolean
 }
 
 export function HorseListbox({
 	horses,
 	name,
 	defaultValues = [],
+	error,
 }: HorseListboxProps) {
 	const initialValues = horses.filter(horse => {
 		for (const value of defaultValues) {
@@ -34,15 +36,20 @@ export function HorseListbox({
 	})
 	const [selected, setSelected] = useState(initialValues)
 
-	console.log('initial values: ', JSON.stringify(initialValues))
-	console.log('default values: ', JSON.stringify(defaultValues))
-	console.log('all horses: ', JSON.stringify(horses))
-
 	return (
-		<Listbox value={selected} onChange={setSelected} name={name} multiple>
-			<div className="relative mt-1">
+		<Listbox
+			value={selected}
+			by="id"
+			onChange={setSelected}
+			name={name}
+			multiple
+		>
+			<div className="relative">
 				<div className={''}>
-					<Listbox.Button className={listboxButtonClassName}>
+					<Listbox.Button
+						className={listboxButtonClassName}
+						aria-invalid={error ? true : undefined}
+					>
 						<span className="block truncate">
 							{selected.map(horse => horse.name).join(', ')}
 						</span>
@@ -62,20 +69,16 @@ export function HorseListbox({
 							<Listbox.Option
 								key={horseIdx}
 								className={({ active }) =>
-									`relative cursor-default select-none py-2 pl-10 pr-4 ${
-										active
-											? 'bg-teal-600 text-white'
-											: 'bg-background text-primary'
-									}`
+									`relative cursor-default select-none py-2 pl-10 pr-4
+									${active ? 'bg-teal-600 text-white' : 'bg-background text-primary'}`
 								}
 								value={horse}
 							>
 								{({ selected, active }) => (
 									<>
 										<span
-											className={`block truncate ${
-												selected ? 'font-medium' : 'font-normal'
-											}`}
+											className={`block truncate 
+											${selected ? 'font-semibold' : 'font-normal'}`}
 										>
 											{horse.name}
 										</span>
@@ -114,13 +117,13 @@ interface InstructorListboxProps {
 export function InstructorListbox({
 	instructors,
 	name,
-	defaultValue = instructors[0],
+	defaultValue,
 }: InstructorListboxProps) {
 	const [selected, setSelected] = useState(defaultValue)
 
 	return (
 		<Listbox value={selected} onChange={setSelected} name={name}>
-			<div className="relative mt-1">
+			<div className="relative">
 				<Listbox.Button className={listboxButtonClassName}>
 					<span className="block truncate">{selected?.name}</span>
 					<span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -134,6 +137,20 @@ export function InstructorListbox({
 					leaveTo="opacity-0"
 				>
 					<Listbox.Options className={listBoxOptionsClassname}>
+						<Listbox.Option
+							key={'none'}
+							className={({ active }) =>
+								`relative cursor-default select-none py-2 pl-10 pr-4 ${
+									active
+										? 'bg-teal-600 text-white'
+										: 'bg-background text-primary'
+								}`
+							}
+							value={undefined}
+							onChange={() => setSelected(undefined)}
+						>
+							undecided
+						</Listbox.Option>
 						{instructors.map((person, personIdx) => (
 							<Listbox.Option
 								key={personIdx}

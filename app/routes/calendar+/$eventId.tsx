@@ -19,6 +19,7 @@ import { useFetcher, Outlet } from '@remix-run/react'
 import { z } from 'zod'
 import { parse } from '@conform-to/zod'
 import { requireAdmin } from '~/utils/permissions.server.ts'
+import { formatPhone } from '~/utils/phone-format.ts'
 import invariant from 'tiny-invariant'
 import {
 	Popover,
@@ -145,8 +146,10 @@ export default function () {
 			<section className="h-fit pr-2 md:sticky md:top-20 md:w-2/5">
 				<h1 className="text-h2 uppercase">Event Details</h1>
 				<Card className="px-4 py-6">
-					<div className="flex items-center justify-between">
-						<h2 className="text-2xl font-bold">{event.title}</h2>
+					<div className="flex flex-wrap items-center justify-between">
+						<h2 className="text-2xl font-bold">
+							{event.title}
+						</h2>
 						<Button asChild className="" variant="default" size="sm">
 							<Link to="edit">Edit</Link>
 						</Button>
@@ -272,6 +275,7 @@ const placeHolderUser: UserData = {
 	id: 'placeholder',
 	name: 'No one yet',
 	username: 'placeholder',
+	phone: null,
 	imageId: '',
 	height: null,
 	birthdate: null,
@@ -327,7 +331,7 @@ function VolunteerListItem({
 					'border-1 border border-dashed border-primary opacity-50 dark:bg-slate-800',
 			)}
 		>
-			<VolunteerInfoPopover volunteer={user}>
+			{isPlaceholder ? (
 				<div className="flex w-1/3 items-center gap-2">
 					<img
 						className="h-14 w-14 rounded-full object-cover"
@@ -336,7 +340,18 @@ function VolunteerListItem({
 					/>
 					{user.name}
 				</div>
-			</VolunteerInfoPopover>
+			) : (
+				<VolunteerInfoPopover volunteer={user}>
+					<div className="flex w-1/3 items-center gap-2">
+						<img
+							className="h-14 w-14 rounded-full object-cover"
+							alt={user.name ?? user.username}
+							src={getUserImgSrc(user.imageId)}
+						/>
+						{user.name}
+					</div>
+				</VolunteerInfoPopover>
+			)}
 			<Icon className="text-body-xl" name="arrow-right" />
 
 			<div className="flex items-center gap-2">
@@ -393,7 +408,7 @@ function HorseInfoPopover({ children, horse }: HorseInfoPopoverProps) {
 			<PopoverContent side="bottom">
 				<div className="text-xl">{horse.name}</div>
 				<img
-					className="h-52 w-52 rounded-full object-cover"
+					className="mx-auto h-52 w-52 rounded-full object-cover"
 					alt="horse"
 					src={getHorseImgSrc(horse.imageId)}
 				/>
@@ -432,7 +447,7 @@ function VolunteerInfoPopover({
 					</Link>
 				</div>
 				<img
-					className="h-52 w-52 rounded-full object-cover"
+					className="mx-auto h-52 w-52 rounded-full object-cover"
 					alt="horse"
 					src={getHorseImgSrc(volunteer.imageId)}
 				/>
@@ -451,6 +466,10 @@ function VolunteerInfoPopover({
 						Years of Experience:{' '}
 					</span>
 					{volunteer.yearsOfExperience}
+				</div>
+				<div>
+					<span className="text-xs font-bold uppercase">Phone Number: </span>
+					{formatPhone(volunteer.phone)}
 				</div>
 				<div>
 					<span className="text-xs font-bold uppercase">Notes: </span>

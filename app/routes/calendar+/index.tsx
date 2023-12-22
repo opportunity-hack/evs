@@ -6,7 +6,7 @@ import parse from 'date-fns/parse/index.js'
 import startOfWeek from 'date-fns/startOfWeek/index.js'
 import getDay from 'date-fns/getDay/index.js'
 import enUS from 'date-fns/locale/en-US/index.js'
-import 'react-big-calendar/lib/css/react-big-calendar.css'
+import '~/styles/react-big-calendar.css'
 import { Icon } from '~/components/ui/icon.tsx'
 
 import {
@@ -36,17 +36,16 @@ import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group.tsx'
 import { Label } from '~/components/ui/label.tsx'
 
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from '@/components/ui/tooltip.tsx'
+	Popover,
+	PopoverTrigger,
+	PopoverContent,
+} from '@/components/ui/popover.tsx'
 
 import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
 
 import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
-import { addMinutes } from 'date-fns'
+import { addMinutes, isAfter } from 'date-fns'
 import { useFetcher, useFormAction, useNavigation } from '@remix-run/react'
 import { useResetCallback } from '~/utils/misc.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
@@ -66,8 +65,12 @@ import {
 	SelectValue,
 } from '~/components/ui/select.tsx'
 import { Separator } from '~/components/ui/separator.tsx'
-import { CheckboxField, Field } from '~/components/forms.tsx'
-import { checkboxSchema } from '~/utils/zod-extensions.ts'
+import { CheckboxField, Field, DatePickerField } from '~/components/forms.tsx'
+import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
+import {
+	horseDateConflicts,
+	renderHorseConflictMessage,
+} from '~/utils/cooldown-functions.ts'
 
 const locales = {
 	'en-US': enUS,
@@ -83,26 +86,37 @@ const localizer = dateFnsLocalizer({
 
 export const loader = async ({ request }: LoaderArgs) => {
 	await requireUserId(request)
+	const isAdmin = await userHasAdminPermissions(request)
 	const instructors = await prisma.user.findMany({
-		where: { instructor: true },
+		where: { roles: { some: { name: 'instructor' } } },
 	})
 
 	let eventsWhere: { isPrivate?: boolean } = { isPrivate: false }
-	if (await userHasAdminPermissions(request)) {
-		delete eventsWhere.isPrivate
+	if (isAdmin) delete eventsWhere.isPrivate
+	let events = await prisma.event.findMany({
+		where: eventsWhere,
+		include: {
+			horses: true,
+			instructors: true,
+			cleaningCrew: true,
+			lessonAssistants: true,
+			sideWalkers: true,
+			horseLeaders: true,
+		},
+	})
+
+	// Add 🔒 to title of private events
+	if (isAdmin) {
+		events = events.map(e => {
+			if (e.isPrivate) {
+				return { ...e, title: '🔒' + e.title }
+			}
+			return e
+		})
 	}
+
 	return json({
-		events: await prisma.event.findMany({
-			where: eventsWhere,
-			include: {
-				horses: true,
-				instructors: true,
-				cleaningCrew: true,
-				lessonAssistants: true,
-				sideWalkers: true,
-				horseLeaders: true,
-			},
-		}),
+		events,
 		horses: await prisma.horse.findMany(),
 		instructors,
 	})
@@ -111,19 +125,24 @@ export const loader = async ({ request }: LoaderArgs) => {
 const horseSchema = z.object({
 	id: z.string(),
 	name: z.string(),
+	cooldownStartDate: optionalDateSchema,
+	cooldownEndDate: optionalDateSchema,
 })
 
-const instructorSchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	username: z.string(),
-})
+const instructorSchema = z
+	.object({
+		id: z.string(),
+		name: z.string(),
+		username: z.string(),
+	})
+	.optional()
 
 const createEventSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
-	startDate: z.coerce.date(),
+	dates: z.string().regex(new RegExp(/^(\d{4}-\d{2}-\d{2},?\s?)+$/g), 'Invalid dates'),
+	startTime: z.string().regex(new RegExp(/^\d{2}:\d{2}$/g), 'Invalid start time'),
 	duration: z.coerce.number().gt(0),
-	horses: z.array(horseSchema),
+	horses: z.array(horseSchema).optional(),
 	instructor: instructorSchema,
 	cleaningCrewReq: z.coerce.number().gt(-1),
 	lessonAssistantsReq: z.coerce.number().gt(-1),
@@ -145,58 +164,102 @@ export async function action({ request }: ActionArgs) {
 			{
 				status: 'error',
 				submission,
+				message: null,
 			} as const,
 			{ status: 400 },
 		)
 	}
 
 	const title = submission.value.title
-	const start = submission.value.startDate
-	const end = addMinutes(start, submission.value.duration)
-
-	const instructorId = submission.value.instructor.id
-	const horseIds = submission.value.horses.map(e => {
-		return { id: e.id }
-	})
-
+	const datesArray = submission.value.dates.split(', ')
+	const startTime = submission.value.startTime
+	const duration = submission.value.duration
 	const cleaningCrewReq = submission.value.cleaningCrewReq
 	const lessonAssistantsReq = submission.value.lessonAssistantsReq
 	const sideWalkersReq = submission.value.sideWalkersReq
 	const horseLeadersReq = submission.value.horseLeadersReq
-
 	const isPrivate = submission.value.isPrivate
 
-	await prisma.event.create({
-		data: {
-			title,
-			start,
-			end,
-			instructors: {
-				connect: { id: instructorId },
-			},
-			horses: {
-				connect: horseIds,
-			},
-			cleaningCrewReq,
-			lessonAssistantsReq,
-			sideWalkersReq,
-			horseLeadersReq,
-			isPrivate,
-		},
+	const dateTimesArray = datesArray.map(date => {
+		const string = `${date} ${startTime} -07` // -07 Arizona timezone
+		const start = parse(string, 'yyyy-MM-dd HH:mm X', new Date())
+		const end = addMinutes(start, duration)
+		return { start, end }
 	})
 
+	// Check that horses selected are not in cooldown period
+	const horses = submission.value.horses
+	if (horses) {
+		interface horseDateConflict {
+			name: String
+			conflictingDatesArr: Array<Date>
+		}
+		let errorHorseArr: Array<horseDateConflict> = []
+		horses.forEach(horse => {
+			const conflicts = horseDateConflicts(
+				horse,
+				dateTimesArray.map(date => date.start),
+			)
+			if (conflicts) errorHorseArr.push(conflicts)
+		})
+
+		const message = renderHorseConflictMessage(errorHorseArr)
+
+		if (errorHorseArr.length > 0) {
+			return json({
+				status: 'horse-error',
+				submission,
+				message,
+			} as const)
+		}
+	}
+
+	const instructorId = submission.value.instructor?.id
+	let instructorData: { id: string }[] = []
+	if (instructorId) {
+		instructorData = [{ id: instructorId }]
+	}
+	const horseIds = submission.value.horses?.map(e => {
+		return { id: e.id }
+	})
+
+	let transactions = []
+	for (let dateTime of dateTimesArray) {
+		transactions.push(
+			prisma.event.create({
+				data: {
+					title,
+					start: dateTime.start,
+					end: dateTime.end,
+					instructors: {
+						connect: instructorData,
+					},
+					horses: {
+						connect: horseIds ?? [],
+					},
+					cleaningCrewReq,
+					lessonAssistantsReq,
+					sideWalkersReq,
+					horseLeadersReq,
+					isPrivate,
+				},
+			}),
+		)
+	}
+	await prisma.$transaction(transactions)
 	return json(
 		{
 			status: 'success',
 			submission,
-		},
+			message: null,
+		} as const,
 		{ status: 200 },
 	)
 }
 
 export default function Schedule() {
 	const data = useLoaderData<typeof loader>()
-	const events = data.events
+	var events = data.events
 	const horses = data.horses
 	const instructors = data.instructors
 	const user = useUser()
@@ -206,6 +269,7 @@ export default function Schedule() {
 
 	const [filterFlag, setFilterFlag] = useState(false)
 
+	
 	const eventsThatNeedHelp = events.filter((event: (typeof events)[number]) => {
 		return (
 			event.cleaningCrewReq > event.cleaningCrew.length ||
@@ -221,9 +285,9 @@ export default function Schedule() {
 	}
 
 	return (
-		<div className="grid place-items-center">
-			<h1 className="mb-5 text-5xl">Calendar</h1>
-			<div className="flex gap-2">
+		<div className="grid place-items-center gap-2">
+			<h1 className="mb-3 text-5xl">Calendar</h1>			
+			<div className="flex gap-2 mb-0">
 				<Checkbox
 					checked={filterFlag}
 					onCheckedChange={() => setFilterFlag(!filterFlag)}
@@ -233,16 +297,22 @@ export default function Schedule() {
 					Show only events that need more volunteers
 				</Label>
 			</div>
-			<div className="container h-screen w-screen sm:h-[80vh] sm:w-[80vw]">
+		
+			{userIsAdmin ? (
+					<CreateEventDialog horses={horses} instructors={instructors} />
+				) : null}
+
+			<div className="h-screen w-full flex justify-center">				
 				<Calendar
 					localizer={localizer}
 					events={filterFlag ? eventsThatNeedHelp : events}
+					tooltipAccessor={event => `Cleaning Crew: ${event.cleaningCrew.length} / ${event.cleaningCrewReq}\nSidewalkers: ${event.sideWalkers.length} / ${event.sideWalkersReq}\nLesson Assistants: ${event.lessonAssistants.length} / ${event.lessonAssistantsReq}\nHorse Leaders: ${event.horseLeaders.length} / ${event.horseLeadersReq}`}
 					startAccessor="start"
 					endAccessor="end"
 					onSelectEvent={handleSelectEvent}
-					style={{
-						height: '100%',
-						width: '100%',
+					style={{						
+						height: '95%',
+						width: '95%',
 						backgroundColor: 'white',
 						color: 'black',
 						padding: 20,
@@ -250,7 +320,7 @@ export default function Schedule() {
 					}}
 				/>
 			</div>
-
+			
 			<Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
 				<RegistrationDialogue
 					selectedEventId={selectedEvent?.id}
@@ -258,9 +328,7 @@ export default function Schedule() {
 				/>
 			</Dialog>
 
-			{userIsAdmin ? (
-				<CreateEventDialog horses={horses} instructors={instructors} />
-			) : null}
+			
 		</div>
 	)
 }
@@ -274,6 +342,10 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 	const registrationFetcher = useFetcher()
 	const user = useUser()
 	const userIsAdmin = user.roles.find(role => role.name === 'admin')
+	const userIsLessonAssistant =
+		user.roles.find(role => role.name === 'lessonAssistant') != undefined
+	const userIsHorseLeader =
+		user.roles.find(role => role.name === 'horseLeader') != undefined
 
 	const isSubmitting = registrationFetcher.state === 'submitting'
 
@@ -297,21 +369,27 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 	if (!isRegistered) {
 		volunteerTypeIdx = 0
 	}
-	const registeredAs = volunteerTypes[volunteerTypeIdx]	
-	
+	const registeredAs = volunteerTypes[volunteerTypeIdx]
 
 	const helpNeeded =
 		calEvent.cleaningCrewReq > calEvent.cleaningCrew.length ||
 		calEvent.lessonAssistantsReq > calEvent.lessonAssistants.length ||
 		calEvent.horseLeadersReq > calEvent.horseLeaders.length ||
 		calEvent.sideWalkersReq > calEvent.sideWalkers.length
+
+	const now = new Date()
+	let hasPassed = false
+	if (isAfter(now, calEvent.end)) {
+		hasPassed = true
+	}
+
 	return (
 		<DialogContent>
 			<DialogHeader>
 				<DialogTitle className="text-h4">
 					{calEvent.title} - Volunteer Registration
 				</DialogTitle>
-				<div className="flex items-center justify-between">
+				<div className="flex flex-wrap items-center justify-between">
 					<p>
 						{calEvent.start.toLocaleDateString()}, {format(calEvent.start, 'p')}{' '}
 						- {format(calEvent.end, 'p')}
@@ -331,110 +409,139 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 					</p>
 				) : null}
 			</DialogHeader>
-			<DialogDescription>
-				{isRegistered ? 'Manage registration' : 'Select a role to volunteer in'}
-			</DialogDescription>
-			<registrationFetcher.Form
-				method="post"
-				action="/resources/event-register"
-			>
-				<Input type="hidden" name="eventId" value={calEvent.id}></Input>
-				<RadioGroup
-					name="role"
-					defaultValue={volunteerTypes[volunteerTypeIdx].field}
-					disabled={isRegistered}
-				>
-					<ul className="">
-						{volunteerTypes.map(volunteerType => {
-							const spotsLeft = calEvent[`${volunteerType.field}Req`]-calEvent[volunteerType.field].length
+			{hasPassed ? (
+				<div className="text-2xl">This event has already passed.</div>
+			) : (
+				<>
+					<DialogDescription>
+						{isRegistered
+							? 'Manage registration'
+							: 'Select a role to volunteer in'}
+					</DialogDescription>
+					<registrationFetcher.Form
+						method="post"
+						action="/resources/event-register"
+					>
+						<Input type="hidden" name="eventId" value={calEvent.id}></Input>
+						<RadioGroup
+							name="role"
+							defaultValue={
+								isRegistered
+									? volunteerTypes[volunteerTypeIdx].field
+									: undefined
+							}
+							disabled={isRegistered}
+						>
+							<ul className="pb-4">
+								{volunteerTypes.map(volunteerType => {
+									const spotsLeft =
+										calEvent[`${volunteerType.field}Req`] -
+										calEvent[volunteerType.field].length
 
-							const isFull =
-								calEvent[volunteerType.reqField] <=
-								calEvent[volunteerType.field].length
+									const isFull =
+										calEvent[volunteerType.reqField] <=
+										calEvent[volunteerType.field].length
 
-							return (
-								<li
-									key={volunteerType.field}
-									className="items-left m-2 flex flex-col"
+									let hasPermissions = true
+									if (volunteerType.field == 'lessonAssistants') {
+										hasPermissions = userIsLessonAssistant
+									} else if (volunteerType.field == 'horseLeaders') {
+										hasPermissions = userIsHorseLeader
+									}
+
+									return (
+										<li
+											key={volunteerType.field}
+											className="items-left m-2 flex flex-col"
+										>
+											<div className="flex justify-between">
+												<div className="flex items-center">
+													<RadioGroupItem
+														disabled={isFull || !hasPermissions}
+														className="mr-2 aria-disabled:bg-muted"
+														id={volunteerType.field}
+														value={volunteerType.field}
+													/>
+													<Label
+														htmlFor={volunteerType.field}
+														className={
+															isFull || !hasPermissions
+																? 'text-muted-foreground'
+																: ''
+														}
+													>
+														<span className="capitalize">
+															{volunteerType.displayName}:
+														</span>{' '}
+														{spotsLeft === 0
+															? 'this position is full'
+															: spotsLeft === 1
+															? 'there is 1 spot left'
+															: `there are ${spotsLeft} spots left`}
+													</Label>
+												</div>
+												<Popover>
+													<PopoverTrigger>
+														<Info size="20" />
+													</PopoverTrigger>
+													<PopoverContent side={'top'}>
+														<p className="max-w-[250px]">
+															{volunteerType.description}
+														</p>
+													</PopoverContent>
+												</Popover>
+											</div>
+											{!hasPermissions ? (
+												<div className="max-w-xs text-xs text-muted-foreground">
+													You do not have permission to volunteer in this role.
+													<br />
+													For more information, speak to the volunteer
+													coordinator.
+												</div>
+											) : null}
+										</li>
+									)
+								})}
+							</ul>
+						</RadioGroup>
+						{!isRegistered ? null : (
+							<>
+								<div className="pb-4">
+									<input type="hidden" name="role" value={registeredAs.field} />
+									You are registered to volunteer in this event as one of the{' '}
+									{registeredAs.displayName}.
+								</div>
+							</>
+						)}
+						<DialogFooter>
+							{isSubmitting ? (
+								<div>Processing...</div>
+							) : isRegistered ? (
+								<Button
+									type="submit"
+									name="_action"
+									value="unregister"
+									variant="destructive"
 								>
-									<div className="flex w-[80%] justify-between">
-										<div className="flex items-center">
-											<RadioGroupItem
-												disabled={isFull}
-												className="mr-2 aria-disabled:bg-muted"
-												id={volunteerType.field}
-												value={volunteerType.field}
-											/>
-											<Label
-												htmlFor={volunteerType.field}
-												className={isFull ? 'text-muted-foreground' : ''}
-											>
-												<span className="capitalize">
-													{volunteerType.displayName}:
-												</span>{' '}
-												{spotsLeft} spot{ spotsLeft == 0 || spotsLeft > 1 ? "s" : ""} left
-												
-											</Label>
-										</div>
-										<TooltipProvider>
-											<Tooltip delayDuration={0}>
-												<TooltipTrigger asChild>
-													<Info size="20" className="mr-1" />
-												</TooltipTrigger>
-												<TooltipContent>
-													<p className="max-w-[250px]">
-														{volunteerType.description}
-													</p>
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
-									</div>
-									{isFull ? (
-										<div className="ml-7 text-foreground">
-											This position is full
-										</div>
-									) : null}
-								</li>
-							)
-						})}
-					</ul>
-				</RadioGroup>
-				{!isRegistered ? null : (
-					<>
-						<div>
-							<input type="hidden" name="role" value={registeredAs.field} />
-							You are registered to volunteer in this event as one of the{' '}
-							{registeredAs.displayName}.
-						</div>
-					</>
-				)}
-				<DialogFooter>
-					{isSubmitting ? (
-						<div>Processing...</div>
-					) : isRegistered ? (
-						<Button
-							type="submit"
-							name="_action"
-							value="unregister"
-							variant="destructive"
-						>
-							{' '}
-							Unregister
-						</Button>
-					) : (
-						<Button
-							className=""
-							type="submit"
-							name="_action"
-							value="register"
-							disabled={!helpNeeded}
-						>
-							Register
-						</Button>
-					)}
-					<DialogClose autoFocus={false} />
-				</DialogFooter>
-			</registrationFetcher.Form>
+									{' '}
+									Unregister
+								</Button>
+							) : (
+								<Button
+									className=""
+									type="submit"
+									name="_action"
+									value="register"
+									disabled={!helpNeeded}
+								>
+									Register
+								</Button>
+							)}
+						</DialogFooter>
+					</registrationFetcher.Form>
+				</>
+			)}
+			<DialogClose autoFocus={false} />
 		</DialogContent>
 	)
 }
@@ -450,7 +557,7 @@ function CreateEventDialog({ horses, instructors }: CreateEventDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button className="mt-5">
+				<Button className="mt-0 mb-1" style={{ backgroundColor: '#58d5fe' }}>
 					<Icon className="text-body-md" name="plus">
 						Create New Event
 					</Icon>
@@ -515,7 +622,7 @@ function CreateEventForm({
 		if (!actionData) {
 			return
 		}
-		if (actionData.status == 'success') {
+		if (actionData.status === 'success') {
 			toast({
 				title: 'Success',
 				description: `Created event "${actionData.submission?.value?.title}".`,
@@ -523,6 +630,13 @@ function CreateEventForm({
 			if (doneCallback) {
 				doneCallback()
 			}
+		} else if (actionData.status === 'horse-error') {
+			toast({
+				variant: 'destructive',
+				title:
+					'The following horses are scheduled for cooldown on the selected dates:',
+				description: actionData.message,
+			})
 		} else {
 			toast({
 				variant: 'destructive',
@@ -544,18 +658,27 @@ function CreateEventForm({
 					inputProps={conform.input(fields.title)}
 					errors={fields.title.errors}
 				/>
-				<Field
+				<DatePickerField
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
-						htmlFor: fields.startDate.id,
-						children: 'Start Date',
+						htmlFor: fields.dates.id,
+						children: 'Dates',
+					}}
+					errors={fields.dates.errors}
+				/>
+				<Field
+					className="col-span-2 sm:col-span-1"
+					labelProps={{
+						htmlFor: fields.startTime.id,
+						children: 'Start Time',
 					}}
 					inputProps={{
-						...conform.input(fields.startDate),
-						type: 'datetime-local',
+						...conform.input(fields.startTime),
+						type: 'time',
 					}}
-					errors={fields.startDate.errors}
+					errors={fields.startTime.errors}
 				/>
-				<div>
+				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="duration">Duration</Label>
 					<Select name="duration" defaultValue="30">
 						<SelectTrigger>
@@ -569,16 +692,21 @@ function CreateEventForm({
 						</SelectContent>
 					</Select>
 				</div>
-				<div>
+				<Separator className="col-span-2 border" />
+				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="horses">Horses</Label>
-					<HorseListbox name="horses" horses={horses} />
+					<HorseListbox
+						name="horses"
+						horses={horses}
+						error={actionData?.status === 'horse-error' ?? false}
+					/>
 				</div>
-				<div>
+				<div className="col-span-2 sm:col-span-1">
 					<Label htmlFor="instructor">Instructor</Label>
 					<InstructorListbox name="instructor" instructors={instructors} />
 				</div>
-				<Separator className="col-span-2 border" />
 				<Field
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
 						htmlFor: fields.cleaningCrewReq.id,
 						children: 'cleaning crew needed',
@@ -586,10 +714,12 @@ function CreateEventForm({
 					inputProps={{
 						...conform.input(fields.cleaningCrewReq),
 						type: 'number',
+						min: 0,
 					}}
 					errors={fields.cleaningCrewReq.errors}
 				/>
 				<Field
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
 						htmlFor: fields.lessonAssistantsReq.id,
 						children: 'Lesson assistants needed',
@@ -597,10 +727,12 @@ function CreateEventForm({
 					inputProps={{
 						...conform.input(fields.lessonAssistantsReq),
 						type: 'number',
+						min: 0,
 					}}
 					errors={fields.lessonAssistantsReq.errors}
 				/>
 				<Field
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
 						htmlFor: fields.sideWalkersReq.id,
 						children: 'Sidewalkers needed',
@@ -608,10 +740,12 @@ function CreateEventForm({
 					inputProps={{
 						...conform.input(fields.sideWalkersReq),
 						type: 'number',
+						min: 0,
 					}}
 					errors={fields.sideWalkersReq.errors}
 				/>
 				<Field
+					className="col-span-2 sm:col-span-1"
 					labelProps={{
 						htmlFor: fields.horseLeadersReq.id,
 						children: 'Horse leaders needed',
@@ -619,10 +753,12 @@ function CreateEventForm({
 					inputProps={{
 						...conform.input(fields.horseLeadersReq),
 						type: 'number',
+						min: 0,
 					}}
 					errors={fields.horseLeadersReq.errors}
 				/>
 				<CheckboxField
+					className="col-span-2"
 					labelProps={{
 						htmlFor: fields.isPrivate.id,
 						children: 'Private (only visible to admins)',

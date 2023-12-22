@@ -6,6 +6,7 @@ import { DataTable } from '~/components/ui/data_table.tsx'
 import { type ColumnDef } from '@tanstack/react-table'
 import { type User, type Role } from '@prisma/client'
 import { formatRelative } from 'date-fns'
+import { formatPhone } from '~/utils/phone-format.ts'
 import { Icon } from '~/components/ui/icon.tsx'
 import {
 	DropdownMenu,
@@ -16,6 +17,7 @@ import {
 	DropdownMenuSeparator,
 } from '~/components/ui/dropdown-menu.tsx'
 import { Button } from '~/components/ui/button.tsx'
+import { SetSignupPasswordForm } from '~/routes/resources+/signup_password.tsx'
 
 export const loader = async ({ request }: LoaderArgs) => {
 	await requireAdmin(request)
@@ -29,6 +31,7 @@ export default function Users() {
 			<h1 className="text-center text-5xl">Users</h1>
 			<div className="container pt-10">
 				<DataTable columns={columns} data={data} />
+				<SetSignupPasswordForm/>
 			</div>
 			<Outlet />
 		</div>
@@ -42,9 +45,25 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		accessorKey: 'email',
 		header: 'email',
 	},
+	{		
+		header: 'mailing list',
+		accessorFn: (row) => {
+			const isMailingList = row.mailingList
+			return isMailingList ? 'Yes' : 'No'
+		},
+	},
 	{
 		accessorKey: 'name',
 		header: 'name',
+	},
+	{
+		accessorKey: 'phone',
+		header: 'phone',
+		cell: ({ row }) => {
+			const s = row.getValue('phone') as string
+			const formatted = s ? formatPhone(s) : null
+			return formatted
+		}
 	},
 	{
 		accessorKey: 'lastLogin',
@@ -52,28 +71,41 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		cell: ({ row }) => {
 			const timeStamp = new Date(row.getValue('lastLogin'))
 			const formatted = formatRelative(timeStamp, new Date())
-			return <div>{formatted}</div>
+			return formatted
 		},
 	},
 	{
-		accessorKey: 'instructor',
 		header: 'instructor',
-		cell: ({ row }) => {
-			return <div>{row.original.instructor ? 'Yes' : 'No'}</div>
+		accessorFn: (row) => {
+			const hasRole = row.roles.find(r => r.name === 'instructor')
+			return hasRole ? 'Yes' : 'No'
 		},
 	},
 	{
-		accessorKey: 'roles',
 		header: 'admin',
-		cell: ({ row }) => {
-			const isAdmin = row.original.roles.find(r => r.name == 'admin')
-			return <div>{isAdmin ? 'Yes' : 'No'}</div>
+		accessorFn: (row) => {
+			const hasRole = row.roles.find(r => r.name === 'admin')
+			return hasRole ? 'Yes' : 'No'
+		},
+	},
+	{
+		header: 'lesson assistant',
+		accessorFn: (row) => {
+			const hasRole = row.roles.find(r => r.name === 'lessonAssistant')
+			return hasRole ? 'Yes' : 'No'
+		},
+	},
+	{
+		header: 'horse leader',
+		accessorFn: (row) => {
+			const hasRole = row.roles.find(r => r.name === 'horseLeader')
+			return hasRole ? 'Yes' : 'No'
 		},
 	},
 	{
 		id: 'actions',
 		cell: ({ row }) => {
-			const isAdmin = row.original.roles.find(r => r.name == 'admin')
+			const isAdmin = row.original.roles.find(r => r.name === 'admin')
 			return (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>

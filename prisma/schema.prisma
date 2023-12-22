@@ -52,10 +52,12 @@ model Permission {
 }
 
 model User {
-  id       String  @id @unique @default(cuid())
-  email    String  @unique
-  username String  @unique
-  name     String?
+  id          String  @id @unique @default(cuid())
+  email       String  @unique
+  username    String  @unique
+  name        String?
+  phone       String?
+  mailingList Boolean @default(true)
 
   birthdate         DateTime?
   height            Int?
@@ -73,8 +75,6 @@ model User {
   session  Session[]
 
   lastLogin DateTime? @default(now())
-
-  instructor Boolean @default(false)
 
   Instructor      Event[] @relation("instructor")
   cleaningCrew    Event[] @relation("cleaningCrew")
@@ -129,11 +129,14 @@ model Session {
 }
 
 model Horse {
-  id        String   @id @unique @default(cuid())
-  name      String
-  notes     String?
-  status    String?
-  updatedAt DateTime @updatedAt
+  id                String    @id @unique @default(cuid())
+  name              String
+  notes             String?
+  status            String?
+  updatedAt         DateTime  @updatedAt
+  cooldown          Boolean   @default(false)
+  cooldownStartDate DateTime?
+  cooldownEndDate   DateTime?
 
   image   Image?  @relation(fields: [imageId], references: [fileId])
   imageId String? @unique
@@ -180,4 +183,8 @@ model HorseAssignment {
   horseId   String
 
   @@unique([eventId, userId])
+}
+
+model SignupPassword {
+  hash String @unique
 }

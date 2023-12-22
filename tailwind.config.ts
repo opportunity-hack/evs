@@ -9,12 +9,15 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
-			screens: {
-				'2xl': '1400px',
+			padding: {
+				DEFAULT: '1rem',
+				sm: '2rem',
 			},
 		},
 		extend: {
+			screens: {
+				'2xl': '1400px',
+			},
 			colors: {
 				border: 'hsl(var(--color-border))',
 				input: {
@@ -154,5 +157,6 @@ export default {
 			},
 		},
 	},
+
 	plugins: [tailwindcssRadix, tailwindcssAnimate],
 } satisfies Config

@@ -31,7 +31,7 @@ export function createUser() {
 		username,
 		name: `${firstName} ${lastName}`,
 		email: `${username}@example.com`,
-		instructor: faker.datatype.boolean(),
+		phone: faker.phone.number('##########'),
 		birthdate: faker.date.birthdate(),
 		height: faker.number.int({ min: 60, max: 80 }),
 		yearsOfExperience: faker.number.int({ min: 1, max: 10 }),
@@ -76,21 +76,22 @@ export function createHorse() {
 }
 
 export async function createEvent(start: Date) {
-	const users = await prisma.user.findMany()
+	const volunteers = await prisma.user.findMany({
+		where: { roles: { none: {} }},
+	})
 	const allHorses = await prisma.horse.findMany()
 	const horses = faker.helpers.arrayElements(allHorses, { min: 3, max: 5 })
 	const duration = faker.helpers.arrayElement([30, 60, 90])
 
-	const instructor = users.find(user => user.instructor)
+	const instructors = await prisma.user.findMany({
+		where: { roles: { some: { name: 'instructor' }} },
+	})
+	const instructor = faker.helpers.arrayElement(instructors)
 	if (!instructor) {
 		throw new Error('no instructors in database')
 	}
 
 	const reqs: number[] = Array.from({ length: 4 }, _ => faker.number.int(4))
-
-	let volunteers = users
-		.filter(user => !user.instructor)
-		.sort(() => 0.5 - Math.random())
 
 	let assignments: { id: string }[][] = Array.from({ length: 4 }, _ => [])
 	for (let req = 0; req < 4; req++) {
