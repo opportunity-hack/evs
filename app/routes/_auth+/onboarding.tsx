@@ -118,16 +118,8 @@ export async function action({ request }: DataFunctionArgs) {
 			{ status: 400 },
 		)
 	}
-	const {
-		username,
-		name,
-		password,
-		phone,
-		// TODO: add user to mailing list if they agreed to it
-		// agreeToMailingList,
-		remember,
-		redirectTo,
-	} = submission.value
+	const { username, name, password, phone, remember, redirectTo } =
+		submission.value
 
 	const session = await signup({ email, username, password, name, phone })
 
@@ -175,11 +167,7 @@ export default function OnboardingPage() {
 					</p>
 				</div>
 				<Spacer size="xs" />
-				<Form
-					method="POST"
-					className="mx-auto w-full max-w-sm"
-					{...form.props}
-				>
+				<Form method="POST" className="mx-auto w-full max-w-sm" {...form.props}>
 					<Field
 						labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
 						inputProps={{
@@ -233,7 +221,7 @@ export default function OnboardingPage() {
 							htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
 							children: (
 								<>
-									Do you agree to our{' '}
+									I agree to the{' '}
 									<Link to="/tos" target="_blank" className="underline">
 										Terms of Service
 									</Link>{' '}
@@ -241,7 +229,6 @@ export default function OnboardingPage() {
 									<Link to="/privacy" target="_blank" className="underline">
 										Privacy Policy
 									</Link>
-									?
 								</>
 							),
 						}}
@@ -250,18 +237,6 @@ export default function OnboardingPage() {
 							{ type: 'checkbox' },
 						)}
 						errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
-					/>
-
-					<CheckboxField
-						labelProps={{
-							htmlFor: fields.agreeToMailingList.id,
-							children:
-								'Would you like to recieve emails about upcoming opportunities to volunteer?',
-						}}
-						buttonProps={conform.input(fields.agreeToMailingList, {
-							type: 'checkbox',
-						})}
-						errors={fields.agreeToMailingList.errors}
 					/>
 
 					<CheckboxField

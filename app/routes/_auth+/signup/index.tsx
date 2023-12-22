@@ -31,7 +31,12 @@ export const verificationType = 'onboarding'
 
 const signupSchema = z.object({
 	email: emailSchema,
-	signupPassword: z.string().min(1, { message: "Please fill this in with the password given to you by the volunteer coordinator." }),
+	signupPassword: z
+		.string()
+		.min(1, {
+			message:
+				'Please fill this in with the password given to you by the volunteer coordinator.',
+		}),
 })
 
 export async function action({ request }: DataFunctionArgs) {
@@ -52,12 +57,14 @@ export async function action({ request }: DataFunctionArgs) {
 					return
 				}
 
-				const validSignupPassword = await verifySignupPassword(data.signupPassword)
+				const validSignupPassword = await verifySignupPassword(
+					data.signupPassword,
+				)
 				if (!validSignupPassword) {
 					ctx.addIssue({
 						path: ['signupPassword'],
 						code: z.ZodIssueCode.custom,
-						message: 'Incorrect signup password'
+						message: 'Incorrect signup password',
 					})
 					return
 				}
@@ -118,11 +125,12 @@ export async function action({ request }: DataFunctionArgs) {
 	if (response.status === 'success') {
 		return redirect(redirectTo.pathname + redirectTo.search)
 	} else {
-		submission.error[''] = 'There was an error sending the email.' + response.error;
-		if ( response.error?.message ){
-			submission.error[''] += ' ' + response.error.message;
+		submission.error[''] =
+			'There was an error sending the email.' + response.error
+		if (response.error?.message) {
+			submission.error[''] += ' ' + response.error.message
 		}
-		
+
 		return json(
 			{
 				status: 'error',
@@ -158,7 +166,8 @@ export default function SignupRoute() {
 			<div className="text-center">
 				<h1 className="text-4xl sm:text-h1">Let's saddle up!</h1>
 				<p className="mt-3 text-body-md text-muted-foreground">
-					Please enter your email and the secret password given to you by the volunteer coordinator.
+					Please enter your email and the secret password given to you by the
+					volunteer coordinator.
 				</p>
 			</div>
 			<Form
@@ -179,7 +188,10 @@ export default function SignupRoute() {
 						htmlFor: fields.signupPassword.id,
 						children: 'Secret',
 					}}
-					inputProps={{ ...conform.input(fields.signupPassword), autoFocus: true, type: "password" }}
+					inputProps={{
+						...conform.input(fields.signupPassword),
+						autoFocus: true,
+					}}
 					errors={fields.signupPassword.errors}
 				/>
 				<ErrorList errors={form.errors} id={form.errorId} />

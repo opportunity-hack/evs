@@ -30,12 +30,17 @@ export function DataTable<TData, TValue>({
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		autoResetPageIndex: false,
-	})
+		getPaginationRowModel: getPaginationRowModel(),				
+		initialState: {
+			pagination: {
+				pageSize: 20, // Set the default page size to 20
+			}
+		}
+		
+	});
 
 	return (
-		<div>
+		<div>							
 			<div className="rounded-md border">
 				<Table>
 					<TableHeader>
@@ -90,7 +95,7 @@ export function DataTable<TData, TValue>({
 				<div className="flex w-[250px] items-center justify-center text-sm font-medium">
 					Page {table.getState().pagination.pageIndex + 1} of{' '}
 					{table.getPageCount()}{' '}
-					<span className="ml-4">(10 rows per page)</span>
+					<span className="ml-4">(20 rows per page)</span>
 				</div>
 				<Button
 					variant="outline"

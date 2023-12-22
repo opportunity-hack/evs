@@ -52,7 +52,7 @@ test('onboarding with link', async ({ page }) => {
 
 	const secretTextbox = page.getByRole('textbox', { name: /secret/i })
 	await secretTextbox.click()
-	await secretTextbox.fill("horses are cool")
+	await secretTextbox.fill('horses are cool')
 
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
@@ -76,15 +76,15 @@ test('onboarding with link', async ({ page }) => {
 
 	await page.getByRole('textbox', { name: /^name/i }).fill(onboardingData.name)
 
-	await page.getByRole('textbox', { name: /number/i}).fill(onboardingData.phone)
+	await page
+		.getByRole('textbox', { name: /number/i })
+		.fill(onboardingData.phone)
 
 	await page.getByLabel(/^password/i).fill(onboardingData.password)
 
 	await page.getByLabel(/^confirm password/i).fill(onboardingData.password)
 
 	await page.getByLabel(/terms/i).check()
-
-	await page.getByLabel(/opportunities to volunteer/i).check()
 
 	await page.getByLabel(/remember me/i).check()
 
@@ -114,7 +114,7 @@ test('onboarding with a short code', async ({ page }) => {
 		name: `${firstName} ${lastName}`,
 		username,
 		phone,
-		email: `${username}@example.com`,
+		email: `${username}@example.com`.toLowerCase(),
 		password: faker.internet.password(),
 	}
 
@@ -128,8 +128,8 @@ test('onboarding with a short code', async ({ page }) => {
 
 	const secretTextbox = page.getByRole('textbox', { name: /secret/i })
 	await secretTextbox.click()
-	await secretTextbox.fill("horses are cool")
-	
+	await secretTextbox.fill('horses are cool')
+
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
 		page.getByRole('button', { name: /submit/i, disabled: true }),

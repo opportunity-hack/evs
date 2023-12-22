@@ -23,6 +23,7 @@ export const emailSchema = z
 	.email({ message: 'Email is invalid' })
 	.min(3, { message: 'Email is too short' })
 	.max(100, { message: 'Email is too long' })
+	.transform(email => email.toLowerCase())
 
 export const phoneSchema = z
 	.string()
