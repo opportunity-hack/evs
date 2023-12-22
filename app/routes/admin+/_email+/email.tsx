@@ -65,6 +65,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 	]
 	const selectedRoles = roles.filter(role => submission.payload[role] === 'on')
 	const recipients = await getRecipientsFromRoles(selectedRoles)
+	const upcomingEvents = await getUpcomingEvents(5);
 
 	if (recipients.length === 0) {
 		return json(
@@ -82,7 +83,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 		sendEmail({
 			to: recipient,
 			subject: submission.payload.subject,
-			react: <CustomEmail message={submission.payload.message} />,
+			react: <CustomEmail upcomingEvents={upcomingEvents} message={submission.payload.message} />,
 		}).then(result => {
 			if (result.status === 'error') {
 				console.error(
@@ -240,6 +241,15 @@ export default function Email() {
 		</div>
 	)
 }
+
+async function getUpcomingEvents(limit: number) {
+	const events = await prisma.event.findMany({
+		where: { start: { gt: new Date() } },
+		take: limit,
+	})
+	return events
+}
+
 
 async function getRecipientsFromRoles(roles: string[]) {
 	const recipients = new Set<string>()
