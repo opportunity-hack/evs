@@ -15,7 +15,7 @@ import {
 	type HorseData,
 	type EventWithVolunteers,
 } from '~/data.ts'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { prisma } from '~/utils/db.server.ts'
 import { requireUserId } from '~/utils/auth.server.ts'
@@ -71,6 +71,7 @@ import {
 	horseDateConflicts,
 	renderHorseConflictMessage,
 } from '~/utils/cooldown-functions.ts'
+import { EventAgenda } from '~/components/EventAgenda.tsx'
 
 const locales = {
 	'en-US': enUS,
@@ -139,8 +140,12 @@ const instructorSchema = z
 
 const createEventSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
-	dates: z.string().regex(new RegExp(/^(\d{4}-\d{2}-\d{2},?\s?)+$/g), 'Invalid dates'),
-	startTime: z.string().regex(new RegExp(/^\d{2}:\d{2}$/g), 'Invalid start time'),
+	dates: z
+		.string()
+		.regex(new RegExp(/^(\d{4}-\d{2}-\d{2},?\s?)+$/g), 'Invalid dates'),
+	startTime: z
+		.string()
+		.regex(new RegExp(/^\d{2}:\d{2}$/g), 'Invalid start time'),
 	duration: z.coerce.number().gt(0),
 	horses: z.array(horseSchema).optional(),
 	instructor: instructorSchema,
@@ -269,7 +274,6 @@ export default function Schedule() {
 
 	const [filterFlag, setFilterFlag] = useState(false)
 
-	
 	const eventsThatNeedHelp = events.filter((event: (typeof events)[number]) => {
 		return (
 			event.cleaningCrewReq > event.cleaningCrew.length ||
@@ -284,10 +288,19 @@ export default function Schedule() {
 		setRegisterOpen(!registerOpen)
 	}
 
+	const components = useMemo(
+		() => ({
+			agenda: {
+				event: EventAgenda,
+			},
+		}),
+		[],
+	)
+
 	return (
 		<div className="grid place-items-center gap-2">
-			<h1 className="mb-3 text-5xl">Calendar</h1>			
-			<div className="flex gap-2 mb-0">
+			<h1 className="mb-3 text-5xl">Calendar</h1>
+			<div className="mb-0 flex gap-2">
 				<Checkbox
 					checked={filterFlag}
 					onCheckedChange={() => setFilterFlag(!filterFlag)}
@@ -297,20 +310,22 @@ export default function Schedule() {
 					Show only events that need more volunteers
 				</Label>
 			</div>
-		
-			{userIsAdmin ? (
-					<CreateEventDialog horses={horses} instructors={instructors} />
-				) : null}
 
-			<div className="h-screen w-full flex justify-center">				
+			{userIsAdmin ? (
+				<CreateEventDialog horses={horses} instructors={instructors} />
+			) : null}
+
+			<div className="flex h-screen w-full justify-center">
 				<Calendar
 					localizer={localizer}
 					events={filterFlag ? eventsThatNeedHelp : events}
-					tooltipAccessor={event => `Cleaning Crew: ${event.cleaningCrew.length} / ${event.cleaningCrewReq}\nSidewalkers: ${event.sideWalkers.length} / ${event.sideWalkersReq}\nLesson Assistants: ${event.lessonAssistants.length} / ${event.lessonAssistantsReq}\nHorse Leaders: ${event.horseLeaders.length} / ${event.horseLeadersReq}`}
+					tooltipAccessor={event =>
+						`Cleaning Crew: ${event.cleaningCrew.length} / ${event.cleaningCrewReq}\nSidewalkers: ${event.sideWalkers.length} / ${event.sideWalkersReq}\nLesson Assistants: ${event.lessonAssistants.length} / ${event.lessonAssistantsReq}\nHorse Leaders: ${event.horseLeaders.length} / ${event.horseLeadersReq}`
+					}
 					startAccessor="start"
 					endAccessor="end"
 					onSelectEvent={handleSelectEvent}
-					style={{						
+					style={{
 						height: '95%',
 						width: '95%',
 						backgroundColor: 'white',
@@ -318,17 +333,17 @@ export default function Schedule() {
 						padding: 20,
 						borderRadius: '1.5rem',
 					}}
+					components={components}
+					defaultView="agenda"
 				/>
 			</div>
-			
+
 			<Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
 				<RegistrationDialogue
 					selectedEventId={selectedEvent?.id}
 					events={events}
 				/>
 			</Dialog>
-
-			
 		</div>
 	)
 }
@@ -557,7 +572,7 @@ function CreateEventDialog({ horses, instructors }: CreateEventDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button className="mt-0 mb-1" style={{ backgroundColor: '#58d5fe' }}>
+				<Button className="mb-1 mt-0" style={{ backgroundColor: '#58d5fe' }}>
 					<Icon className="text-body-md" name="plus">
 						Create New Event
 					</Icon>
