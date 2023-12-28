@@ -40,18 +40,21 @@ function PositionStatus({ volunteerType, event }: PositionStatusProps) {
 }
 
 export function EventAgenda({ event }: { event: EventWithVolunteers }) {
+	const eventIsUpcoming = event.end.valueOf() > new Date().valueOf()
+
 	return (
 		<div className="flex min-w-[25rem] gap-4">
 			<div className="shrink-0 grow basis-40">{event.title}</div>
 			<div className="flex shrink-0 grow basis-72 flex-col text-sm">
 				<div className="max-w-sm">
-					{volunteerTypes.map(volunteerType => (
-						<PositionStatus
-							key={volunteerType.field}
-							volunteerType={volunteerType}
-							event={event}
-						/>
-					))}
+					{eventIsUpcoming &&
+						volunteerTypes.map(volunteerType => (
+							<PositionStatus
+								key={volunteerType.field}
+								volunteerType={volunteerType}
+								event={event}
+							/>
+						))}
 				</div>
 			</div>
 		</div>
