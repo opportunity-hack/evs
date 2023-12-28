@@ -15,7 +15,7 @@ import {
 	type HorseData,
 	type EventWithVolunteers,
 } from '~/data.ts'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { prisma } from '~/utils/db.server.ts'
 import { requireUserId } from '~/utils/auth.server.ts'
@@ -71,6 +71,7 @@ import {
 	horseDateConflicts,
 	renderHorseConflictMessage,
 } from '~/utils/cooldown-functions.ts'
+import { EventAgenda } from '~/components/EventAgenda.tsx'
 
 const locales = {
 	'en-US': enUS,
@@ -288,6 +289,15 @@ export default function Schedule() {
 		setRegisterOpen(!registerOpen)
 	}
 
+	const components = useMemo(
+		() => ({
+			agenda: {
+				event: EventAgenda,
+			},
+		}),
+		[],
+	)
+
 	return (
 		<div className="grid place-items-center gap-2">
 			<h1 className="mb-3 text-5xl">Calendar</h1>
@@ -324,6 +334,8 @@ export default function Schedule() {
 						padding: 20,
 						borderRadius: '1.5rem',
 					}}
+					components={components}
+					defaultView="agenda"
 				/>
 			</div>
 
