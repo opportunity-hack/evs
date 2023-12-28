@@ -27,5 +27,7 @@ export const emailSchema = z
 
 export const phoneSchema = z
 	.string()
-	.regex(/\(?\d{3}\)?\s?-?\d{3}-?\d{4}/, { message: 'Phone number must be ten digits'})
+	.regex(/^\(?\d{3}\)?\s?-?\d{3}-?\d{4}$/, {
+		message: 'Phone number must be ten digits',
+	})
 	.transform(phone => phone.replaceAll(/\D/g, ''))
