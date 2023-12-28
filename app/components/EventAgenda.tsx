@@ -41,16 +41,18 @@ function PositionStatus({ volunteerType, event }: PositionStatusProps) {
 
 export function EventAgenda({ event }: { event: EventWithVolunteers }) {
 	return (
-		<div className="flex min-w-[20rem] gap-4">
-			<div className="grow basis-40">{event.title}</div>
-			<div className="flex shrink-0 basis-72 flex-col text-sm">
-				{volunteerTypes.map(volunteerType => (
-					<PositionStatus
-						key={volunteerType.field}
-						volunteerType={volunteerType}
-						event={event}
-					/>
-				))}
+		<div className="flex min-w-[25rem] gap-4">
+			<div className="shrink-0 grow basis-40">{event.title}</div>
+			<div className="flex shrink-0 grow basis-72 flex-col text-sm">
+				<div className="max-w-sm">
+					{volunteerTypes.map(volunteerType => (
+						<PositionStatus
+							key={volunteerType.field}
+							volunteerType={volunteerType}
+							event={event}
+						/>
+					))}
+				</div>
 			</div>
 		</div>
 	)
