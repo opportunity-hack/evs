@@ -12,23 +12,28 @@ interface PositionStatusProps {
 function PositionStatus({ volunteerType, event }: PositionStatusProps) {
 	const user = useUser()
 
-	const filled =
+	const positionFilled =
 		event[volunteerType.field].length >= event[volunteerType.reqField]
-	const registeredUsers = event[volunteerType.field].map(user => user.id)
-	const userIsRegistered = registeredUsers.includes(user.id)
-	const className = `flex gap-4 justify-between ${
-		filled ? 'text-muted-foreground' : ''
+	const containerClass = `grid grid-cols-2 gap-4 ${
+		positionFilled ? 'text-muted-foreground' : ''
 	}`
+
+	const userIsRegistered = event[volunteerType.field]
+		.map(user => user.id)
+		.includes(user.id)
 	const volunteerTypeClass = `capitalize ${
 		userIsRegistered ? 'before:content-["✅"] before:pr-1' : ''
 	}`
 
+	const spotsLeft =
+		event[volunteerType.reqField] - event[volunteerType.field].length
+
 	if (event[volunteerType.reqField] > 0)
 		return (
-			<div className={className}>
+			<div className={containerClass}>
 				<div className={volunteerTypeClass}>{volunteerType.displayName}</div>
 				<div className="whitespace-nowrap">
-					{event[volunteerType.field].length} / {event[volunteerType.reqField]}
+					{spotsLeft} spot{spotsLeft === 1 ? '' : 's'} left
 				</div>
 			</div>
 		)
@@ -37,8 +42,8 @@ function PositionStatus({ volunteerType, event }: PositionStatusProps) {
 export function EventAgenda({ event }: { event: EventWithVolunteers }) {
 	return (
 		<div className="flex min-w-[20rem] gap-4">
-			<div className="basis-40">{event.title}</div>
-			<div className="flex shrink-0 basis-40 flex-col text-sm">
+			<div className="grow basis-40">{event.title}</div>
+			<div className="flex shrink-0 basis-72 flex-col text-sm">
 				{volunteerTypes.map(volunteerType => (
 					<PositionStatus
 						key={volunteerType.field}
