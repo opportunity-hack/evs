@@ -3,10 +3,34 @@ import { horseMountains, ohack } from './logos/logos.ts'
 import { Link } from '@remix-run/react'
 import { Button } from '~/components/ui/button.tsx'
 import { useOptionalUser } from '~/utils/user.ts'
+// Get siteName from data.ts
+import { siteName } from '~/data.ts'
 
-export const meta: V2_MetaFunction = () => [
-	{ title: 'Girard Training Stables' },
-]
+
+export const meta: V2_MetaFunction = () => {	
+
+	return [
+		{ 
+			title: siteName,
+		},
+		{
+			property: "og:title",
+			content: siteName,
+		},
+		{
+			name: "description",
+			content: `Welcome to ${siteName}, the premier equestrian training facility.`,
+		},
+		{
+			name: "og:description",
+			content: `Welcome to ${siteName}, the premier equestrian training facility.`,
+		},
+		{
+			name: "og:image",
+			content: "/img/calendar-icon-with-horse-at-grand-canyon-using-arizona-flag-colors.jpeg",
+		},
+	];
+};
 
 export default function Index() {
 	const user = useOptionalUser()
@@ -80,3 +104,4 @@ export default function Index() {
 		</main>
 	)
 }
+

@@ -5,6 +5,7 @@ import { json, type DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { sendEmail } from '~/utils/email.server.ts'
 import { RegistrationEmail, RegistrationNoticeForAdmins } from './registration-emails.server.tsx'
+import { UnregistrationEmail } from './unregistration-emails.server.tsx'
 import { createEvent, type DateArray } from 'ics'
 import type { User, Event } from '@prisma/client'
 import { differenceInMinutes } from 'date-fns'
@@ -64,6 +65,22 @@ export async function action({ request }: DataFunctionArgs) {
 				},
 			},
 		})
+
+		sendEmail({
+			to: user.email,
+			subject: `Event Unregistration Notification`,
+			attachments: [],
+			react: <UnregistrationEmail event={event} role={submission.value.role} />,
+		}).then(result => {
+			if (result.status == 'error') {
+				// TODO: think through this case and how to handle it properly
+				console.error(
+					'There was an error sending an event registration email: ',
+					JSON.stringify(result.error),
+				)
+			}
+		})
+
 		notifyAdmins({
 			user: user,
 			event: event,
