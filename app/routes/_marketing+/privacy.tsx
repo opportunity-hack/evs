@@ -1,4 +1,22 @@
-import React from 'react';
+import {
+	type V2_MetaFunction
+} from '@remix-run/node'
+
+export const meta: V2_MetaFunction = () => {
+	return [
+		{ 
+			title: "Privacy Policy | TrotTrack.org",
+		},
+		{
+			property: "og:title",
+			content: "Privacy Policy | TrotTrack.org",
+		},
+		{
+			name: "description",
+			content: "Read our Privacy Policy for TrotTrack.org, a nonprofit equestrian volunteer system that connects volunteers with equestrian organizations.",
+		},
+	];
+};
 
 export default function PrivacyRoute() {
 	return (
@@ -36,18 +54,3 @@ export default function PrivacyRoute() {
 	);
 }
 
-export const meta: MetaFunction = () => {
-	return [
-		{ 
-			title: "Privacy Policy | TrotTrack.org",
-		},
-		{
-			property: "og:title",
-			content: "Privacy Policy | TrotTrack.org",
-		},
-		{
-			name: "description",
-			content: "Read our Privacy Policy for TrotTrack.org, a nonprofit equestrian volunteer system that connects volunteers with equestrian organizations.",
-		},
-	];
-};

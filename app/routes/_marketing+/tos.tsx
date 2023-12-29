@@ -1,4 +1,23 @@
 import React from 'react';
+import {
+	type V2_MetaFunction
+} from '@remix-run/node'
+
+export const meta: V2_MetaFunction = () => {
+	return [
+		{ 
+			title: "Terms of Service | TrotTrack.org",
+		},
+		{
+			property: "og:title",
+			content: "Terms of Service | TrotTrack.org",
+		},
+		{
+			name: "description",
+			content: "Read or Terms of Service for TrotTrack.org, a nonprofit equestrian volunteer system that connects volunteers with equestrian organizations.",
+		},
+	];
+};
 
 export default function TermsOfServiceRoute() {
 	return (
@@ -42,18 +61,3 @@ export default function TermsOfServiceRoute() {
 	);
 }
 
-export const meta: MetaFunction = () => {
-	return [
-		{ 
-			title: "Terms of Service | TrotTrack.org",
-		},
-		{
-			property: "og:title",
-			content: "Terms of Service | TrotTrack.org",
-		},
-		{
-			name: "description",
-			content: "Read or Terms of Service for TrotTrack.org, a nonprofit equestrian volunteer system that connects volunteers with equestrian organizations.",
-		},
-	];
-};
