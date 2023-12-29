@@ -169,7 +169,7 @@ export default function OnboardingPage() {
 				<Spacer size="xs" />
 				<Form method="POST" className="mx-auto w-full max-w-sm" {...form.props}>
 					<Field
-						labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
+						labelProps={{ htmlFor: fields.username.id, children: 'Username (Cannot be an email address)' }}						
 						inputProps={{
 							...conform.input(fields.username),
 							autoComplete: 'username',
