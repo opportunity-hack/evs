@@ -48,7 +48,6 @@ export default function UsernameIndex() {
 	if (data.user.birthdate) {
 		age = differenceInYears(new Date(), data.user.birthdate)
 	}
-	console.log(age)
 
 	return (
 		<div className="container mx-auto mb-48 mt-36 flex flex-col items-center justify-center">

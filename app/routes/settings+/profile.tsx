@@ -46,8 +46,12 @@ const profileFormSchema = z.object({
 	mailingList: checkboxSchema(),
 	birthdate: optionalDateTimeZoneSchema,
 	phone: phoneSchema,
-	height: z.coerce.number().min(0).optional(),
-	yearsOfExperience: z.coerce.number().min(0).optional(),
+	height: z.coerce
+		.number()
+		.int({ message: 'Height must be an integer in inches' })
+		.min(0)
+		.optional(),
+	yearsOfExperience: z.coerce.number().int().min(0).optional(),
 	currentPassword: z
 		.union([passwordSchema, z.string().min(0).max(0)])
 		.optional(),

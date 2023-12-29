@@ -23,8 +23,8 @@ export default function Index() {
 							/>
 							<div className="absolute inset-0 bg-[color:rgba(27,167,254,0.5)] mix-blend-multiply" />
 						</div>
-						<div className="relative flex flex-col items-center px-4 pb-8 pt-8 sm:px-6 sm:pb-14 sm:pt-16 lg:pt-18 lg:px-8 lg:pb-20">
-							<h1 className="text-center font-extrabold tracking-tight text-5xl sm:text-8xl lg:text-9xl">
+						<div className="lg:pt-18 relative flex flex-col items-center px-4 pb-8 pt-8 sm:px-6 sm:pb-14 sm:pt-16 lg:px-8 lg:pb-20">
+							<h1 className="text-center text-5xl font-extrabold tracking-tight sm:text-8xl lg:text-9xl">
 								<a
 									className="block uppercase text-brand-secondary drop-shadow-md"
 									href="https://www.thebarnaz.com"
@@ -57,19 +57,22 @@ export default function Index() {
 
 				<div className="mx-auto mt-8 max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
 					<div className="flex flex-col flex-wrap items-center justify-center gap-8 rounded-3xl bg-slate-100 py-4 dark:bg-slate-200">
-						
-						<div className="text-black"><b><a href="https://trottrack.org">Trot Track</a></b> is built by:
-						<a
-							key="ohack.dev"
-							href="http://ohack.dev"
-							className="flex h-24 justify-center p-1 grayscale transition hover:grayscale-0 focus:grayscale-0"
-						>
-							<img
-								alt="opportunity hack logo"
-								src={ohack}
-								className="object-contain mt-0 mb-0"
-							/>
-						</a>
+						<div className="text-center text-black">
+							<b>
+								<a href="https://trottrack.org">Trot Track</a>
+							</b>{' '}
+							is built by:
+							<a
+								key="ohack.dev"
+								href="http://ohack.dev"
+								className="flex h-24 justify-center p-1 grayscale transition hover:grayscale-0 focus:grayscale-0"
+							>
+								<img
+									alt="opportunity hack logo"
+									src={ohack}
+									className="mb-0 mt-0 object-contain"
+								/>
+							</a>
 						</div>
 					</div>
 				</div>
