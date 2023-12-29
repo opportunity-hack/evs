@@ -206,8 +206,14 @@ function App() {
 						<div className="font-light">Equestrian</div>
 						<div className="font-bold">Volunteer Scheduler</div>
 					</Link>
+					<div className="flex items-center justify-start gap-1">						
+						<Link to="/tos" className="text-sm mr-2">Terms of Service</Link>
+						<Link to="/privacy" className="text-sm">Privacy Policy</Link>
+					</div>
+
 					<ThemeSwitch userPreference={data.requestInfo.session.theme} />
 				</div>
+				
 				<div className="h-5" />
 				<Confetti confetti={data.flash?.confetti} />
 				<Toaster />
