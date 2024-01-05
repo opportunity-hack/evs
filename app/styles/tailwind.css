@@ -104,4 +104,13 @@
 		@apply bg-background text-foreground;
 		font-feature-settings: 'rlig' 1, 'calt' 1;
 	}
+	/* Remove number arrows for height fields */
+	.heightField::-webkit-outer-spin-button,
+	.heightField::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+	.heightField[type='number'] {
+		-moz-appearance: textfield;
+	}
 }

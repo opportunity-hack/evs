@@ -1,4 +1,4 @@
-import { conform, useForm } from '@conform-to/react'
+import { conform, useFieldset, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import {
 	json,
@@ -20,7 +20,12 @@ import {
 	verifyLogin,
 } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
-import { CheckboxField, ErrorList, Field } from '~/components/forms.tsx'
+import {
+	CheckboxField,
+	ErrorList,
+	Field,
+	HeightField,
+} from '~/components/forms.tsx'
 import { Button } from '~/components/ui/button.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { getUserImgSrc } from '~/utils/misc.ts'
@@ -38,24 +43,52 @@ import {
 	checkboxSchema,
 	optionalDateTimeZoneSchema,
 } from '~/utils/zod-extensions.ts'
+import {
+	convertFeetInchesIntoInches,
+	convertInchesToHeightObj,
+} from '~/utils/length-conversions.ts'
 
 const profileFormSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
 	email: emailSchema.optional(),
 	mailingList: checkboxSchema(),
-	birthdate: optionalDateTimeZoneSchema,
+	birthdate: optionalDateTimeZoneSchema.optional(),
 	phone: phoneSchema,
-	height: z.coerce
-		.number()
-		.int({ message: 'Height must be an integer in inches' })
-		.min(0)
-		.optional(),
 	yearsOfExperience: z.coerce.number().int().min(0).optional(),
 	currentPassword: z
 		.union([passwordSchema, z.string().min(0).max(0)])
 		.optional(),
 	newPassword: z.union([passwordSchema, z.string().min(0).max(0)]).optional(),
+	height: z
+		.object({
+			heightFeet: z.coerce
+				.number({ invalid_type_error: 'Feet must be a number' })
+				.int({ message: 'Feet must be an integer' })
+				.min(0, { message: 'Feet must be between 0 and 8' })
+				.max(8, { message: 'Feet must be between 0 and 8' })
+				.optional(),
+			heightInches: z.coerce
+				.number({ invalid_type_error: 'Inches must be a number' })
+				.int({ message: 'Inches must be an integer' })
+				.min(0, { message: 'Inches must be between 0 and 12' })
+				.max(12, { message: 'Inches must be between 0 and 12' })
+				.optional(),
+		})
+		.refine(
+			obj => {
+				return (
+					(obj.heightFeet && obj.heightInches) ||
+					(!obj.heightFeet && !obj.heightInches)
+				)
+			},
+			{ message: 'You must enter both feet and inches for height' },
+		)
+		.transform(val => {
+			if (val.heightFeet && val.heightInches) {
+				return convertFeetInchesIntoInches(val.heightFeet, val.heightInches)
+			} else return null
+		}),
 })
 
 export async function loader({ request }: DataFunctionArgs) {
@@ -181,6 +214,11 @@ export default function EditUserProfile() {
 		formattedBirthdate = format(data.user.birthdate, 'yyyy-MM-dd')
 	}
 
+	let userHeight
+	if (data.user.height) {
+		userHeight = convertInchesToHeightObj(data.user.height)
+	}
+
 	const [form, fields] = useForm({
 		id: 'edit-profile',
 		constraint: getFieldsetConstraint(profileFormSchema),
@@ -195,11 +233,12 @@ export default function EditUserProfile() {
 			mailingList: data.user.mailingList ? 'on' : undefined,
 			phone: data.user.phone,
 			birthdate: formattedBirthdate ?? '',
-			height: data.user.height ?? '',
+			height: userHeight ?? undefined,
 			yearsOfExperience: data.user.yearsOfExperience ?? '',
 		},
 		shouldRevalidate: 'onBlur',
 	})
+	const { heightFeet, heightInches } = useFieldset(form.ref, fields.height)
 
 	return (
 		<div className="container m-auto mb-36 mt-16 max-w-3xl">
@@ -309,18 +348,64 @@ export default function EditUserProfile() {
 							}}
 							errors={fields.birthdate.errors}
 						/>
-						<Field
-							className="col-span-6 sm:col-span-3"
-							labelProps={{
-								htmlFor: fields.height.id,
-								children: 'Height (inches)',
-							}}
-							inputProps={{
-								...conform.input(fields.height),
-								type: 'number',
-							}}
-							errors={fields.height.errors}
-						/>
+						<div className="col-span-6 sm:col-span-3">
+							<label
+								htmlFor="heightFieldset"
+								className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+							>
+								Height
+							</label>
+							<fieldset
+								id="heightFieldset"
+								className="grid grid-cols-2 gap-x-4"
+							>
+								<HeightField
+									className="relative"
+									labelProps={{
+										htmlFor: heightFeet.id,
+										children: 'feet',
+										className: 'absolute right-4 top-3 text-primary/70 z-50',
+									}}
+									inputProps={{
+										...conform.input(heightFeet),
+										type: 'number',
+										className: 'heightField',
+									}}
+									errors={heightFeet.errors}
+								/>
+								<HeightField
+									className="relative"
+									labelProps={{
+										htmlFor: heightInches.id,
+										children: 'inches',
+										className: 'absolute right-4 top-3 text-primary/70',
+									}}
+									inputProps={{
+										...conform.input(heightInches),
+										type: 'number',
+										className: 'heightField',
+									}}
+									errors={heightInches.errors}
+								/>
+								<div className="col-span-2 min-h-[32px] px-4 pb-3 pt-1">
+									{fields.height.errors && (
+										<ErrorList
+											id={fields.height.id}
+											errors={fields.height.errors}
+										/>
+									)}
+									{heightFeet.errors && (
+										<ErrorList id={heightFeet.id} errors={heightFeet.errors} />
+									)}
+									{heightInches.errors && (
+										<ErrorList
+											id={heightInches.id}
+											errors={heightInches.errors}
+										/>
+									)}
+								</div>
+							</fieldset>
+						</div>
 						<Field
 							className="col-span-6 sm:col-span-3"
 							labelProps={{
