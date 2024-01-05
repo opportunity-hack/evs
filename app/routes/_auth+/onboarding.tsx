@@ -103,7 +103,7 @@ export async function action({ request }: DataFunctionArgs) {
 				}
 			})
 		},
-		acceptMultipleErrors: () => true,
+
 		async: true,
 	})
 	if (submission.intent !== 'submit') {
@@ -169,7 +169,10 @@ export default function OnboardingPage() {
 				<Spacer size="xs" />
 				<Form method="POST" className="mx-auto w-full max-w-sm" {...form.props}>
 					<Field
-						labelProps={{ htmlFor: fields.username.id, children: 'Username (Cannot be an email address)' }}						
+						labelProps={{
+							htmlFor: fields.username.id,
+							children: 'Username (Cannot be an email address)',
+						}}
 						inputProps={{
 							...conform.input(fields.username),
 							autoComplete: 'username',

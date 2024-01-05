@@ -55,8 +55,8 @@ export const heightSchema = z
 		heightInches: z
 			.number({ invalid_type_error: 'Inches must be a number' })
 			.int({ message: 'Inches must be an integer' })
-			.min(0, { message: 'Inches must be between 0 and 12' })
-			.max(12, { message: 'Inches must be between 0 and 12' })
+			.min(0, { message: 'Inches must be between 0 and 11' })
+			.max(11, { message: 'Inches must be between 0 and 11' })
 			.optional()
 			.transform(val => {
 				if (val === undefined) return null

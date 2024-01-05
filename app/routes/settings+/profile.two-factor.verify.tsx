@@ -93,7 +93,7 @@ export async function action({ request }: DataFunctionArgs) {
 				}
 			})
 		},
-		acceptMultipleErrors: () => true,
+
 		async: true,
 	})
 	if (submission.intent !== 'submit') {

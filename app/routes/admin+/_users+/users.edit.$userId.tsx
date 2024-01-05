@@ -41,7 +41,7 @@ import { format } from 'date-fns'
 const editUserSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
-	email: emailSchema.optional(),	
+	email: emailSchema.optional(),
 	mailingList: checkboxSchema(),
 	phone: phoneSchema,
 	birthdate: optionalDateSchema,
@@ -73,7 +73,6 @@ export async function action({ request, params }: DataFunctionArgs) {
 	const submission = await parse(formData, {
 		async: true,
 		schema: editUserSchema,
-		acceptMultipleErrors: () => true,
 	})
 
 	if (submission.intent !== 'submit') {
@@ -106,9 +105,9 @@ export async function action({ request, params }: DataFunctionArgs) {
 	const roleConnectArray = []
 	const roleDisconnectArray = []
 	if (isInstructor) {
-		roleConnectArray.push({ name: 'instructor'})
+		roleConnectArray.push({ name: 'instructor' })
 	} else {
-		roleDisconnectArray.push({ name: 'instructor'})
+		roleDisconnectArray.push({ name: 'instructor' })
 	}
 	if (isHorseLeader) {
 		roleConnectArray.push({ name: 'horseLeader' })
@@ -116,9 +115,9 @@ export async function action({ request, params }: DataFunctionArgs) {
 		roleDisconnectArray.push({ name: 'horseLeader' })
 	}
 	if (isLessonAssistant) {
-		roleConnectArray.push({ name: 'lessonAssistant'})
+		roleConnectArray.push({ name: 'lessonAssistant' })
 	} else {
-		roleDisconnectArray.push({ name: 'lessonAssistant'})
+		roleDisconnectArray.push({ name: 'lessonAssistant' })
 	}
 
 	const updatedUser = await prisma.user.update({
@@ -127,7 +126,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 			name,
 			username,
 			phone,
-			mailingList : mailingList ?? false,
+			mailingList: mailingList ?? false,
 			birthdate: birthdate ?? null,
 			height: height ?? null,
 			yearsOfExperience: yearsOfExperience ?? null,
@@ -211,7 +210,7 @@ export default function EditUser() {
 		if (role.name === 'instructor') {
 			isInstructor = true
 		}
- 	}
+	}
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -251,7 +250,7 @@ export default function EditUser() {
 								disabled: true,
 							}}
 							errors={fields.email.errors}
-						/>						
+						/>
 						<Field
 							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.phone.id, children: 'Phone' }}
@@ -296,7 +295,7 @@ export default function EditUser() {
 							}}
 							errors={fields.yearsOfExperience.errors}
 						/>
-						<TextareaField 
+						<TextareaField
 							className="col-span-6"
 							labelProps={{
 								htmlFor: fields.notes.id,
@@ -308,7 +307,7 @@ export default function EditUser() {
 							errors={fields.notes.errors}
 						/>
 						<div className="col-span-6">
-							<CheckboxField 
+							<CheckboxField
 								labelProps={{
 									htmlFor: fields.mailingList.id,
 									children: 'Subscribed to Mailing List',
@@ -323,8 +322,8 @@ export default function EditUser() {
 							/>
 						</div>
 						<hr className="col-span-6" />
-						
-						<div className="col-span-6 grid grid-col-1 mt-4">
+
+						<div className="grid-col-1 col-span-6 mt-4 grid">
 							<CheckboxField
 								labelProps={{
 									htmlFor: fields.isInstructor.id,
@@ -363,7 +362,7 @@ export default function EditUser() {
 									defaultChecked: isHorseLeader,
 								}}
 								errors={fields.isHorseLeader.errors}
-							/>							
+							/>
 						</div>
 					</div>
 					<DialogFooter className="mt-4">

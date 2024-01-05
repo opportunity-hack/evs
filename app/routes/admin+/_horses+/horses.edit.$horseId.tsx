@@ -9,7 +9,12 @@ import {
 	DialogFooter,
 } from '~/components/ui/dialog.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import { CheckboxField, Field, TextareaField, ErrorList } from '~/components/forms.tsx'
+import {
+	CheckboxField,
+	Field,
+	TextareaField,
+	ErrorList,
+} from '~/components/forms.tsx'
 import {
 	Form,
 	useLoaderData,
@@ -49,18 +54,17 @@ export async function action({ request, params }: DataFunctionArgs) {
 	const submission = await parse(formData, {
 		async: true,
 		schema: horseFormSchema,
-		acceptMultipleErrors: () => true,
 	})
 
 	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission, conflictEvents: []} as const)
+		return json({ status: 'idle', submission, conflictEvents: [] } as const)
 	}
 	if (!submission.value) {
 		return json(
 			{
 				status: 'error',
 				submission,
-				conflictEvents: []
+				conflictEvents: [],
 			} as const,
 			{ status: 400 },
 		)
@@ -284,11 +288,8 @@ export default function EditHorse() {
 							<AlertDescription>
 								<ul className="mt-2 flex flex-col gap-2">
 									{conflictEvents
-										? conflictEvents.map((e) => {
-												const date = format(
-													new Date(e.start),
-													'MMMM do, yyyy',
-												)
+										? conflictEvents.map(e => {
+												const date = format(new Date(e.start), 'MMMM do, yyyy')
 												const link = `/calendar/${e.id}`
 												return (
 													<>
