@@ -31,10 +31,12 @@ import { StatusButton } from '~/components/ui/status-button.tsx'
 import { getUserImgSrc } from '~/utils/misc.ts'
 import {
 	emailSchema,
+	heightSchema,
 	nameSchema,
 	passwordSchema,
 	phoneSchema,
 	usernameSchema,
+	yearsOfExperienceSchema,
 } from '~/utils/user-validation.ts'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
@@ -43,10 +45,7 @@ import {
 	checkboxSchema,
 	optionalDateTimeZoneSchema,
 } from '~/utils/zod-extensions.ts'
-import {
-	convertFeetInchesIntoInches,
-	convertInchesToHeightObj,
-} from '~/utils/length-conversions.ts'
+import { convertInchesToHeightObj } from '~/utils/length-conversions.ts'
 
 const profileFormSchema = z.object({
 	name: nameSchema.optional(),
@@ -55,40 +54,12 @@ const profileFormSchema = z.object({
 	mailingList: checkboxSchema(),
 	birthdate: optionalDateTimeZoneSchema.optional(),
 	phone: phoneSchema,
-	yearsOfExperience: z.coerce.number().int().min(0).optional(),
+	yearsOfExperience: yearsOfExperienceSchema,
 	currentPassword: z
 		.union([passwordSchema, z.string().min(0).max(0)])
 		.optional(),
 	newPassword: z.union([passwordSchema, z.string().min(0).max(0)]).optional(),
-	height: z
-		.object({
-			heightFeet: z.coerce
-				.number({ invalid_type_error: 'Feet must be a number' })
-				.int({ message: 'Feet must be an integer' })
-				.min(0, { message: 'Feet must be between 0 and 8' })
-				.max(8, { message: 'Feet must be between 0 and 8' })
-				.optional(),
-			heightInches: z.coerce
-				.number({ invalid_type_error: 'Inches must be a number' })
-				.int({ message: 'Inches must be an integer' })
-				.min(0, { message: 'Inches must be between 0 and 12' })
-				.max(12, { message: 'Inches must be between 0 and 12' })
-				.optional(),
-		})
-		.refine(
-			obj => {
-				return (
-					(obj.heightFeet && obj.heightInches) ||
-					(!obj.heightFeet && !obj.heightInches)
-				)
-			},
-			{ message: 'You must enter both feet and inches for height' },
-		)
-		.transform(val => {
-			if (val.heightFeet && val.heightInches) {
-				return convertFeetInchesIntoInches(val.heightFeet, val.heightInches)
-			} else return null
-		}),
+	height: heightSchema,
 })
 
 export async function loader({ request }: DataFunctionArgs) {
@@ -144,8 +115,8 @@ export async function action({ request }: DataFunctionArgs) {
 				}
 			},
 		),
-		acceptMultipleErrors: () => true,
 	})
+	console.log('submission', submission)
 	if (submission.intent !== 'submit') {
 		return json({ status: 'idle', submission } as const)
 	}
@@ -224,6 +195,7 @@ export default function EditUserProfile() {
 		constraint: getFieldsetConstraint(profileFormSchema),
 		lastSubmission: actionData?.submission,
 		onValidate({ formData }) {
+			console.log('formData', formData)
 			return parse(formData, { schema: profileFormSchema })
 		},
 		defaultValue: {
@@ -368,7 +340,7 @@ export default function EditUserProfile() {
 									}}
 									inputProps={{
 										...conform.input(heightFeet),
-										type: 'number',
+										type: 'text',
 										className: 'heightField',
 									}}
 									errors={heightFeet.errors}
@@ -382,7 +354,7 @@ export default function EditUserProfile() {
 									}}
 									inputProps={{
 										...conform.input(heightInches),
-										type: 'number',
+										type: 'text',
 										className: 'heightField',
 									}}
 									errors={heightInches.errors}
@@ -414,7 +386,7 @@ export default function EditUserProfile() {
 							}}
 							inputProps={{
 								...conform.input(fields.yearsOfExperience),
-								type: 'number',
+								type: 'text',
 							}}
 							errors={fields.yearsOfExperience.errors}
 						/>
