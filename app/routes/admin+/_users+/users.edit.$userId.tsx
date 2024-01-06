@@ -9,7 +9,13 @@ import {
 	DialogFooter,
 } from '~/components/ui/dialog.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import { CheckboxField, Field, TextareaField } from '~/components/forms.tsx'
+import {
+	CheckboxField,
+	ErrorList,
+	Field,
+	HeightField,
+	TextareaField,
+} from '~/components/forms.tsx'
 import {
 	Form,
 	useLoaderData,
@@ -22,7 +28,7 @@ import { json, type DataFunctionArgs } from '@remix-run/node'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { prisma } from '~/utils/db.server.ts'
 import invariant from 'tiny-invariant'
-import { conform, useForm } from '@conform-to/react'
+import { conform, useFieldset, useForm } from '@conform-to/react'
 import { parse } from '@conform-to/zod'
 import { redirectWithToast } from '~/utils/flash-session.server.ts'
 import { StatusButton } from '~/components/ui/status-button.tsx'
@@ -31,12 +37,15 @@ import { z } from 'zod'
 
 import {
 	emailSchema,
+	heightSchema,
 	nameSchema,
 	phoneSchema,
 	usernameSchema,
+	yearsOfExperienceSchema,
 } from '~/utils/user-validation.ts'
 import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
 import { format } from 'date-fns'
+import { convertInchesToHeightObj } from '~/utils/length-conversions.ts'
 
 const editUserSchema = z.object({
 	name: nameSchema.optional(),
@@ -45,8 +54,8 @@ const editUserSchema = z.object({
 	mailingList: checkboxSchema(),
 	phone: phoneSchema,
 	birthdate: optionalDateSchema,
-	height: z.coerce.number().min(0).optional(),
-	yearsOfExperience: z.coerce.number().min(0).optional(),
+	height: heightSchema,
+	yearsOfExperience: yearsOfExperienceSchema,
 	isInstructor: checkboxSchema(),
 	isLessonAssistant: checkboxSchema(),
 	isHorseLeader: checkboxSchema(),
@@ -176,6 +185,11 @@ export default function EditUser() {
 		formattedBirthdate = format(new Date(data.user.birthdate), 'yyyy-MM-dd')
 	}
 
+	let userHeight
+	if (data.user.height) {
+		userHeight = convertInchesToHeightObj(data.user.height)
+	}
+
 	const [form, fields] = useForm({
 		id: 'edit-user',
 		lastSubmission: actionData?.submission,
@@ -189,13 +203,14 @@ export default function EditUser() {
 			mailingList: data.user?.mailingList ?? false,
 			phone: data.user?.phone,
 			birthdate: formattedBirthdate ?? '',
-			height: data.user?.height ?? '',
+			height: userHeight ?? undefined,
 			yearsOfExperience: data.user?.yearsOfExperience ?? '',
 			notes: data.user?.notes ?? '',
 		},
 		shouldRevalidate: 'onSubmit',
 		onSubmit: dismissModal,
 	})
+	const { heightFeet, heightInches } = useFieldset(form.ref, fields.height)
 
 	let isLessonAssistant = false
 	let isHorseLeader = false
@@ -271,18 +286,64 @@ export default function EditUser() {
 							}}
 							errors={fields.birthdate.errors}
 						/>
-						<Field
-							className="col-span-6 sm:col-span-3"
-							labelProps={{
-								htmlFor: fields.height.id,
-								children: 'Height (inches)',
-							}}
-							inputProps={{
-								...conform.input(fields.height),
-								type: 'number',
-							}}
-							errors={fields.height.errors}
-						/>
+						<div className="col-span-6 sm:col-span-3">
+							<label
+								htmlFor="heightFieldset"
+								className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+							>
+								Height
+							</label>
+							<fieldset
+								id="heightFieldset"
+								className="grid grid-cols-2 gap-x-4"
+							>
+								<HeightField
+									className="relative"
+									labelProps={{
+										htmlFor: heightFeet.id,
+										children: 'feet',
+										className: 'absolute right-4 top-3 text-primary/70 z-50',
+									}}
+									inputProps={{
+										...conform.input(heightFeet),
+										type: 'text',
+										className: 'heightField',
+									}}
+									errors={heightFeet.errors}
+								/>
+								<HeightField
+									className="relative"
+									labelProps={{
+										htmlFor: heightInches.id,
+										children: 'inches',
+										className: 'absolute right-4 top-3 text-primary/70',
+									}}
+									inputProps={{
+										...conform.input(heightInches),
+										type: 'text',
+										className: 'heightField',
+									}}
+									errors={heightInches.errors}
+								/>
+								<div className="col-span-2 min-h-[32px] px-4 pb-3 pt-1">
+									{fields.height.errors && (
+										<ErrorList
+											id={fields.height.id}
+											errors={fields.height.errors}
+										/>
+									)}
+									{heightFeet.errors && (
+										<ErrorList id={heightFeet.id} errors={heightFeet.errors} />
+									)}
+									{heightInches.errors && (
+										<ErrorList
+											id={heightInches.id}
+											errors={heightInches.errors}
+										/>
+									)}
+								</div>
+							</fieldset>
+						</div>
 						<Field
 							className="col-span-6 sm:col-span-3"
 							labelProps={{
@@ -291,7 +352,7 @@ export default function EditUser() {
 							}}
 							inputProps={{
 								...conform.input(fields.yearsOfExperience),
-								type: 'number',
+								type: 'text',
 							}}
 							errors={fields.yearsOfExperience.errors}
 						/>
