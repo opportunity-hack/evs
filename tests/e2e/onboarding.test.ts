@@ -74,7 +74,9 @@ test('onboarding with link', async ({ page }) => {
 		.getByRole('textbox', { name: /^username/i })
 		.fill(onboardingData.username)
 
-	await page.getByRole('textbox', { name: /^name/i }).fill(onboardingData.name)
+	await page
+		.getByRole('textbox', { name: /^full name/i })
+		.fill(onboardingData.name)
 
 	await page
 		.getByRole('textbox', { name: /number/i })

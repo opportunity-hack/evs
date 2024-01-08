@@ -173,6 +173,7 @@ export default function OnboardingPage() {
 							htmlFor: fields.username.id,
 							children: 'Username',
 						}}
+						description="Used for logging in (cannot be an email address)"
 						inputProps={{
 							...conform.input(fields.username),
 							autoComplete: 'username',
@@ -181,7 +182,6 @@ export default function OnboardingPage() {
 								typeof fields.username.initialError !== 'undefined',
 						}}
 						errors={fields.username.errors}
-						description="Cannot be an email address"
 					/>
 					<Field
 						labelProps={{ htmlFor: fields.name.id, children: 'Full Name' }}
