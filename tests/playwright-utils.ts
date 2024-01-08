@@ -33,13 +33,23 @@ export async function insertNewUser({ password }: { password?: string } = {}) {
 export async function insertNewAdmin({ password }: { password?: string } = {}) {
 	const userData = createUser()
 
-	const adminRole = await prisma.role.findFirst({
+	let adminRole = await prisma.role.findFirst({
 		where: {
 			name: 'admin',
 		},
 	})
 
-	if (!adminRole) throw new Error('No admin role defined')
+	if (!adminRole) {
+		console.log('Creating admin role')
+		adminRole = await prisma.role.create({
+			data: {
+				name: 'admin',
+				permissions: {
+					create: { name: 'admin' },
+				},
+			},
+		})
+	}
 
 	const user = await prisma.user.create({
 		data: {
