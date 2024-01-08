@@ -171,7 +171,7 @@ export default function OnboardingPage() {
 					<Field
 						labelProps={{
 							htmlFor: fields.username.id,
-							children: 'Username (Cannot be an email address)',
+							children: 'Username',
 						}}
 						inputProps={{
 							...conform.input(fields.username),
@@ -181,9 +181,10 @@ export default function OnboardingPage() {
 								typeof fields.username.initialError !== 'undefined',
 						}}
 						errors={fields.username.errors}
+						description="Cannot be an email address"
 					/>
 					<Field
-						labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
+						labelProps={{ htmlFor: fields.name.id, children: 'Full Name' }}
 						inputProps={{
 							...conform.input(fields.name),
 							autoComplete: 'name',
@@ -191,7 +192,11 @@ export default function OnboardingPage() {
 						errors={fields.name.errors}
 					/>
 					<Field
-						labelProps={{ htmlFor: fields.phone.id, children: 'Phone Number' }}
+						labelProps={{
+							htmlFor: fields.phone.id,
+							children: 'Phone Number',
+						}}
+						description="Must be 10 digits"
 						inputProps={{
 							...conform.input(fields.phone, { type: 'tel' }),
 							autoComplete: 'tel',

@@ -37,16 +37,22 @@ export function ErrorList({
 	)
 }
 
+export function Description({ text }: { text: string }) {
+	return <p className="text-sm text-muted-foreground">{text}</p>
+}
+
 export function Field({
 	labelProps,
 	inputProps,
 	errors,
 	className,
+	description,
 }: {
 	labelProps: Omit<React.LabelHTMLAttributes<HTMLLabelElement>, 'className'>
 	inputProps: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className'>
 	errors?: ListOfErrors
 	className?: string
+	description?: string
 }) {
 	const fallbackId = useId()
 	const id = inputProps.id ?? fallbackId
@@ -60,6 +66,7 @@ export function Field({
 				aria-describedby={errorId}
 				{...inputProps}
 			/>
+			{description && <Description text={description} />}
 			<div className="min-h-[32px] px-4 pb-3 pt-1">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
