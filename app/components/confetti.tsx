@@ -1,6 +1,6 @@
 import { Index as ConfettiShower } from 'confetti-react'
 import { ClientOnly } from 'remix-utils'
-import { useWindowSize } from '@uidotdev/usehooks'
+import { useState, useEffect } from 'react'
 
 /**
  * confetti is a unique random identifier which re-renders the component
@@ -21,4 +21,33 @@ export function Confetti({ confetti }: { confetti?: string }) {
 			)}
 		</ClientOnly>
 	)
+}
+
+function useWindowSize() {
+	interface Size {
+		width: number | undefined
+		height: number | undefined
+	}
+	const [size, setSize] = useState<Size>({
+		width: undefined,
+		height: undefined,
+	})
+
+	useEffect(() => {
+		const handleResize = () => {
+			setSize({
+				width: window.innerWidth,
+				height: window.innerHeight,
+			})
+		}
+
+		handleResize()
+		window.addEventListener('resize', handleResize)
+
+		return () => {
+			window.removeEventListener('resize', handleResize)
+		}
+	}, [])
+
+	return size
 }
