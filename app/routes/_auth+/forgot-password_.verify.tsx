@@ -97,7 +97,7 @@ async function validate(request: Request, body: FormData | URLSearchParams) {
 					return
 				}
 			}),
-		acceptMultipleErrors: () => true,
+
 		async: true,
 	})
 

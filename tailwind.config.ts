@@ -2,6 +2,7 @@ import type { Config } from 'tailwindcss'
 import defaultTheme from 'tailwindcss/defaultTheme.js'
 import tailwindcssRadix from 'tailwindcss-radix'
 import tailwindcssAnimate from 'tailwindcss-animate'
+import typography from '@tailwindcss/typography'
 
 export default {
 	content: ['./app/**/*.{ts,tsx,jsx,js}'],
@@ -158,5 +159,5 @@ export default {
 		},
 	},
 
-	plugins: [tailwindcssRadix, tailwindcssAnimate],
+	plugins: [tailwindcssRadix, tailwindcssAnimate, typography],
 } satisfies Config

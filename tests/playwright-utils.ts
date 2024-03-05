@@ -30,6 +30,45 @@ export async function insertNewUser({ password }: { password?: string } = {}) {
 	return user
 }
 
+export async function insertNewAdmin({ password }: { password?: string } = {}) {
+	const userData = createUser()
+
+	let adminRole = await prisma.role.findFirst({
+		where: {
+			name: 'admin',
+		},
+	})
+
+	if (!adminRole) {
+		console.log('Creating admin role')
+		adminRole = await prisma.role.create({
+			data: {
+				name: 'admin',
+				permissions: {
+					create: { name: 'admin' },
+				},
+			},
+		})
+	}
+
+	const user = await prisma.user.create({
+		data: {
+			...userData,
+			password: {
+				create: {
+					hash: await getPasswordHash(password || userData.username),
+				},
+			},
+			roles: {
+				connect: { id: adminRole.id },
+			},
+		},
+		select: { id: true, name: true, username: true, email: true },
+	})
+	dataCleanup.users.add(user.id)
+	return user
+}
+
 export const test = base.extend<{
 	login: (user?: { id: string }) => ReturnType<typeof loginPage>
 }>({
@@ -91,9 +130,9 @@ export async function loginPage({
 export async function setSignupPassword() {
 	await prisma.signupPassword.deleteMany()
 	await prisma.signupPassword.create({
-			data: {
-				hash: await getPasswordHash('horses are cool'),
-			}
+		data: {
+			hash: await getPasswordHash('horses are cool'),
+		},
 	})
 }
 

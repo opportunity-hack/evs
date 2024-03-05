@@ -4,7 +4,10 @@ import { parse } from '@conform-to/zod'
 import { json, type DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { sendEmail } from '~/utils/email.server.ts'
-import { RegistrationEmail, RegistrationNoticeForAdmins } from './registration-emails.server.tsx'
+import {
+	RegistrationEmail,
+	RegistrationNoticeForAdmins,
+} from './registration-emails.server.tsx'
 import { UnregistrationEmail } from './unregistration-emails.server.tsx'
 import { createEvent, type DateArray } from 'ics'
 import type { User, Event } from '@prisma/client'
@@ -31,7 +34,6 @@ export async function action({ request }: DataFunctionArgs) {
 	const formData = await request.formData()
 	const submission = parse(formData, {
 		schema: EventRegistrationSchema,
-		acceptMultipleErrors: () => true,
 	})
 
 	if (!submission.value || submission.intent !== 'submit') {
@@ -96,7 +98,6 @@ export async function action({ request }: DataFunctionArgs) {
 		)
 	}
 
-
 	if (submission.value.role == 'lessonAssistants') {
 		if (!user.roles.find(role => role.name === 'lessonAssistant')) {
 			throw json({ error: 'Missing permissions' }, { status: 403 })
@@ -126,7 +127,7 @@ export async function action({ request }: DataFunctionArgs) {
 
 	const invite = generateInvite(event)
 
-	if (invite === "") {
+	if (invite === '') {
 		console.error(
 			'There was an error generating an invite for the following event:',
 			JSON.stringify(event),
@@ -134,13 +135,12 @@ export async function action({ request }: DataFunctionArgs) {
 		return json(
 			{
 				status: 'error',
-				message: "Error generating event invite",
+				message: 'Error generating event invite',
 				submission,
 			} as const,
 			{ status: 500 },
 		)
 	}
-	
 
 	sendEmail({
 		to: user.email,
@@ -174,7 +174,6 @@ export async function action({ request }: DataFunctionArgs) {
 }
 
 function generateInvite(event: Event) {
-
 	const year = event.start.getFullYear()
 	const month = event.start.getMonth() + 1 // JS Date months are 0 indexed)
 	const day = event.start.getDate()
@@ -182,33 +181,39 @@ function generateInvite(event: Event) {
 	const minute = event.start.getMinutes()
 
 	const duration = differenceInMinutes(event.end, event.start)
-	
-	const endDate = new Date(event.start.getTime() + duration * 60000);
+
+	const endDate = new Date(event.start.getTime() + duration * 60000)
 
 	let icalEvent = {
-	  start: [year, month, day, hour, minute] as DateArray,
-	  end: [endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate(), endDate.getHours(), endDate.getMinutes()] as DateArray,
-	  // duration: { minutes: duration }, // Not sure this is used	  
-	  title: event.title,
-	  organizer: { name: 'Volunteer Coordinator', email: siteEmailAddress },
-	};
+		start: [year, month, day, hour, minute] as DateArray,
+		end: [
+			endDate.getFullYear(),
+			endDate.getMonth() + 1,
+			endDate.getDate(),
+			endDate.getHours(),
+			endDate.getMinutes(),
+		] as DateArray,
+		// duration: { minutes: duration }, // Not sure this is used
+		title: event.title,
+		organizer: { name: 'Volunteer Coordinator', email: siteEmailAddress },
+	}
 
 	const invite = createEvent(icalEvent)
 	if (invite.error) {
-		console.error((invite.error));
-		return "";
+		console.error(invite.error)
+		return ''
 	}
 	// Log the event as a string
-	console.log("Calendar invite: " + invite.value);		
-	
+	console.log('Calendar invite: ' + invite.value)
+
 	// Check if invite.value is a string
 	if (typeof invite.value === 'string') {
 		// Convert to a buffer
-		const inviteBuffer = Buffer.from(invite.value);
+		const inviteBuffer = Buffer.from(invite.value)
 		return inviteBuffer
 	}
 
-	return "";
+	return ''
 }
 
 async function notifyAdmins({
@@ -218,10 +223,10 @@ async function notifyAdmins({
 	user,
 }: {
 	event: Event
-	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'horseLeaders',
-	action: 'register' | 'unregister';
-	user: User;
-	}) {
+	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'horseLeaders'
+	action: 'register' | 'unregister'
+	user: User
+}) {
 	const admins = await prisma.user.findMany({
 		where: { roles: { some: { name: 'admin' } } },
 	})
@@ -230,11 +235,14 @@ async function notifyAdmins({
 		sendEmail({
 			to: admin.email,
 			subject: `${user.name} ${action}ed as a volunteer for ${event.title}`,
-			react: <RegistrationNoticeForAdmins 
-				user={user} 
-				event={event} 
-				role={role} 
-				action={action} />,
+			react: (
+				<RegistrationNoticeForAdmins
+					user={user}
+					event={event}
+					role={role}
+					action={action}
+				/>
+			),
 		}).then(result => {
 			if (result.status == 'error') {
 				// TODO: think through this case and how to handle it properly

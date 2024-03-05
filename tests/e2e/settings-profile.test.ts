@@ -84,3 +84,80 @@ test('Users can update their profile photo', async ({ login, page }) => {
 
 	expect(beforeSrc).not.toEqual(afterSrc)
 })
+
+test('Users can edit and view height with proper validations', async ({
+	login,
+	page,
+}) => {
+	await login()
+	await page.goto('/settings/profile')
+
+	// Validation: no negative numbers
+	await page.getByLabel('feet').fill('-1')
+	await page.getByRole('button', { name: 'Save changes' }).click()
+	await expect(page.getByText('Feet must be between 0 and 8')).toBeVisible()
+
+	// Validation: no text allowed
+	await page.getByLabel('feet').fill('text not allowed')
+	await page.getByRole('button', { name: 'Save changes' }).click()
+	await expect(page.getByText('Feet must be a number')).toBeVisible()
+
+	// Validation: must have both feet and inches
+	await page.getByLabel('feet').fill('')
+	await page.getByLabel('inches').fill('6')
+	await page.getByRole('button', { name: 'Save changes' }).click()
+	await expect(
+		page.getByText('You must enter both feet and inches for height'),
+	).toBeVisible()
+
+	// Heights are saved to database and displayed
+	await page.getByLabel('feet').fill('4')
+	await page.getByLabel('inches').fill('5')
+	await page.getByRole('button', { name: 'Save changes' }).click()
+	await page.goto('/settings/profile')
+
+	await expect(page.getByLabel('feet')).toHaveValue('4')
+	await expect(page.getByLabel('inches')).toHaveValue('5')
+
+	// Blank values are saved as null
+	await page.getByLabel('feet').fill('')
+	await page.getByLabel('inches').fill('')
+	await page.getByRole('button', { name: 'Save' }).click()
+
+	await page.goto('/settings/profile')
+
+	await expect(page.getByLabel('feet')).toHaveValue('')
+	await expect(page.getByLabel('inches')).toHaveValue('')
+})
+
+test('Users can edit their years of experience with proper validation', async ({
+	login,
+	page,
+}) => {
+	await login()
+	await page.goto('/settings/profile')
+
+	// Validation: no negative numbers
+	await page.getByLabel(/years of experience/i).fill('-1')
+	await page.getByRole('button', { name: 'Save changes' }).click()
+	await expect(
+		page.getByText('Number must be greater than or equal to 0'),
+	).toBeVisible()
+
+	// Validation: Text not allowed
+	await page.getByLabel(/years of experience/i).fill('text not allowed')
+	await page.getByRole('button', { name: 'Save changes' }).click()
+	await expect(page.getByText('Must input valid number')).toBeVisible()
+
+	// Heights are saved to database and displayed
+	await page.getByLabel(/years of experience/i).fill('4')
+	await page.getByRole('button', { name: 'Save changes' }).click()
+	await page.goto('/settings/profile')
+	await expect(page.getByLabel(/years of experience/i)).toHaveValue('4')
+
+	// Blank values are saved as null
+	await page.getByLabel(/years of experience/i).fill('')
+	await page.getByRole('button', { name: 'Save' }).click()
+	await page.goto('/settings/profile')
+	await expect(page.getByLabel(/years of experience/i)).toHaveValue('')
+})

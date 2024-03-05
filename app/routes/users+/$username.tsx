@@ -15,6 +15,7 @@ import { prisma } from '~/utils/db.server.ts'
 import { Button } from '~/components/ui/button.tsx'
 import { getUserImgSrc } from '~/utils/misc.ts'
 import { useOptionalUser } from '~/utils/user.ts'
+import { displayHeightFromInches } from '~/utils/length-conversions.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
 	invariant(params.username, 'Missing username')
@@ -77,7 +78,9 @@ export default function UsernameIndex() {
 					</p>
 					{age ? <p className="">{`Age: ${age}`}</p> : null}
 					{data.user.height ? (
-						<p className="">{`Height: ${data.user.height}`}</p>
+						<p className="">{`Height: ${displayHeightFromInches(
+							data.user.height,
+						)}`}</p>
 					) : null}
 					{data.user.yearsOfExperience !== null ? (
 						<p className="">

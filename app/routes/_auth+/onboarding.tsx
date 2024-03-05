@@ -103,7 +103,7 @@ export async function action({ request }: DataFunctionArgs) {
 				}
 			})
 		},
-		acceptMultipleErrors: () => true,
+
 		async: true,
 	})
 	if (submission.intent !== 'submit') {
@@ -169,7 +169,11 @@ export default function OnboardingPage() {
 				<Spacer size="xs" />
 				<Form method="POST" className="mx-auto w-full max-w-sm" {...form.props}>
 					<Field
-						labelProps={{ htmlFor: fields.username.id, children: 'Username (Cannot be an email address)' }}						
+						labelProps={{
+							htmlFor: fields.username.id,
+							children: 'Username',
+						}}
+						description="Used for logging in (cannot be an email address)"
 						inputProps={{
 							...conform.input(fields.username),
 							autoComplete: 'username',
@@ -180,7 +184,7 @@ export default function OnboardingPage() {
 						errors={fields.username.errors}
 					/>
 					<Field
-						labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
+						labelProps={{ htmlFor: fields.name.id, children: 'Full Name' }}
 						inputProps={{
 							...conform.input(fields.name),
 							autoComplete: 'name',
@@ -188,7 +192,11 @@ export default function OnboardingPage() {
 						errors={fields.name.errors}
 					/>
 					<Field
-						labelProps={{ htmlFor: fields.phone.id, children: 'Phone Number' }}
+						labelProps={{
+							htmlFor: fields.phone.id,
+							children: 'Phone Number',
+						}}
+						description="Must be 10 digits"
 						inputProps={{
 							...conform.input(fields.phone, { type: 'tel' }),
 							autoComplete: 'tel',

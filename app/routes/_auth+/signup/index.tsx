@@ -31,12 +31,10 @@ export const verificationType = 'onboarding'
 
 const signupSchema = z.object({
 	email: emailSchema,
-	signupPassword: z
-		.string()
-		.min(1, {
-			message:
-				'Please fill this in with the password given to you by the volunteer coordinator.',
-		}),
+	signupPassword: z.string().min(1, {
+		message:
+			'Please fill this in with the password given to you by the volunteer coordinator.',
+	}),
 })
 
 export async function action({ request }: DataFunctionArgs) {
@@ -70,7 +68,7 @@ export async function action({ request }: DataFunctionArgs) {
 				}
 			})
 		},
-		acceptMultipleErrors: () => true,
+
 		async: true,
 	})
 	if (submission.intent !== 'submit') {

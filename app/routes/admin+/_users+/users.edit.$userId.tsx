@@ -9,7 +9,13 @@ import {
 	DialogFooter,
 } from '~/components/ui/dialog.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import { CheckboxField, Field, TextareaField } from '~/components/forms.tsx'
+import {
+	CheckboxField,
+	ErrorList,
+	Field,
+	HeightField,
+	TextareaField,
+} from '~/components/forms.tsx'
 import {
 	Form,
 	useLoaderData,
@@ -22,7 +28,7 @@ import { json, type DataFunctionArgs } from '@remix-run/node'
 import { requireAdmin } from '~/utils/permissions.server.ts'
 import { prisma } from '~/utils/db.server.ts'
 import invariant from 'tiny-invariant'
-import { conform, useForm } from '@conform-to/react'
+import { conform, useFieldset, useForm } from '@conform-to/react'
 import { parse } from '@conform-to/zod'
 import { redirectWithToast } from '~/utils/flash-session.server.ts'
 import { StatusButton } from '~/components/ui/status-button.tsx'
@@ -31,22 +37,25 @@ import { z } from 'zod'
 
 import {
 	emailSchema,
+	heightSchema,
 	nameSchema,
 	phoneSchema,
 	usernameSchema,
+	yearsOfExperienceSchema,
 } from '~/utils/user-validation.ts'
 import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
 import { format } from 'date-fns'
+import { convertInchesToHeightObj } from '~/utils/length-conversions.ts'
 
 const editUserSchema = z.object({
 	name: nameSchema.optional(),
 	username: usernameSchema,
-	email: emailSchema.optional(),	
+	email: emailSchema.optional(),
 	mailingList: checkboxSchema(),
 	phone: phoneSchema,
 	birthdate: optionalDateSchema,
-	height: z.coerce.number().min(0).optional(),
-	yearsOfExperience: z.coerce.number().min(0).optional(),
+	height: heightSchema,
+	yearsOfExperience: yearsOfExperienceSchema,
 	isInstructor: checkboxSchema(),
 	isLessonAssistant: checkboxSchema(),
 	isHorseLeader: checkboxSchema(),
@@ -73,7 +82,6 @@ export async function action({ request, params }: DataFunctionArgs) {
 	const submission = await parse(formData, {
 		async: true,
 		schema: editUserSchema,
-		acceptMultipleErrors: () => true,
 	})
 
 	if (submission.intent !== 'submit') {
@@ -106,9 +114,9 @@ export async function action({ request, params }: DataFunctionArgs) {
 	const roleConnectArray = []
 	const roleDisconnectArray = []
 	if (isInstructor) {
-		roleConnectArray.push({ name: 'instructor'})
+		roleConnectArray.push({ name: 'instructor' })
 	} else {
-		roleDisconnectArray.push({ name: 'instructor'})
+		roleDisconnectArray.push({ name: 'instructor' })
 	}
 	if (isHorseLeader) {
 		roleConnectArray.push({ name: 'horseLeader' })
@@ -116,9 +124,9 @@ export async function action({ request, params }: DataFunctionArgs) {
 		roleDisconnectArray.push({ name: 'horseLeader' })
 	}
 	if (isLessonAssistant) {
-		roleConnectArray.push({ name: 'lessonAssistant'})
+		roleConnectArray.push({ name: 'lessonAssistant' })
 	} else {
-		roleDisconnectArray.push({ name: 'lessonAssistant'})
+		roleDisconnectArray.push({ name: 'lessonAssistant' })
 	}
 
 	const updatedUser = await prisma.user.update({
@@ -127,7 +135,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 			name,
 			username,
 			phone,
-			mailingList : mailingList ?? false,
+			mailingList: mailingList ?? false,
 			birthdate: birthdate ?? null,
 			height: height ?? null,
 			yearsOfExperience: yearsOfExperience ?? null,
@@ -177,6 +185,11 @@ export default function EditUser() {
 		formattedBirthdate = format(new Date(data.user.birthdate), 'yyyy-MM-dd')
 	}
 
+	let userHeight
+	if (data.user.height) {
+		userHeight = convertInchesToHeightObj(data.user.height)
+	}
+
 	const [form, fields] = useForm({
 		id: 'edit-user',
 		lastSubmission: actionData?.submission,
@@ -190,13 +203,14 @@ export default function EditUser() {
 			mailingList: data.user?.mailingList ?? false,
 			phone: data.user?.phone,
 			birthdate: formattedBirthdate ?? '',
-			height: data.user?.height ?? '',
+			height: userHeight ?? undefined,
 			yearsOfExperience: data.user?.yearsOfExperience ?? '',
 			notes: data.user?.notes ?? '',
 		},
 		shouldRevalidate: 'onSubmit',
 		onSubmit: dismissModal,
 	})
+	const { heightFeet, heightInches } = useFieldset(form.ref, fields.height)
 
 	let isLessonAssistant = false
 	let isHorseLeader = false
@@ -211,7 +225,7 @@ export default function EditUser() {
 		if (role.name === 'instructor') {
 			isInstructor = true
 		}
- 	}
+	}
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -251,7 +265,7 @@ export default function EditUser() {
 								disabled: true,
 							}}
 							errors={fields.email.errors}
-						/>						
+						/>
 						<Field
 							className="col-span-6 sm:col-span-3"
 							labelProps={{ htmlFor: fields.phone.id, children: 'Phone' }}
@@ -272,18 +286,64 @@ export default function EditUser() {
 							}}
 							errors={fields.birthdate.errors}
 						/>
-						<Field
-							className="col-span-6 sm:col-span-3"
-							labelProps={{
-								htmlFor: fields.height.id,
-								children: 'Height (inches)',
-							}}
-							inputProps={{
-								...conform.input(fields.height),
-								type: 'number',
-							}}
-							errors={fields.height.errors}
-						/>
+						<div className="col-span-6 sm:col-span-3">
+							<label
+								htmlFor="heightFieldset"
+								className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+							>
+								Height
+							</label>
+							<fieldset
+								id="heightFieldset"
+								className="grid grid-cols-2 gap-x-4"
+							>
+								<HeightField
+									className="relative"
+									labelProps={{
+										htmlFor: heightFeet.id,
+										children: 'feet',
+										className: 'absolute right-4 top-3 text-primary/70 z-50',
+									}}
+									inputProps={{
+										...conform.input(heightFeet),
+										type: 'text',
+										className: 'heightField',
+									}}
+									errors={heightFeet.errors}
+								/>
+								<HeightField
+									className="relative"
+									labelProps={{
+										htmlFor: heightInches.id,
+										children: 'inches',
+										className: 'absolute right-4 top-3 text-primary/70',
+									}}
+									inputProps={{
+										...conform.input(heightInches),
+										type: 'text',
+										className: 'heightField',
+									}}
+									errors={heightInches.errors}
+								/>
+								<div className="col-span-2 min-h-[32px] px-4 pb-3 pt-1">
+									{fields.height.errors && (
+										<ErrorList
+											id={fields.height.id}
+											errors={fields.height.errors}
+										/>
+									)}
+									{heightFeet.errors && (
+										<ErrorList id={heightFeet.id} errors={heightFeet.errors} />
+									)}
+									{heightInches.errors && (
+										<ErrorList
+											id={heightInches.id}
+											errors={heightInches.errors}
+										/>
+									)}
+								</div>
+							</fieldset>
+						</div>
 						<Field
 							className="col-span-6 sm:col-span-3"
 							labelProps={{
@@ -292,11 +352,11 @@ export default function EditUser() {
 							}}
 							inputProps={{
 								...conform.input(fields.yearsOfExperience),
-								type: 'number',
+								type: 'text',
 							}}
 							errors={fields.yearsOfExperience.errors}
 						/>
-						<TextareaField 
+						<TextareaField
 							className="col-span-6"
 							labelProps={{
 								htmlFor: fields.notes.id,
@@ -308,7 +368,7 @@ export default function EditUser() {
 							errors={fields.notes.errors}
 						/>
 						<div className="col-span-6">
-							<CheckboxField 
+							<CheckboxField
 								labelProps={{
 									htmlFor: fields.mailingList.id,
 									children: 'Subscribed to Mailing List',
@@ -323,8 +383,8 @@ export default function EditUser() {
 							/>
 						</div>
 						<hr className="col-span-6" />
-						
-						<div className="col-span-6 grid grid-col-1 mt-4">
+
+						<div className="grid-col-1 col-span-6 mt-4 grid">
 							<CheckboxField
 								labelProps={{
 									htmlFor: fields.isInstructor.id,
@@ -363,7 +423,7 @@ export default function EditUser() {
 									defaultChecked: isHorseLeader,
 								}}
 								errors={fields.isHorseLeader.errors}
-							/>							
+							/>
 						</div>
 					</div>
 					<DialogFooter className="mt-4">

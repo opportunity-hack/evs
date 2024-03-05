@@ -154,7 +154,7 @@ function App() {
 	const userIsAdmin = user?.roles.find(role => role.name === 'admin')
 
 	let nav = (
-		<Button asChild size="sm" variant="default">
+		<Button asChild variant="default">
 			<Link to="/login">Log In</Link>
 		</Button>
 	)
@@ -162,7 +162,7 @@ function App() {
 		nav = (
 			<div className="flex grow items-center justify-between gap-1 sm:justify-end">
 				<div className="flex items-center justify-start gap-1">
-					<Button asChild className="px-4" size="sm" variant="default">
+					<Button asChild className="px-4" variant="default">
 						<Link to="/calendar" className="flex gap-2">
 							<Icon className="text-body-md" name="calendar" />
 							<span className="xsm:inline hidden">Calendar</span>
@@ -206,14 +206,18 @@ function App() {
 						<div className="font-light">Equestrian</div>
 						<div className="font-bold">Volunteer Scheduler</div>
 					</Link>
-					<div className="flex items-center justify-start gap-1">						
-						<Link to="/tos" className="text-sm mr-2">Terms of Service</Link>
-						<Link to="/privacy" className="text-sm">Privacy Policy</Link>
+					<div className="flex items-center justify-start gap-1">
+						<Link to="/tos" className="mr-2 text-sm">
+							Terms of Service
+						</Link>
+						<Link to="/privacy" className="text-sm">
+							Privacy Policy
+						</Link>
 					</div>
 
 					<ThemeSwitch userPreference={data.requestInfo.session.theme} />
 				</div>
-				
+
 				<div className="h-5" />
 				<Confetti confetti={data.flash?.confetti} />
 				<Toaster />
@@ -250,7 +254,7 @@ function UserDropdown() {
 							alt={user.name ?? user.username}
 							src={getUserImgSrc(user.imageId)}
 						/>
-						<span className="text-body-sm font-bold hidden sm:inline">
+						<span className="hidden text-body-sm font-bold sm:inline">
 							{user.name ?? user.username}
 						</span>
 					</Link>

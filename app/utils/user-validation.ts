@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { convertFeetInchesIntoInches } from './length-conversions.ts'
 
 export const usernameSchema = z
 	.string()
@@ -15,7 +16,7 @@ export const passwordSchema = z
 
 export const nameSchema = z
 	.string()
-	.min(3, { message: 'Name is too short' })
+	.min(2, { message: 'Name is too short' })
 	.max(40, { message: 'Name is too long' })
 
 export const emailSchema = z
@@ -31,3 +32,53 @@ export const phoneSchema = z
 		message: 'Phone number must be ten digits',
 	})
 	.transform(phone => phone.replaceAll(/\D/g, ''))
+
+export const yearsOfExperienceSchema = z
+	.number({ invalid_type_error: 'Must input valid number' })
+	.int({ message: 'must be integer' })
+	.min(0)
+	.nullish()
+	.transform(value => (value === undefined ? null : value))
+
+export const heightSchema = z
+	.object({
+		heightFeet: z
+			.number({ invalid_type_error: 'Feet must be a number' })
+			.int({ message: 'Feet must be an integer' })
+			.min(0, { message: 'Feet must be between 0 and 8' })
+			.max(8, { message: 'Feet must be between 0 and 8' })
+			.optional()
+			.transform(val => {
+				if (val === undefined) return null
+				else return val
+			}),
+		heightInches: z
+			.number({ invalid_type_error: 'Inches must be a number' })
+			.int({ message: 'Inches must be an integer' })
+			.min(0, { message: 'Inches must be between 0 and 11' })
+			.max(11, { message: 'Inches must be between 0 and 11' })
+			.optional()
+			.transform(val => {
+				if (val === undefined) return null
+				else return val
+			}),
+	})
+	.refine(
+		obj => {
+			console.log('refine', obj.heightFeet, obj.heightInches)
+			return (
+				(typeof obj.heightFeet === 'number' &&
+					typeof obj.heightInches === 'number') ||
+				(!obj.heightFeet && !obj.heightInches)
+			)
+		},
+		{ message: 'You must enter both feet and inches for height' },
+	)
+	.transform(val => {
+		if (
+			typeof val.heightFeet === 'number' &&
+			typeof val.heightInches === 'number'
+		) {
+			return convertFeetInchesIntoInches(val.heightFeet, val.heightInches)
+		} else return null
+	})
