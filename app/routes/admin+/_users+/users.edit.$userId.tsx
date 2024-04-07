@@ -59,7 +59,7 @@ const editUserSchema = z.object({
 	isInstructor: checkboxSchema(),
 	isLessonAssistant: checkboxSchema(),
 	isHorseLeader: checkboxSchema(),
-	notes: z.string(),
+	notes: z.string().optional(),
 })
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {

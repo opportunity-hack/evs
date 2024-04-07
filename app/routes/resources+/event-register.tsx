@@ -104,7 +104,7 @@ export async function action({ request }: DataFunctionArgs) {
 		}
 	}
 	if (submission.value.role == 'horseLeaders') {
-		if (!user.roles.find(role => role.name === 'horseleader')) {
+		if (!user.roles.find(role => role.name === 'horseLeader')) {
 			throw json({ error: 'Missing permissions' }, { status: 403 })
 		}
 	}
