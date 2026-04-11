@@ -12,18 +12,21 @@ interface RoleLabels {
 	animalHandlers: string
 }
 
+/**
+ * Default labels use horse-specific terms to maintain backward compatibility
+ * with the existing equestrian customer. New orgs with a different animalType
+ * will get their own contextual labels via the overrides below.
+ */
 const defaultLabels: RoleLabels = {
 	cleaningCrew: 'cleaning crew',
-	sideWalkers: 'support volunteers',
-	lessonAssistants: 'session assistants',
+	sideWalkers: 'side walkers',
+	lessonAssistants: 'lesson assistants',
 	animalHandlers: 'animal handlers',
 }
 
 const labelsByAnimalType: Record<string, Partial<RoleLabels>> = {
 	horses: {
-		sideWalkers: 'side walkers',
-		lessonAssistants: 'lesson assistants',
-		animalHandlers: 'horse leaders',
+		// defaults already use horse-specific terms; only override if needed
 	},
 	dogs: {
 		sideWalkers: 'dog walkers',
@@ -54,25 +57,25 @@ interface RoleDescription {
 	animalHandlers: string
 }
 
+/**
+ * Default descriptions use horse-specific language to match the existing
+ * equestrian customer's experience. Overrides below provide contextual
+ * descriptions for other animal types.
+ */
 const defaultDescriptions: RoleDescription = {
 	cleaningCrew:
 		'Cleaning crew volunteers help maintain the facility, check waterers, sweep common areas, and handle other miscellaneous cleaning tasks. No prior experience with animals is required.',
 	sideWalkers:
-		'Support volunteers assist participants during sessions. No prior experience with animals needed.',
+		'Side walkers walk alongside participants helping to support them during sessions. No prior experience with animals needed. Must be able to walk on uneven surfaces.',
 	lessonAssistants:
-		'Session assistants should have 1+ years of experience with the animals. They assist instructors and communicate effectively with both participants and staff.',
+		'Lesson assistants should have 1+ years of experience with the animals. They assist instructors and communicate effectively with both participants and staff.',
 	animalHandlers:
-		'Animal handlers guide and manage animals during sessions. Should have 1+ years of experience with animals.',
+		'Animal handlers guide and manage animals during sessions. Should have 1+ years of experience with animals, and must be able to walk on uneven surfaces.',
 }
 
 const descriptionsByAnimalType: Record<string, Partial<RoleDescription>> = {
 	horses: {
-		sideWalkers:
-			'Side walkers walk alongside riders helping to support them during lessons. No prior experience with horses needed. Must be able to walk on uneven surfaces.',
-		lessonAssistants:
-			'Lesson assistants should have 1+ years of experience with horses. They must be able to groom and tack horses, and to communicate effectively with both students and instructors.',
-		animalHandlers:
-			'Horse leaders lead horses during lessons. Should have 1+ years of experience with horses, and must be able to walk on uneven surfaces.',
+		// defaults already use horse-appropriate language
 	},
 	dogs: {
 		sideWalkers:

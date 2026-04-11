@@ -53,8 +53,9 @@ export interface VolunteerTypeEntry {
 }
 
 /**
- * Default volunteer types using generic (non-org-specific) labels.
- * Prefer getVolunteerTypes(animalType) when org context is available.
+ * Default volunteer types using horse-specific labels for backward
+ * compatibility with the existing equestrian customer. Use
+ * getVolunteerTypes(animalType) when org context is available.
  */
 export const volunteerTypes: VolunteerTypeEntry[] = getVolunteerTypes()
 
