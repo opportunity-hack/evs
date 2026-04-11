@@ -1,12 +1,13 @@
 import { useUser } from '~/utils/user.ts'
-import { volunteerTypes, type EventWithVolunteers } from '~/data.ts'
-
-type VolunteerTypes = typeof volunteerTypes
-type VolunteerType = VolunteerTypes[number]
+import {
+	volunteerTypes,
+	type EventWithVolunteers,
+	type VolunteerTypeEntry,
+} from '~/data.ts'
 
 interface PositionStatusProps {
 	event: EventWithVolunteers
-	volunteerType: VolunteerType
+	volunteerType: VolunteerTypeEntry
 }
 
 function PositionStatus({ volunteerType, event }: PositionStatusProps) {

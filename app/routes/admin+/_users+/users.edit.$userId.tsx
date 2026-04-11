@@ -79,8 +79,16 @@ export const loader = async ({ request, params }: DataFunctionArgs) => {
 
 export async function action({ request, params }: DataFunctionArgs) {
 	await requireAdmin(request)
-	await requireOrgMember(request)
+	const { orgId } = await requireOrgMember(request)
 	invariant(params.userId, 'Missing user id')
+
+	// Verify target user belongs to this org before mutating
+	const targetUser = await prisma.user.findFirst({
+		where: { id: params.userId, orgId },
+	})
+	if (!targetUser) {
+		throw new Response('not found', { status: 404 })
+	}
 	const formData = await request.formData()
 	const submission = await parse(formData, {
 		async: true,

@@ -50,12 +50,12 @@ export default function Index() {
 		<div className="flex flex-col">
 			{/* Hero */}
 			<section className="flex flex-col items-center justify-center px-4 pb-72 pt-24 text-center sm:pb-96 sm:pt-36">
-				<span className="mb-4 inline-block rounded-full bg-indigo-50 px-4 py-1.5 text-body-xs font-semibold uppercase tracking-wider text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
+				<span className="mb-4 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-body-xs font-semibold uppercase tracking-wider text-primary dark:bg-primary/20 dark:text-primary">
 					Volunteer Scheduling for Nonprofits
 				</span>
 				<h1 className="max-w-3xl text-h2 font-extrabold tracking-tight sm:text-h1">
 					Coordinate volunteers.{' '}
-					<span className="text-indigo-600">Simplify scheduling.</span>
+					<span className="text-primary">Simplify scheduling.</span>
 				</h1>
 				<p className="mx-auto mt-6 max-w-xl text-body-md text-muted-foreground">
 					The Barn gives your organization a dedicated space to manage events,
@@ -63,12 +63,12 @@ export default function Index() {
 				</p>
 				<div className="mt-10 flex flex-wrap justify-center gap-4">
 					{user ? (
-						<Button asChild size="wide" className="bg-indigo-600 hover:bg-indigo-700">
+						<Button asChild size="wide" className="bg-primary hover:bg-primary/90">
 							<Link to="/calendar">Go to Calendar</Link>
 						</Button>
 					) : (
 						<>
-							<Button asChild size="wide" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+							<Button asChild size="wide" className="bg-primary hover:bg-primary/90 text-white">
 								<Link to="/org-signup">Register Your Organization</Link>
 							</Button>
 							<Button asChild size="wide" variant="outline">
@@ -107,11 +107,26 @@ export default function Index() {
 					Set up your organization in minutes. No credit card required.
 				</p>
 				{!user && (
-					<Button asChild size="wide" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+					<Button asChild size="wide" className="bg-primary hover:bg-primary/90 text-white">
 						<Link to="/org-signup">Create Free Account</Link>
 					</Button>
 				)}
 			</section>
+
+			{/* Attribution */}
+			<footer className="border-t border-border px-4 py-8 text-center text-body-xs text-muted-foreground">
+				<p>
+					Built by{' '}
+					<a
+						href="https://ohack.dev"
+						className="underline hover:text-foreground"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Opportunity Hack
+					</a>
+				</p>
+			</footer>
 		</div>
 	)
 }

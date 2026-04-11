@@ -22,27 +22,7 @@ DROP INDEX "_horseLeader_B_index";
 -- DropIndex
 DROP INDEX "_horseLeader_AB_unique";
 
--- DropTable
-PRAGMA foreign_keys=off;
-DROP TABLE "Horse";
-PRAGMA foreign_keys=on;
-
--- DropTable
-PRAGMA foreign_keys=off;
-DROP TABLE "HorseAssignment";
-PRAGMA foreign_keys=on;
-
--- DropTable
-PRAGMA foreign_keys=off;
-DROP TABLE "_EventToHorse";
-PRAGMA foreign_keys=on;
-
--- DropTable
-PRAGMA foreign_keys=off;
-DROP TABLE "_horseLeader";
-PRAGMA foreign_keys=on;
-
--- CreateTable
+-- CreateTable (before dropping Horse so we can migrate data)
 CREATE TABLE "Animal" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
@@ -59,6 +39,10 @@ CREATE TABLE "Animal" (
     CONSTRAINT "Animal_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "Image" ("fileId") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
+-- Migrate existing Horse data into Animal
+INSERT INTO "Animal" ("id", "name", "species", "notes", "status", "updatedAt", "cooldown", "cooldownStartDate", "cooldownEndDate", "orgId", "imageId")
+SELECT "id", "name", 'horse', "notes", "status", "updatedAt", "cooldown", "cooldownStartDate", "cooldownEndDate", "orgId", "imageId" FROM "Horse";
+
 -- CreateTable
 CREATE TABLE "AnimalAssignment" (
     "id" TEXT NOT NULL PRIMARY KEY,
@@ -70,6 +54,10 @@ CREATE TABLE "AnimalAssignment" (
     CONSTRAINT "AnimalAssignment_animalId_fkey" FOREIGN KEY ("animalId") REFERENCES "Animal" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- Migrate existing HorseAssignment data into AnimalAssignment
+INSERT INTO "AnimalAssignment" ("id", "eventId", "userId", "animalId")
+SELECT "id", "eventId", "userId", "horseId" FROM "HorseAssignment";
+
 -- CreateTable
 CREATE TABLE "_AnimalToEvent" (
     "A" TEXT NOT NULL,
@@ -78,6 +66,10 @@ CREATE TABLE "_AnimalToEvent" (
     CONSTRAINT "_AnimalToEvent_B_fkey" FOREIGN KEY ("B") REFERENCES "Event" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- Migrate existing Horse-Event join data
+INSERT INTO "_AnimalToEvent" ("A", "B")
+SELECT "A", "B" FROM "_EventToHorse";
+
 -- CreateTable
 CREATE TABLE "_animalHandler" (
     "A" TEXT NOT NULL,
@@ -85,6 +77,27 @@ CREATE TABLE "_animalHandler" (
     CONSTRAINT "_animalHandler_A_fkey" FOREIGN KEY ("A") REFERENCES "Event" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "_animalHandler_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- Migrate existing horseLeader join data
+INSERT INTO "_animalHandler" ("A", "B")
+SELECT "A", "B" FROM "_horseLeader";
+
+-- Now safe to drop old tables
+PRAGMA foreign_keys=off;
+DROP TABLE "Horse";
+PRAGMA foreign_keys=on;
+
+PRAGMA foreign_keys=off;
+DROP TABLE "HorseAssignment";
+PRAGMA foreign_keys=on;
+
+PRAGMA foreign_keys=off;
+DROP TABLE "_EventToHorse";
+PRAGMA foreign_keys=on;
+
+PRAGMA foreign_keys=off;
+DROP TABLE "_horseLeader";
+PRAGMA foreign_keys=on;
 
 -- RedefineTables
 PRAGMA foreign_keys=OFF;
@@ -101,7 +114,7 @@ CREATE TABLE "new_Event" (
     "isPrivate" BOOLEAN NOT NULL DEFAULT false,
     CONSTRAINT "Event_orgId_fkey" FOREIGN KEY ("orgId") REFERENCES "Organization" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
-INSERT INTO "new_Event" ("cleaningCrewReq", "end", "id", "isPrivate", "lessonAssistantsReq", "orgId", "sideWalkersReq", "start", "title") SELECT "cleaningCrewReq", "end", "id", "isPrivate", "lessonAssistantsReq", "orgId", "sideWalkersReq", "start", "title" FROM "Event";
+INSERT INTO "new_Event" ("cleaningCrewReq", "end", "id", "isPrivate", "lessonAssistantsReq", "orgId", "sideWalkersReq", "animalHandlersReq", "start", "title") SELECT "cleaningCrewReq", "end", "id", "isPrivate", "lessonAssistantsReq", "orgId", "sideWalkersReq", "horseLeadersReq", "start", "title" FROM "Event";
 DROP TABLE "Event";
 ALTER TABLE "new_Event" RENAME TO "Event";
 CREATE UNIQUE INDEX "Event_id_key" ON "Event"("id");

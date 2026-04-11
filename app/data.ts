@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client'
+import { getRoleLabels, getRoleDescriptions } from '~/utils/role-labels.ts'
 
 export const siteName = 'The Barn Volunteer Portal'
 export const siteEmailAddress = 'hello@thebarnaz.com'
@@ -6,36 +7,53 @@ export const siteEmailAddressWithName =
 	siteName + ' <hello@thebarnaz.com>'
 export const siteBaseUrl = 'https://thebarnaz.com'
 
-export const volunteerTypes = [
-	{
-		displayName: 'cleaning crew',
-		field: 'cleaningCrew',
-		reqField: 'cleaningCrewReq',
-		description:
-			'Cleaning crew volunteers help maintain the facility, check waterers, sweep common areas, and handle other miscellaneous cleaning tasks. No prior experience with animals is required.',
-	},
-	{
-		displayName: 'side walkers',
-		field: 'sideWalkers',
-		reqField: 'sideWalkersReq',
-		description:
-			'Side walkers walk alongside participants helping to support them during sessions. No prior experience with animals needed. Must be able to walk on uneven surfaces.',
-	},
-	{
-		displayName: 'lesson assistants',
-		field: 'lessonAssistants',
-		reqField: 'lessonAssistantsReq',
-		description:
-			'Lesson assistants should have 1+ years of experience with the animals. They assist instructors and communicate effectively with both participants and staff.',
-	},
-	{
-		displayName: 'animal handlers',
-		field: 'animalHandlers',
-		reqField: 'animalHandlersReq',
-		description:
-			'Animal handlers guide and manage animals during sessions. Should have 1+ years of experience with animals, and must be able to walk on uneven surfaces.',
-	},
+/** Volunteer role field names — stable identifiers used in schema and forms */
+export const volunteerFields = [
+	'cleaningCrew',
+	'sideWalkers',
+	'lessonAssistants',
+	'animalHandlers',
 ] as const
+
+export type VolunteerField = (typeof volunteerFields)[number]
+
+export const volunteerReqFields: Record<VolunteerField, string> = {
+	cleaningCrew: 'cleaningCrewReq',
+	sideWalkers: 'sideWalkersReq',
+	lessonAssistants: 'lessonAssistantsReq',
+	animalHandlers: 'animalHandlersReq',
+}
+
+/**
+ * Returns volunteer type metadata with display names and descriptions
+ * adapted to the organization's animal type. Falls back to generic labels
+ * when no animalType is provided.
+ */
+export function getVolunteerTypes(animalType?: string | null) {
+	const labels = getRoleLabels(animalType)
+	const descriptions = getRoleDescriptions(animalType)
+
+	return volunteerFields.map(field => ({
+		displayName: labels[field],
+		field,
+		reqField: volunteerReqFields[field],
+		description: descriptions[field],
+	}))
+}
+
+/** Type-safe volunteer type entry for use in components that index into events */
+export interface VolunteerTypeEntry {
+	displayName: string
+	field: VolunteerField
+	reqField: string
+	description: string
+}
+
+/**
+ * Default volunteer types using generic (non-org-specific) labels.
+ * Prefer getVolunteerTypes(animalType) when org context is available.
+ */
+export const volunteerTypes: VolunteerTypeEntry[] = getVolunteerTypes()
 
 export interface UserData {
 	id: string
