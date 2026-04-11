@@ -13,11 +13,27 @@ export function deleteUserByUsername(username: string) {
 	return prisma.user.delete({ where: { username } })
 }
 
+export async function getOrCreateDefaultOrg() {
+	let org = await prisma.organization.findFirst()
+	if (!org) {
+		org = await prisma.organization.create({
+			data: {
+				name: 'Test Org',
+				slug: 'test-org',
+				animalType: 'horses',
+			},
+		})
+	}
+	return org
+}
+
 export async function insertNewUser({ password }: { password?: string } = {}) {
 	const userData = createUser()
+	const org = await getOrCreateDefaultOrg()
 	const user = await prisma.user.create({
 		data: {
 			...userData,
+			org: { connect: { id: org.id } },
 			password: {
 				create: {
 					hash: await getPasswordHash(password || userData.username),
@@ -51,9 +67,11 @@ export async function insertNewAdmin({ password }: { password?: string } = {}) {
 		})
 	}
 
+	const org = await getOrCreateDefaultOrg()
 	const user = await prisma.user.create({
 		data: {
 			...userData,
+			org: { connect: { id: org.id } },
 			password: {
 				create: {
 					hash: await getPasswordHash(password || userData.username),
