@@ -1,6 +1,8 @@
 import { useUser } from '~/utils/user.ts'
 import {
 	volunteerTypes,
+	getVolunteers,
+	getVolunteerReq,
 	type EventWithVolunteers,
 	type VolunteerTypeEntry,
 } from '~/data.ts'
@@ -13,23 +15,23 @@ interface PositionStatusProps {
 function PositionStatus({ volunteerType, event }: PositionStatusProps) {
 	const user = useUser()
 
-	const positionFilled =
-		event[volunteerType.field].length >= event[volunteerType.reqField]
+	const volunteers = getVolunteers(event, volunteerType.field)
+	const required = getVolunteerReq(event, volunteerType.reqField)
+	const positionFilled = volunteers.length >= required
 	const containerClass = `grid grid-cols-2 gap-4 ${
 		positionFilled ? 'text-muted-foreground' : ''
 	}`
 
-	const userIsRegistered = event[volunteerType.field]
-		.map(user => user.id)
+	const userIsRegistered = (volunteers as { id: string }[])
+		.map(u => u.id)
 		.includes(user.id)
 	const volunteerTypeClass = `capitalize ${
 		userIsRegistered ? 'before:content-["✅"] before:pr-1' : ''
 	}`
 
-	const spotsLeft =
-		event[volunteerType.reqField] - event[volunteerType.field].length
+	const spotsLeft = required - volunteers.length
 
-	if (event[volunteerType.reqField] > 0)
+	if (required > 0)
 		return (
 			<div className={containerClass}>
 				<div className={volunteerTypeClass}>{volunteerType.displayName}</div>

@@ -17,12 +17,15 @@ export const volunteerFields = [
 
 export type VolunteerField = (typeof volunteerFields)[number]
 
-export const volunteerReqFields: Record<VolunteerField, string> = {
+export const volunteerReqFields = {
 	cleaningCrew: 'cleaningCrewReq',
 	sideWalkers: 'sideWalkersReq',
 	lessonAssistants: 'lessonAssistantsReq',
 	animalHandlers: 'animalHandlersReq',
-}
+} as const
+
+export type VolunteerReqField =
+	(typeof volunteerReqFields)[VolunteerField]
 
 /**
  * Returns volunteer type metadata with display names and descriptions
@@ -45,7 +48,7 @@ export function getVolunteerTypes(animalType?: string | null) {
 export interface VolunteerTypeEntry {
 	displayName: string
 	field: VolunteerField
-	reqField: string
+	reqField: VolunteerReqField
 	description: string
 }
 
@@ -101,6 +104,20 @@ export interface CalEvent {
 	lessonAssistants: UserData[]
 	animalHandlers: UserData[]
 	sideWalkers: UserData[]
+}
+
+/** Safely index into an event by volunteer field name */
+export function getVolunteers<
+	T extends Record<VolunteerField, unknown[]>,
+>(event: T, field: VolunteerField): T[VolunteerField] {
+	return event[field]
+}
+
+/** Safely index into an event by volunteer req field name */
+export function getVolunteerReq<
+	T extends Record<VolunteerReqField, number>,
+>(event: T, reqField: VolunteerReqField): number {
+	return event[reqField]
 }
 
 const EventWithAllRelations = Prisma.validator<Prisma.EventArgs>()({

@@ -13,7 +13,7 @@ import type {
 	CalEvent,
 	EventWithAllRelations,
 } from '~/data.ts'
-import { volunteerTypes } from '~/data.ts'
+import { volunteerTypes, getVolunteers, getVolunteerReq } from '~/data.ts'
 import { clsx } from 'clsx'
 import { useFetcher, Outlet } from '@remix-run/react'
 import { z } from 'zod'
@@ -239,9 +239,9 @@ export function VolunteerSection({
 	event,
 }: volunteerSectionProps) {
 	const idx = volunteerTypeIdx
-	const vts = volunteerTypes
-	const volunteers = event[vts[idx].field]
-	const volunteersRequired = event[vts[idx].reqField]
+	const vt = volunteerTypes[idx]
+	const volunteers = getVolunteers(event, vt.field) as UserData[]
+	const volunteersRequired = getVolunteerReq(event, vt.reqField)
 
 	let unfilled = volunteersRequired - volunteers.length
 	let placeholders = []
@@ -252,13 +252,13 @@ export function VolunteerSection({
 	return (
 		<Card className="w-full max-w-sm px-4 py-6">
 			<div className="flex justify-between">
-				<h3 className="font-bold uppercase">{vts[idx].displayName}</h3>
+				<h3 className="font-bold uppercase">{vt.displayName}</h3>
 				<h4 className="text-xs text-muted-foreground">
 					{volunteers.length} registered of {volunteersRequired} required
 				</h4>
 			</div>
 			<div className="flex flex-col gap-2">
-				{event[volunteerTypes[idx].field].map(user => {
+				{volunteers.map(user => {
 					return <VolunteerListItem key={user.id} user={user} event={event} />
 				})}
 				{placeholders}
