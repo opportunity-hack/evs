@@ -180,12 +180,18 @@ export async function verifyLogin(
 	usernameOrEmail: string,
 	password: Password['hash'],
 ) {
-	const userWithPassword = await prisma.user.findFirst({
-		where: {
-			OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
-		},
+	// Prioritize exact username match to avoid ambiguity when a username
+	// happens to equal another user's email address
+	let userWithPassword = await prisma.user.findUnique({
+		where: { username: usernameOrEmail },
 		select: { id: true, password: { select: { hash: true } } },
 	})
+	if (!userWithPassword) {
+		userWithPassword = await prisma.user.findUnique({
+			where: { email: usernameOrEmail },
+			select: { id: true, password: { select: { hash: true } } },
+		})
+	}
 
 	if (!userWithPassword || !userWithPassword.password) {
 		return null

@@ -6,6 +6,8 @@ import { Icon } from '~/components/ui/icon.tsx'
 
 import {
 	volunteerTypes,
+	getVolunteers,
+	getVolunteerReq,
 	type UserData,
 	type AnimalData,
 	type EventWithVolunteers,
@@ -517,13 +519,11 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 						>
 							<ul className="pb-4">
 								{volunteerTypes.map(volunteerType => {
-									const spotsLeft =
-										calEvent[`${volunteerType.field}Req`] -
-										calEvent[volunteerType.field].length
+									const volunteers = getVolunteers(calEvent, volunteerType.field)
+									const required = getVolunteerReq(calEvent, volunteerType.reqField)
+									const spotsLeft = required - volunteers.length
 
-									const isFull =
-										calEvent[volunteerType.reqField] <=
-										calEvent[volunteerType.field].length
+									const isFull = required <= volunteers.length
 
 									let hasPermissions = true
 									if (volunteerType.field == 'lessonAssistants') {

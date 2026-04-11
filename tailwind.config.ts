@@ -75,13 +75,14 @@ export default {
 					foreground: 'hsl(var(--color-card-foreground))',
 				},
 				sidebar: {
-				DEFAULT: 'hsl(var(--color-sidebar))',
-				foreground: 'hsl(var(--color-sidebar-foreground))',
-				border: 'hsl(var(--color-sidebar-border))',
-				active: 'hsl(var(--color-sidebar-active))',
-				'active-foreground': 'hsl(var(--color-sidebar-active-foreground))',
-			},
-			day: {
+						DEFAULT: 'hsl(var(--color-sidebar))',
+						foreground: 'hsl(var(--color-sidebar-foreground))',
+						border: 'hsl(var(--color-sidebar-border))',
+						active: 'hsl(var(--color-sidebar-active))',
+						'active-foreground':
+							'hsl(var(--color-sidebar-active-foreground))',
+					},
+					day: {
 					100: 'hsl(var(--color-day-100))',
 					200: 'hsl(var(--color-day-200))',
 					300: 'hsl(var(--color-day-300))',

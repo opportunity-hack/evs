@@ -12,9 +12,14 @@ test('Admin can log in and see admin panel', async ({ page }) => {
 		.fill(adminUser.username)
 	await page.getByLabel(/^password$/i).fill(password)
 	await page.getByRole('button', { name: /log in/i }).click()
-	await expect(page).toHaveURL(`/`)
 
-	await expect(page.getByRole('link', { name: /admin/i })).toBeVisible()
+	// Admin login redirects to /admin which redirects to /admin/users
+	await expect(page).toHaveURL(/\/admin/)
+
+	// Sidebar shows admin nav links
+	await expect(page.getByRole('link', { name: /users/i })).toBeVisible()
+	await expect(page.getByRole('link', { name: /animals/i })).toBeVisible()
+	await expect(page.getByRole('link', { name: /email/i })).toBeVisible()
 })
 
 test('Admin can edit users with proper validation for height and feet', async ({
@@ -29,14 +34,13 @@ test('Admin can edit users with proper validation for height and feet', async ({
 		.fill(adminUser.username)
 	await page.getByLabel(/^password$/i).fill(password)
 	await page.getByRole('button', { name: /log in/i }).click()
-	await expect(page).toHaveURL(`/`)
 
-	await expect(page.getByRole('link', { name: /admin/i })).toBeVisible()
+	// Admin login redirects to /admin/users
+	await expect(page).toHaveURL(/\/admin/)
 
-	// Navigate to users page
-	await page.getByRole('link', { name: /admin/i }).click()
-	await page.getByRole('menuitem', { name: 'Users' }).click()
-	await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible()
+	// Navigate to users page via sidebar
+	await page.getByRole('link', { name: /users/i }).click()
+	await expect(page.getByRole('heading', { name: /volunteers/i })).toBeVisible()
 
 	// Open Edit user page
 	await page.getByText('open menu').first().click()

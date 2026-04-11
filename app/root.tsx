@@ -156,7 +156,7 @@ function App() {
 					// Authenticated: sidebar layout
 					<div className="flex h-screen overflow-hidden">
 						<Sidebar userPreference={data.requestInfo.session.theme} />
-						<main className="ml-60 flex-1 overflow-y-auto">
+						<main className="flex-1 overflow-y-auto pt-14 lg:ml-60 lg:pt-0">
 							<Outlet />
 						</main>
 					</div>

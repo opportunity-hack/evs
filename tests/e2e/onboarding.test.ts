@@ -92,16 +92,8 @@ test('onboarding with link', async ({ page }) => {
 
 	await page.getByRole('button', { name: /Create an account/i }).click()
 
-	await expect(page).toHaveURL(`/`)
-
-	await page.getByRole('link', { name: onboardingData.name }).click()
-	await page.getByRole('menuitem', { name: /profile/i }).click()
-
-	await expect(page).toHaveURL(`/users/${onboardingData.username}`)
-
-	await page.getByRole('link', { name: onboardingData.name }).click()
-	await page.getByRole('menuitem', { name: /logout/i }).click()
-	await expect(page).toHaveURL(`/`)
+	// After onboarding, user has no org — lands on org-setup
+	await expect(page).toHaveURL(`/org-setup`)
 
 	// have to do this here because we didn't use insertNewUser (because we're testing user create)
 	await deleteUserByUsername(onboardingData.username)
@@ -162,9 +154,10 @@ test('login as existing user', async ({ page }) => {
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
 	await page.getByLabel(/^password$/i).fill(password)
 	await page.getByRole('button', { name: /log in/i }).click()
-	await expect(page).toHaveURL(`/`)
 
-	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
+	// After login, user lands on calendar (or admin redirect)
+	// Sidebar shows the user's name
+	await expect(page.getByText(user.name)).toBeVisible()
 })
 
 test('reset password with a link', async ({ page }) => {
@@ -215,9 +208,8 @@ test('reset password with a link', async ({ page }) => {
 	await page.getByLabel(/^password$/i).fill(newPassword)
 	await page.getByRole('button', { name: /log in/i }).click()
 
-	await expect(page).toHaveURL(`/`)
-
-	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
+	// Sidebar shows the user's name after successful login
+	await expect(page.getByText(user.name)).toBeVisible()
 })
 
 test('reset password with a short code', async ({ page }) => {
