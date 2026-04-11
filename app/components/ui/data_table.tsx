@@ -20,11 +20,15 @@ import { Button } from '~/components/ui/button.tsx'
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
 	data: TData[]
+	emptyMessage?: string
+	emptyDescription?: string
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	emptyMessage = 'No results found',
+	emptyDescription,
 }: DataTableProps<TData, TValue>) {
 	const table = useReactTable({
 		data,
@@ -80,11 +84,18 @@ export function DataTable<TData, TValue>({
 							))
 						) : (
 							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									className="h-24 text-center"
-								>
-									No results.
+								<TableCell colSpan={columns.length}>
+									<div className="flex flex-col items-center justify-center py-16 text-center">
+										<div className="mb-3 text-4xl text-muted-foreground/40">—</div>
+										<p className="text-body-sm font-medium text-muted-foreground">
+											{emptyMessage}
+										</p>
+										{emptyDescription && (
+											<p className="mt-1 text-body-xs text-muted-foreground/70">
+												{emptyDescription}
+											</p>
+										)}
+									</div>
 								</TableCell>
 							</TableRow>
 						)}

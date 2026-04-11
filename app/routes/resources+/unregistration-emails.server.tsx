@@ -9,7 +9,7 @@ export function UnregistrationEmail({
 	role,
 }: {
 	event: Event
-	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'horseLeaders'
+	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'animalHandlers'
 }) {
 	let roleName
 	for (let v of volunteerTypes) {

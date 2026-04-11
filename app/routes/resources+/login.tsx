@@ -11,7 +11,7 @@ import { authenticator } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { CheckboxField, ErrorList, Field } from '~/components/forms.tsx'
 import { commitSession, getSession } from '~/utils/session.server.ts'
-import { passwordSchema, usernameSchema } from '~/utils/user-validation.ts'
+import { passwordSchema } from '~/utils/user-validation.ts'
 import { checkboxSchema } from '~/utils/zod-extensions.ts'
 import { twoFAVerificationType } from '../settings+/profile.two-factor.tsx'
 import { unverifiedSessionKey } from './verify.tsx'
@@ -19,8 +19,10 @@ import { StatusButton } from '~/components/ui/status-button.tsx'
 
 const ROUTE_PATH = '/resources/login'
 
+const usernameOrEmailSchema = z.string().min(3).max(254)
+
 export const loginFormSchema = z.object({
-	username: usernameSchema,
+	username: usernameOrEmailSchema,
 	password: passwordSchema,
 	redirectTo: z.string().optional(),
 	remember: checkboxSchema(),
@@ -80,6 +82,13 @@ export async function action({ request }: DataFunctionArgs) {
 		select: { id: true },
 	})
 
+	const userWithRoles = await prisma.user.findUnique({
+		where: { id: session.userId },
+		select: { roles: { select: { name: true } } },
+	})
+	const isAdmin = userWithRoles?.roles.some(
+		r => r.name === 'admin' || r.name === 'superAdmin',
+	)
 	const cookieSession = await getSession(request.headers.get('cookie'))
 	const keyToSet = user2FA ? unverifiedSessionKey : authenticator.sessionKey
 	cookieSession.set(keyToSet, sessionId)
@@ -91,10 +100,13 @@ export async function action({ request }: DataFunctionArgs) {
 			}),
 		},
 	}
-	if (user2FA || !redirectTo) {
+	if (user2FA) {
 		return json({ status: 'success', submission } as const, responseInit)
 	} else {
-		throw redirect(safeRedirect(redirectTo), responseInit)
+		const finalRedirect = isAdmin && (!redirectTo || redirectTo === '/')
+			? '/admin'
+			: safeRedirect(redirectTo || '/')
+		throw redirect(finalRedirect, responseInit)
 	}
 }
 
@@ -128,7 +140,7 @@ export function InlineLogin({
 					{...form.props}
 				>
 					<Field
-						labelProps={{ children: 'Username' }}
+						labelProps={{ children: 'Username or Email' }}
 						inputProps={{ ...conform.input(fields.username), autoFocus: true }}
 						errors={fields.username.errors}
 					/>

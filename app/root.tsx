@@ -1,10 +1,3 @@
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuPortal,
-	DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu.tsx'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import {
 	json,
@@ -14,7 +7,6 @@ import {
 	type V2_MetaFunction,
 } from '@remix-run/node'
 import {
-	Form,
 	Link,
 	Links,
 	LiveReload,
@@ -23,7 +15,6 @@ import {
 	Scripts,
 	ScrollRestoration,
 	useLoaderData,
-	useSubmit,
 } from '@remix-run/react'
 import { withSentry } from '@sentry/remix'
 import { ThemeSwitch, useTheme } from './routes/resources+/theme/index.tsx'
@@ -35,16 +26,16 @@ import { ClientHintCheck, getHints } from './utils/client-hints.tsx'
 import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
 import { Button } from '~/components/ui/button.tsx'
-import { combineHeaders, getDomainUrl, getUserImgSrc } from './utils/misc.ts'
+import { combineHeaders, getDomainUrl } from './utils/misc.ts'
 import { useNonce } from './utils/nonce-provider.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
-import { useOptionalUser, useUser } from './utils/user.ts'
-import { useRef } from 'react'
-import { Icon, href as iconsHref } from './components/ui/icon.tsx'
+import { useOptionalUser } from './utils/user.ts'
+import { href as iconsHref } from './components/ui/icon.tsx'
 import { Confetti } from './components/confetti.tsx'
 import { getFlashSession } from './utils/flash-session.server.ts'
 import { useToast } from './utils/useToast.tsx'
 import { Toaster } from './components/ui/toaster.tsx'
+import { Sidebar } from './components/sidebar.tsx'
 
 export const links: LinksFunction = () => {
 	return [
@@ -77,8 +68,8 @@ export const links: LinksFunction = () => {
 
 export const meta: V2_MetaFunction = () => {
 	return [
-		{ title: 'The Barn - Volunteer Portal' },
-		{ name: 'description', content: 'Equestrian Volunteer Coordinator' },
+		{ title: 'The Barn' },
+		{ name: 'description', content: 'Volunteer scheduling for animal-assisted therapy nonprofits' },
 	]
 }
 
@@ -151,32 +142,6 @@ function App() {
 	const theme = useTheme()
 	useToast(data.flash?.toast)
 
-	const userIsAdmin = user?.roles.find(role => role.name === 'admin')
-
-	let nav = (
-		<Button asChild variant="default">
-			<Link to="/login">Log In</Link>
-		</Button>
-	)
-	if (user) {
-		nav = (
-			<div className="flex grow items-center justify-between gap-1 sm:justify-end">
-				<div className="flex items-center justify-start gap-1">
-					<Button asChild className="px-4" variant="default">
-						<Link to="/calendar" className="flex gap-2">
-							<Icon className="text-body-md" name="calendar" />
-							<span className="xsm:inline hidden">Calendar</span>
-						</Link>
-					</Button>
-					{userIsAdmin ? <AdminDropdown /> : null}
-				</div>
-				<div className="shrink-0">
-					<UserDropdown />
-				</div>
-			</div>
-		)
-	}
-
 	return (
 		<html lang="en" className={`${theme} h-full`}>
 			<head>
@@ -186,39 +151,36 @@ function App() {
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
 				<Links />
 			</head>
-			<body className="flex h-full flex-col justify-between bg-background text-foreground">
-				<header className="container mx-auto py-6">
-					<nav className="flex justify-center sm:justify-between">
-						<Link to="/" className="hidden sm:block">
-							<div className="font-light">Equestrian</div>
-							<div className="font-bold">Volunteer Scheduler</div>
-						</Link>
-						{nav}
-					</nav>
-				</header>
-
-				<div className="flex-1">
-					<Outlet />
-				</div>
-
-				<div className="container mx-auto flex justify-between">
-					<Link to="/">
-						<div className="font-light">Equestrian</div>
-						<div className="font-bold">Volunteer Scheduler</div>
-					</Link>
-					<div className="flex items-center justify-start gap-1">
-						<Link to="/tos" className="mr-2 text-sm">
-							Terms of Service
-						</Link>
-						<Link to="/privacy" className="text-sm">
-							Privacy Policy
-						</Link>
+			<body className="bg-background text-foreground">
+				{user ? (
+					// Authenticated: sidebar layout
+					<div className="flex h-screen overflow-hidden">
+						<Sidebar userPreference={data.requestInfo.session.theme} />
+						<main className="ml-60 flex-1 overflow-y-auto">
+							<Outlet />
+						</main>
 					</div>
-
-					<ThemeSwitch userPreference={data.requestInfo.session.theme} />
-				</div>
-
-				<div className="h-5" />
+				) : (
+					// Unauthenticated: top-nav layout
+					<div className="flex min-h-screen flex-col">
+						<header className="border-b border-border">
+							<div className="flex h-16 w-full items-center justify-between px-8">
+								<Link to="/" className="text-h4 font-bold text-sidebar-active">
+									The Barn
+								</Link>
+								<div className="flex items-center gap-3">
+									<ThemeSwitch userPreference={data.requestInfo.session.theme} />
+									<Button asChild variant="default">
+										<Link to="/login">Log In</Link>
+									</Button>
+								</div>
+							</div>
+						</header>
+						<div className="flex-1">
+							<Outlet />
+						</div>
+					</div>
+				)}
 				<Confetti confetti={data.flash?.confetti} />
 				<Toaster />
 				<ScrollRestoration nonce={nonce} />
@@ -235,102 +197,3 @@ function App() {
 	)
 }
 export default withSentry(App)
-
-function UserDropdown() {
-	const user = useUser()
-	const submit = useSubmit()
-	const formRef = useRef<HTMLFormElement>(null)
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary" className="gap-2 px-2">
-					<Link
-						to={`/settings/profile`}
-						// this is for progressive enhancement
-						onClick={e => e.preventDefault()}
-					>
-						<img
-							className="h-8 w-8 rounded-full object-cover"
-							alt={user.name ?? user.username}
-							src={getUserImgSrc(user.imageId)}
-						/>
-						<span className="hidden text-body-sm font-bold sm:inline">
-							{user.name ?? user.username}
-						</span>
-					</Link>
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuPortal>
-				<DropdownMenuContent sideOffset={8} align="start">
-					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/users/${user.username}`}>
-							<Icon className="text-body-md" name="avatar">
-								Profile
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						asChild
-						// this prevents the menu from closing before the form submission is completed
-						onSelect={event => {
-							event.preventDefault()
-							submit(formRef.current)
-						}}
-					>
-						<Form action="/logout" method="POST" ref={formRef}>
-							<button type="submit">
-								<Icon className="text-body-md" name="exit">
-									Logout
-								</Icon>
-							</button>
-						</Form>
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenuPortal>
-		</DropdownMenu>
-	)
-}
-
-function AdminDropdown() {
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary" className="gap-2">
-					<Link
-						to="/admin/users"
-						// this is for progressive enhancement
-						onClick={e => e.preventDefault()}
-					>
-						<Icon className="text-body-md" name="gear" />
-						<span className="text-body-sm font-bold">Admin</span>
-					</Link>
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuPortal>
-				<DropdownMenuContent sideOffset={8} align="start">
-					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/admin/users`}>
-							<Icon className="text-body-md" name="person">
-								Users
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
-					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/admin/horses`}>
-							<Icon className="text-body-md" name="horse">
-								Horses
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
-					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/admin/email`}>
-							<Icon className="text-body-md" name="email">
-								Email
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenuPortal>
-		</DropdownMenu>
-	)
-}

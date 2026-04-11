@@ -8,6 +8,7 @@ import {
 } from '@remix-run/react'
 import { z } from 'zod'
 import { requireAdmin } from '~/utils/permissions.server.ts'
+import { requireOrgMember } from '~/utils/auth.server.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 import { checkboxSchema } from '~/utils/zod-extensions.ts'
 import { useResetCallback } from '~/utils/misc.ts'
@@ -29,7 +30,7 @@ const emailFormSchema = z
 	.object({
 		allVolunteers: checkboxSchema(),
 		lessonAssistant: checkboxSchema(),
-		horseLeader: checkboxSchema(),
+		animalHandler: checkboxSchema(),
 		instructor: checkboxSchema(),
 		subject: z
 			.string()
@@ -49,6 +50,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 
 export async function action({ request, params }: DataFunctionArgs) {
 	await requireAdmin(request)
+	const { orgId } = await requireOrgMember(request)
 	const formData = await request.formData()
 	const submission = parse(formData, { schema: emailFormSchema })
 	if (!submission.value) {
@@ -60,12 +62,12 @@ export async function action({ request, params }: DataFunctionArgs) {
 	const roles = [
 		'allVolunteers',
 		'lessonAssistant',
-		'horseLeader',
+		'animalHandler',
 		'instructor',
 	]
 	const selectedRoles = roles.filter(role => submission.payload[role] === 'on')
-	const recipients = await getRecipientsFromRoles(selectedRoles)
-	const upcomingEvents = await getUpcomingEvents(5);
+	const recipients = await getRecipientsFromRoles(selectedRoles, orgId)
+	const upcomingEvents = await getUpcomingEvents(5, orgId);
 
 	if (recipients.length === 0) {
 		return json(
@@ -151,15 +153,21 @@ export default function Email() {
 	})
 
 	return (
-		<div>
-			<h1 className="text-center text-5xl">Email</h1>
-			<div className="container pt-10">
-				<Form
-					method="POST"
-					{...form.props}
-					className="mx-auto max-w-lg"
-					ref={formRef}
-				>
+		<div className="container py-8">
+			<div className="mb-6 flex items-center justify-between">
+				<div>
+					<h1 className="text-h3">Email</h1>
+					<p className="mt-1 text-body-sm text-muted-foreground">
+						Send bulk emails to volunteers by role.
+					</p>
+				</div>
+			</div>
+			<Form
+				method="POST"
+				{...form.props}
+				className="mx-auto max-w-lg"
+				ref={formRef}
+			>
 					<section className="flex flex-col gap-2">
 						<Label>To:</Label>
 						<CheckboxField
@@ -184,13 +192,13 @@ export default function Email() {
 						/>
 						<CheckboxField
 							labelProps={{
-								htmlFor: fields.horseLeader.id,
-								children: 'Horse Leaders',
+								htmlFor: fields.animalHandler.id,
+								children: 'Animal Handlers',
 							}}
 							buttonProps={{
-								...conform.input(fields.horseLeader, { type: 'checkbox' }),
+								...conform.input(fields.animalHandler, { type: 'checkbox' }),
 							}}
-							errors={fields.horseLeader.errors}
+							errors={fields.animalHandler.errors}
 						/>
 						<CheckboxField
 							labelProps={{
@@ -237,14 +245,14 @@ export default function Email() {
 						</StatusButton>
 					</section>
 				</Form>
-			</div>
 		</div>
 	)
 }
 
-async function getUpcomingEvents(limit: number) {
+async function getUpcomingEvents(limit: number, orgId: string) {
 	const events = await prisma.event.findMany({
 		where: { 
+			orgId,
 			start: { gt: new Date() },
 			// Don't include private events in upcoming events
 			isPrivate: false,
@@ -255,10 +263,10 @@ async function getUpcomingEvents(limit: number) {
 }
 
 
-async function getRecipientsFromRoles(roles: string[]) {
+async function getRecipientsFromRoles(roles: string[], orgId: string) {
 	const recipients = new Set<string>()
 	if (roles.includes('allVolunteers')) {
-		const users = await prisma.user.findMany()
+		const users = await prisma.user.findMany({ where: { orgId } })
 		users
 			.filter(user => user.mailingList)
 			.map(user => user.email)
@@ -266,7 +274,7 @@ async function getRecipientsFromRoles(roles: string[]) {
 	} else {
 		for (let role of roles) {
 			const users = await prisma.user.findMany({
-				where: { roles: { some: { name: role } } },
+				where: { orgId, roles: { some: { name: role } } },
 			})
 			users
 				.filter(user => user.mailingList)
@@ -275,7 +283,7 @@ async function getRecipientsFromRoles(roles: string[]) {
 
 			// Include admin on all emails
 			const admin = await prisma.user.findMany({
-				where: { roles: { some: { name: 'admin' } } },
+				where: { orgId, roles: { some: { name: 'admin' } } },
 			})
 			admin
 				.filter(user => user.mailingList)

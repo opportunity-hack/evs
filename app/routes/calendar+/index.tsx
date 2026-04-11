@@ -1,24 +1,19 @@
 import { Link, Form, json, useLoaderData, useActionData } from '~/remix.ts'
 import type { ActionArgs, LoaderArgs } from '~/remix.ts'
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
 import format from 'date-fns/format/index.js'
 import parse from 'date-fns/parse/index.js'
-import startOfWeek from 'date-fns/startOfWeek/index.js'
-import getDay from 'date-fns/getDay/index.js'
-import enUS from 'date-fns/locale/en-US/index.js'
-import '~/styles/react-big-calendar.css'
 import { Icon } from '~/components/ui/icon.tsx'
 
 import {
 	volunteerTypes,
 	type UserData,
-	type HorseData,
+	type AnimalData,
 	type EventWithVolunteers,
 } from '~/data.ts'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 import { prisma } from '~/utils/db.server.ts'
-import { requireUserId } from '~/utils/auth.server.ts'
+import { requireOrgMember } from '~/utils/auth.server.ts'
 import { useUser } from '~/utils/user.ts'
 import { Button } from '~/components/ui/button.tsx'
 import {
@@ -44,7 +39,7 @@ import {
 import { parse as formParse } from '@conform-to/zod'
 import { z } from 'zod'
 
-import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
+import { AnimalListbox, InstructorListbox } from '~/components/listboxes.tsx'
 import { addMinutes, isAfter } from 'date-fns'
 import { useFetcher, useFormAction, useNavigation } from '@remix-run/react'
 import { useResetCallback } from '~/utils/misc.ts'
@@ -68,41 +63,30 @@ import { Separator } from '~/components/ui/separator.tsx'
 import { CheckboxField, Field, DatePickerField } from '~/components/forms.tsx'
 import { checkboxSchema, optionalDateSchema } from '~/utils/zod-extensions.ts'
 import {
-	horseDateConflicts,
-	renderHorseConflictMessage,
+	animalDateConflicts,
+	renderAnimalConflictMessage,
 } from '~/utils/cooldown-functions.ts'
 import { EventAgenda } from '~/components/EventAgenda.tsx'
 
-const locales = {
-	'en-US': enUS,
-}
-
-const localizer = dateFnsLocalizer({
-	format,
-	parse,
-	startOfWeek,
-	getDay,
-	locales,
-})
 
 export const loader = async ({ request }: LoaderArgs) => {
-	await requireUserId(request)
+	const { orgId } = await requireOrgMember(request)
 	const isAdmin = await userHasAdminPermissions(request)
 	const instructors = await prisma.user.findMany({
-		where: { roles: { some: { name: 'instructor' } } },
+		where: { orgId, roles: { some: { name: 'instructor' } } },
 	})
 
-	let eventsWhere: { isPrivate?: boolean } = { isPrivate: false }
+	let eventsWhere: { orgId: string; isPrivate?: boolean } = { orgId, isPrivate: false }
 	if (isAdmin) delete eventsWhere.isPrivate
 	let events = await prisma.event.findMany({
 		where: eventsWhere,
 		include: {
-			horses: true,
+			animals: true,
 			instructors: true,
 			cleaningCrew: true,
 			lessonAssistants: true,
 			sideWalkers: true,
-			horseLeaders: true,
+			animalHandlers: true,
 		},
 	})
 
@@ -118,12 +102,12 @@ export const loader = async ({ request }: LoaderArgs) => {
 
 	return json({
 		events,
-		horses: await prisma.horse.findMany(),
+		animals: await prisma.animal.findMany({ where: { orgId } }),
 		instructors,
 	})
 }
 
-const horseSchema = z.object({
+const animalSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	cooldownStartDate: optionalDateSchema,
@@ -147,17 +131,18 @@ const createEventSchema = z.object({
 		.string()
 		.regex(new RegExp(/^\d{2}:\d{2}$/g), 'Invalid start time'),
 	duration: z.coerce.number().gt(0),
-	horses: z.array(horseSchema).optional(),
+	animals: z.array(animalSchema).optional(),
 	instructor: instructorSchema,
 	cleaningCrewReq: z.coerce.number().gt(-1),
 	lessonAssistantsReq: z.coerce.number().gt(-1),
 	sideWalkersReq: z.coerce.number().gt(-1),
-	horseLeadersReq: z.coerce.number().gt(-1),
+	animalHandlersReq: z.coerce.number().gt(-1),
 	isPrivate: checkboxSchema(),
 })
 
 export async function action({ request }: ActionArgs) {
 	await requireAdmin(request)
+	const { orgId } = await requireOrgMember(request)
 	const body = await request.formData()
 	const submission = formParse(body, {
 		schema: () => {
@@ -182,7 +167,7 @@ export async function action({ request }: ActionArgs) {
 	const cleaningCrewReq = submission.value.cleaningCrewReq
 	const lessonAssistantsReq = submission.value.lessonAssistantsReq
 	const sideWalkersReq = submission.value.sideWalkersReq
-	const horseLeadersReq = submission.value.horseLeadersReq
+	const animalHandlersReq = submission.value.animalHandlersReq
 	const isPrivate = submission.value.isPrivate
 
 	const dateTimesArray = datesArray.map(date => {
@@ -192,27 +177,27 @@ export async function action({ request }: ActionArgs) {
 		return { start, end }
 	})
 
-	// Check that horses selected are not in cooldown period
-	const horses = submission.value.horses
-	if (horses) {
-		interface horseDateConflict {
+	// Check that animals selected are not in cooldown period
+	const animals = submission.value.animals
+	if (animals) {
+		interface animalDateConflict {
 			name: String
 			conflictingDatesArr: Array<Date>
 		}
-		let errorHorseArr: Array<horseDateConflict> = []
-		horses.forEach(horse => {
-			const conflicts = horseDateConflicts(
-				horse,
+		let errorAnimalArr: Array<animalDateConflict> = []
+		animals.forEach(animal => {
+			const conflicts = animalDateConflicts(
+				animal,
 				dateTimesArray.map(date => date.start),
 			)
-			if (conflicts) errorHorseArr.push(conflicts)
+			if (conflicts) errorAnimalArr.push(conflicts)
 		})
 
-		const message = renderHorseConflictMessage(errorHorseArr)
+		const message = renderAnimalConflictMessage(errorAnimalArr)
 
-		if (errorHorseArr.length > 0) {
+		if (errorAnimalArr.length > 0) {
 			return json({
-				status: 'horse-error',
+				status: 'animal-error',
 				submission,
 				message,
 			} as const)
@@ -224,7 +209,7 @@ export async function action({ request }: ActionArgs) {
 	if (instructorId) {
 		instructorData = [{ id: instructorId }]
 	}
-	const horseIds = submission.value.horses?.map(e => {
+	const animalIds = submission.value.animals?.map(e => {
 		return { id: e.id }
 	})
 
@@ -236,16 +221,17 @@ export async function action({ request }: ActionArgs) {
 					title,
 					start: dateTime.start,
 					end: dateTime.end,
+					orgId,
 					instructors: {
 						connect: instructorData,
 					},
-					horses: {
-						connect: horseIds ?? [],
+					animals: {
+						connect: animalIds ?? [],
 					},
 					cleaningCrewReq,
 					lessonAssistantsReq,
 					sideWalkersReq,
-					horseLeadersReq,
+					animalHandlersReq,
 					isPrivate,
 				},
 			}),
@@ -265,7 +251,7 @@ export async function action({ request }: ActionArgs) {
 export default function Schedule() {
 	const data = useLoaderData<typeof loader>()
 	var events = data.events
-	const horses = data.horses
+	const animals = data.animals
 	const instructors = data.instructors
 	const user = useUser()
 	const userIsAdmin = user.roles.find(role => role.name === 'admin')
@@ -279,7 +265,7 @@ export default function Schedule() {
 			event.start.valueOf() > new Date().valueOf() &&
 			(event.cleaningCrewReq > event.cleaningCrew.length ||
 				event.lessonAssistantsReq > event.lessonAssistants.length ||
-				event.horseLeadersReq > event.horseLeaders.length ||
+				event.animalHandlersReq > event.animalHandlers.length ||
 				event.sideWalkersReq > event.sideWalkers.length)
 		)
 	})
@@ -289,53 +275,57 @@ export default function Schedule() {
 		setRegisterOpen(!registerOpen)
 	}
 
-	const components = useMemo(
-		() => ({
-			agenda: {
-				event: EventAgenda,
-			},
-		}),
-		[],
-	)
+	const upcomingCount = events.filter(e => e.start.valueOf() > new Date().valueOf()).length
+	const needsHelpCount = eventsThatNeedHelp.length
 
 	return (
-		<div className="grid place-items-center gap-2">
-			<h1 className="mb-3 text-5xl">Calendar</h1>
-			<div className="mb-0 flex gap-2">
-				<Checkbox
-					checked={filterFlag}
-					onCheckedChange={() => setFilterFlag(!filterFlag)}
-					id="filter"
-				/>
-				<Label htmlFor="filter">
-					Show only events that need more volunteers
-				</Label>
+		<div className="flex flex-col gap-4 px-4 py-6">
+			{/* Page header */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-h3">Calendar</h1>
+					<p className="mt-1 text-body-sm text-muted-foreground">
+						Schedule events and manage volunteer assignments
+					</p>
+				</div>
+				{userIsAdmin ? (
+					<CreateEventDialog animals={animals} instructors={instructors} />
+				) : null}
 			</div>
 
-			{userIsAdmin ? (
-				<CreateEventDialog horses={horses} instructors={instructors} />
-			) : null}
+			{/* Stat cards */}
+			<div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+				<div className="rounded-xl border border-border bg-background p-4">
+					<p className="text-body-2xs font-semibold uppercase tracking-wider text-muted-foreground">
+						Upcoming Events
+					</p>
+					<p className="mt-1 text-h4">{upcomingCount}</p>
+				</div>
+				<div className="rounded-xl border border-border bg-background p-4">
+					<p className="text-body-2xs font-semibold uppercase tracking-wider text-muted-foreground">
+						Need Volunteers
+					</p>
+					<p className={`mt-1 text-h4 ${needsHelpCount > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+						{needsHelpCount}
+					</p>
+				</div>
+				<div className="col-span-2 sm:col-span-1 flex items-center gap-3 rounded-xl border border-border bg-background p-4">
+					<Checkbox
+						checked={filterFlag}
+						onCheckedChange={() => setFilterFlag(!filterFlag)}
+						id="filter"
+					/>
+					<Label htmlFor="filter" className="cursor-pointer text-body-sm">
+						Show only events needing volunteers
+					</Label>
+				</div>
+			</div>
 
-			<div className="flex h-screen w-full justify-center">
-				<Calendar
-					localizer={localizer}
+			{/* Calendar */}
+			<div className="flex h-[calc(100vh-16rem)] w-full">
+				<CustomAgenda
 					events={filterFlag ? eventsThatNeedHelp : events}
-					tooltipAccessor={event =>
-						`Cleaning Crew: ${event.cleaningCrew.length} / ${event.cleaningCrewReq}\nSidewalkers: ${event.sideWalkers.length} / ${event.sideWalkersReq}\nLesson Assistants: ${event.lessonAssistants.length} / ${event.lessonAssistantsReq}\nHorse Leaders: ${event.horseLeaders.length} / ${event.horseLeadersReq}`
-					}
-					startAccessor="start"
-					endAccessor="end"
 					onSelectEvent={handleSelectEvent}
-					style={{
-						height: '95%',
-						width: '95%',
-						backgroundColor: 'white',
-						color: 'black',
-						padding: 20,
-						borderRadius: '1.5rem',
-					}}
-					components={components}
-					defaultView="agenda"
 				/>
 			</div>
 
@@ -345,6 +335,83 @@ export default function Schedule() {
 					events={events}
 				/>
 			</Dialog>
+		</div>
+	)
+}
+
+interface CustomAgendaProps {
+	events: EventWithVolunteers[]
+	onSelectEvent: (event: EventWithVolunteers) => void
+}
+
+function CustomAgenda({ events, onSelectEvent }: CustomAgendaProps) {
+	// Group events by date, sorted by start time
+	const grouped = (() => {
+		const sorted = [...events].sort(
+			(a, b) => new Date(a.start).valueOf() - new Date(b.start).valueOf(),
+		)
+		const groups: { date: Date; key: string; events: EventWithVolunteers[] }[] =
+			[]
+		for (const event of sorted) {
+			const key = format(new Date(event.start), 'yyyy-MM-dd')
+			const existing = groups.find(g => g.key === key)
+			if (existing) {
+				existing.events.push(event)
+			} else {
+				groups.push({ date: new Date(event.start), key, events: [event] })
+			}
+		}
+		return groups
+	})()
+
+	if (grouped.length === 0) {
+		return (
+			<div className="flex h-full w-full items-center justify-center rounded-xl border border-border bg-background">
+				<p className="text-muted-foreground">No upcoming events</p>
+			</div>
+		)
+	}
+
+	return (
+		<div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-background">
+			{/* Column headers */}
+			<div className="flex shrink-0 border-b border-border px-4 py-2 text-body-2xs font-semibold uppercase tracking-wider text-muted-foreground">
+				<span className="w-32 shrink-0">Date</span>
+				<span className="w-44 shrink-0">Time</span>
+				<span>Event</span>
+			</div>
+			{/* Scrollable body */}
+			<div className="flex-1 overflow-y-auto">
+				{grouped.map(({ date, key, events: dayEvents }) => (
+					<div key={key} className="border-b border-border last:border-b-0">
+						{dayEvents.map((event, idx) => (
+							<div
+								key={event.id}
+								onClick={() => onSelectEvent(event)}
+								className={`flex cursor-pointer items-start hover:bg-muted/20 ${
+									idx < dayEvents.length - 1
+										? 'border-b border-border/40'
+										: ''
+								}`}
+							>
+								{/* Date — only on first event of the group */}
+								<div className="w-32 shrink-0 px-4 py-3 text-sm font-medium">
+									{idx === 0 ? format(date, 'EEE MMM d') : ''}
+								</div>
+								{/* Time */}
+								<div className="w-44 shrink-0 px-4 py-3 text-sm text-muted-foreground">
+									{format(new Date(event.start), 'h:mm aaa')} –{' '}
+									{format(new Date(event.end), 'h:mm aaa')}
+								</div>
+								{/* Event content */}
+								<div className="flex-1 px-4 py-3">
+									<EventAgenda event={event} />
+								</div>
+							</div>
+						))}
+					</div>
+				))}
+			</div>
 		</div>
 	)
 }
@@ -360,8 +427,8 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 	const userIsAdmin = user.roles.find(role => role.name === 'admin')
 	const userIsLessonAssistant =
 		user.roles.find(role => role.name === 'lessonAssistant') != undefined
-	const userIsHorseLeader =
-		user.roles.find(role => role.name === 'horseLeader') != undefined
+	const userIsAnimalHandler =
+		user.roles.find(role => role.name === 'animalHandler') != undefined
 
 	const isSubmitting = registrationFetcher.state === 'submitting'
 
@@ -390,7 +457,7 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 	const helpNeeded =
 		calEvent.cleaningCrewReq > calEvent.cleaningCrew.length ||
 		calEvent.lessonAssistantsReq > calEvent.lessonAssistants.length ||
-		calEvent.horseLeadersReq > calEvent.horseLeaders.length ||
+		calEvent.animalHandlersReq > calEvent.animalHandlers.length ||
 		calEvent.sideWalkersReq > calEvent.sideWalkers.length
 
 	const now = new Date()
@@ -461,8 +528,8 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 									let hasPermissions = true
 									if (volunteerType.field == 'lessonAssistants') {
 										hasPermissions = userIsLessonAssistant
-									} else if (volunteerType.field == 'horseLeaders') {
-										hasPermissions = userIsHorseLeader
+									} else if (volunteerType.field == 'animalHandlers') {
+										hasPermissions = userIsAnimalHandler
 									}
 
 									return (
@@ -563,11 +630,11 @@ function RegistrationDialogue({ selectedEventId, events }: RegistrationProps) {
 }
 
 interface CreateEventDialogProps {
-	horses: HorseData[]
+	animals: AnimalData[]
 	instructors: UserData[]
 }
 
-function CreateEventDialog({ horses, instructors }: CreateEventDialogProps) {
+function CreateEventDialog({ animals, instructors }: CreateEventDialogProps) {
 	const [open, setOpen] = useState(false)
 
 	return (
@@ -588,7 +655,7 @@ function CreateEventDialog({ horses, instructors }: CreateEventDialogProps) {
 					</DialogDescription>
 				</DialogHeader>
 				<CreateEventForm
-					horses={horses}
+					animals={animals}
 					instructors={instructors}
 					doneCallback={() => setOpen(false)}
 				/>
@@ -607,7 +674,7 @@ interface EventFormProps extends CreateEventDialogProps {
 }
 
 function CreateEventForm({
-	horses,
+	animals,
 	instructors,
 	doneCallback,
 }: EventFormProps) {
@@ -627,7 +694,7 @@ function CreateEventForm({
 		lastSubmission: actionData?.submission,
 		defaultValue: {
 			cleaningCrewReq: 0,
-			horseLeadersReq: 0,
+			animalHandlersReq: 0,
 			sideWalkersReq: 0,
 			lessonAssistantsReq: 0,
 		},
@@ -646,11 +713,11 @@ function CreateEventForm({
 			if (doneCallback) {
 				doneCallback()
 			}
-		} else if (actionData.status === 'horse-error') {
+		} else if (actionData.status === 'animal-error') {
 			toast({
 				variant: 'destructive',
 				title:
-					'The following horses are scheduled for cooldown on the selected dates:',
+					'The following animals are scheduled for cooldown on the selected dates:',
 				description: actionData.message,
 			})
 		} else {
@@ -710,11 +777,11 @@ function CreateEventForm({
 				</div>
 				<Separator className="col-span-2 border" />
 				<div className="col-span-2 sm:col-span-1">
-					<Label htmlFor="horses">Horses</Label>
-					<HorseListbox
-						name="horses"
-						horses={horses}
-						error={actionData?.status === 'horse-error' ?? false}
+					<Label htmlFor="animals">Animals</Label>
+					<AnimalListbox
+						name="animals"
+						animals={animals}
+						error={actionData?.status === 'animal-error' ?? false}
 					/>
 				</div>
 				<div className="col-span-2 sm:col-span-1">
@@ -763,15 +830,15 @@ function CreateEventForm({
 				<Field
 					className="col-span-2 sm:col-span-1"
 					labelProps={{
-						htmlFor: fields.horseLeadersReq.id,
-						children: 'Horse leaders needed',
+						htmlFor: fields.animalHandlersReq.id,
+						children: 'Animal handlers needed',
 					}}
 					inputProps={{
-						...conform.input(fields.horseLeadersReq),
+						...conform.input(fields.animalHandlersReq),
 						type: 'number',
 						min: 0,
 					}}
-					errors={fields.horseLeadersReq.errors}
+					errors={fields.animalHandlersReq.errors}
 				/>
 				<CheckboxField
 					className="col-span-2"

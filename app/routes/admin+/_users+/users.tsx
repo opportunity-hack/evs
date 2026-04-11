@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { type LoaderArgs, json, useLoaderData, Outlet, Link } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
+import { requireOrgMember } from '~/utils/auth.server.ts'
 import { DataTable } from '~/components/ui/data_table.tsx'
 
 import { type ColumnDef } from '@tanstack/react-table'
@@ -21,17 +23,61 @@ import { SetSignupPasswordForm } from '~/routes/resources+/signup_password.tsx'
 
 export const loader = async ({ request }: LoaderArgs) => {
 	await requireAdmin(request)
-	return json(await prisma.user.findMany({ include: { roles: true } }))
+	const { orgId } = await requireOrgMember(request)
+	return json(await prisma.user.findMany({ where: { orgId }, include: { roles: true } }))
 }
 
 export default function Users() {
 	const data = useLoaderData<typeof loader>()
+	const [search, setSearch] = useState('')
+
+	const filtered = data.filter(u => {
+		const q = search.toLowerCase()
+		return (
+			!q ||
+			u.name?.toLowerCase().includes(q) ||
+			u.email.toLowerCase().includes(q) ||
+			u.username.toLowerCase().includes(q)
+		)
+	})
+
 	return (
-		<div>
-			<h1 className="text-center text-5xl">Users</h1>
-			<div className="container pt-10">
-				<DataTable columns={columns} data={data} />
-				<SetSignupPasswordForm/>
+		<div className="container py-8">
+			<div className="mb-6 flex items-center justify-between">
+				<div>
+					<h1 className="text-h3">Volunteers</h1>
+					<p className="mt-1 text-body-sm text-muted-foreground">
+						{data.length} member{data.length !== 1 ? 's' : ''} in your organization
+					</p>
+				</div>
+			</div>
+
+			{/* Filter bar */}
+			<div className="mb-4 flex items-center gap-3">
+				<div className="flex-1 max-w-sm">
+					<input
+						type="search"
+						placeholder="Search by name, email or username..."
+						value={search}
+						onChange={e => setSearch(e.target.value)}
+						className="w-full rounded-md border border-input bg-background px-3 py-2 text-body-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					/>
+				</div>
+				{search && (
+					<span className="text-body-xs text-muted-foreground">
+						{filtered.length} result{filtered.length !== 1 ? 's' : ''}
+					</span>
+				)}
+			</div>
+
+			<DataTable
+				columns={columns}
+				data={filtered}
+				emptyMessage={search ? 'No volunteers match your search' : 'No volunteers yet'}
+				emptyDescription={search ? 'Try a different name or email.' : 'Volunteers will appear here once they join your organization.'}
+			/>
+			<div className="mt-8">
+				<SetSignupPasswordForm />
 			</div>
 			<Outlet />
 		</div>
@@ -96,9 +142,9 @@ export const columns: ColumnDef<UserWithRole>[] = [
 		},
 	},
 	{
-		header: 'horse leader',
+		header: 'animal handler',
 		accessorFn: (row) => {
-			const hasRole = row.roles.find(r => r.name === 'horseLeader')
+			const hasRole = row.roles.find(r => r.name === 'animalHandler')
 			return hasRole ? 'Yes' : 'No'
 		},
 	},

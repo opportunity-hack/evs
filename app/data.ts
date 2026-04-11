@@ -1,10 +1,10 @@
 import { Prisma } from '@prisma/client'
 
 export const siteName = 'The Barn Volunteer Portal'
-export const siteEmailAddress = 'hello@email.trottrack.org'
+export const siteEmailAddress = 'hello@thebarnaz.com'
 export const siteEmailAddressWithName =
-	siteName + ' <hello@email.trottrack.org>'
-export const siteBaseUrl = 'https://thebarn.trottrack.org'
+	siteName + ' <hello@thebarnaz.com>'
+export const siteBaseUrl = 'https://thebarnaz.com'
 
 export const volunteerTypes = [
 	{
@@ -12,28 +12,28 @@ export const volunteerTypes = [
 		field: 'cleaningCrew',
 		reqField: 'cleaningCrewReq',
 		description:
-			'Cleaning crew volunteers help clean all pastures and stalls in the barn, check automatic waterers, sweep the feed room and tack room, and handle other miscellaneous cleaning jobs. No prior experience with horses is required.',
+			'Cleaning crew volunteers help maintain the facility, check waterers, sweep common areas, and handle other miscellaneous cleaning tasks. No prior experience with animals is required.',
 	},
 	{
 		displayName: 'side walkers',
 		field: 'sideWalkers',
 		reqField: 'sideWalkersReq',
 		description:
-			'Side walkers walk alongside students helping to support them during lessons.No prior experience with horses needed. Must be able to walk on uneven surfaces.',
+			'Side walkers walk alongside participants helping to support them during sessions. No prior experience with animals needed. Must be able to walk on uneven surfaces.',
 	},
 	{
 		displayName: 'lesson assistants',
 		field: 'lessonAssistants',
 		reqField: 'lessonAssistantsReq',
 		description:
-			'Lesson assistants should have 1+ years of experience with horses. They must be able to groom and tack horses, and to communicate effectively with both students and instructors.',
+			'Lesson assistants should have 1+ years of experience with the animals. They assist instructors and communicate effectively with both participants and staff.',
 	},
 	{
-		displayName: 'horse leaders',
-		field: 'horseLeaders',
-		reqField: 'horseLeadersReq',
+		displayName: 'animal handlers',
+		field: 'animalHandlers',
+		reqField: 'animalHandlersReq',
 		description:
-			'Leads horses during lessons. Should have 1+ years of experiences with horses, and must be able to walk on uneven surfaces.',
+			'Animal handlers guide and manage animals during sessions. Should have 1+ years of experience with animals, and must be able to walk on uneven surfaces.',
 	},
 ] as const
 
@@ -49,7 +49,7 @@ export interface UserData {
 	yearsOfExperience: number | null
 }
 
-export interface HorseData {
+export interface AnimalData {
 	id: string
 	name: string
 	imageId: string | null
@@ -60,9 +60,9 @@ export interface HorseData {
 	cooldownEndDate: Date | null
 }
 
-export interface HorseAssignment {
+export interface AnimalAssignment {
 	userId: string
-	horseId: string
+	animalId: string
 }
 
 export interface CalEvent {
@@ -72,28 +72,28 @@ export interface CalEvent {
 	end: Date
 
 	instructors: UserData[]
-	horses: HorseData[]
+	animals: AnimalData[]
 
 	cleaningCrewReq: number
 	lessonAssistantsReq: number
-	horseLeadersReq: number
+	animalHandlersReq: number
 	sideWalkersReq: number
 
 	cleaningCrew: UserData[]
 	lessonAssistants: UserData[]
-	horseLeaders: UserData[]
+	animalHandlers: UserData[]
 	sideWalkers: UserData[]
 }
 
 const EventWithAllRelations = Prisma.validator<Prisma.EventArgs>()({
 	include: {
-		horses: true,
+		animals: true,
 		instructors: true,
 		cleaningCrew: true,
 		lessonAssistants: true,
-		horseLeaders: true,
+		animalHandlers: true,
 		sideWalkers: true,
-		horseAssignments: true,
+		animalAssignments: true,
 	},
 })
 
@@ -102,11 +102,11 @@ export type EventWithAllRelations = Prisma.EventGetPayload<
 >
 const EventWithVolunteers = Prisma.validator<Prisma.EventArgs>()({
 	include: {
-		horses: true,
+		animals: true,
 		instructors: true,
 		cleaningCrew: true,
 		lessonAssistants: true,
-		horseLeaders: true,
+		animalHandlers: true,
 		sideWalkers: true,
 	},
 })

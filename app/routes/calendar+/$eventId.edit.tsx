@@ -23,7 +23,8 @@ import {
 import { Icon } from '~/components/ui/icon.tsx'
 import { prisma } from '~/utils/db.server.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
-import { HorseListbox, InstructorListbox } from '~/components/listboxes.tsx'
+import { requireOrgMember } from '~/utils/auth.server.ts'
+import { AnimalListbox, InstructorListbox } from '~/components/listboxes.tsx'
 import { addMinutes, differenceInMinutes, format, add } from 'date-fns'
 import { redirectWithToast } from '~/utils/flash-session.server.ts'
 import { conform, useForm } from '@conform-to/react'
@@ -44,16 +45,17 @@ import { useResetCallback } from '~/utils/misc.ts'
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
+	const { orgId } = await requireOrgMember(request)
 	invariant(params.eventId, 'Missing event id')
 
 	const instructors = await prisma.user.findMany({
-		where: { roles: { some: { name: 'instructor' } } },
+		where: { orgId, roles: { some: { name: 'instructor' } } },
 	})
-	const horses = await prisma.horse.findMany()
-	const event = await prisma.event.findUnique({
-		where: { id: params.eventId },
+	const animals = await prisma.animal.findMany({ where: { orgId } })
+	const event = await prisma.event.findFirst({
+		where: { id: params.eventId, orgId },
 		include: {
-			horses: true,
+			animals: true,
 			instructors: true,
 		},
 	})
@@ -61,10 +63,10 @@ export const loader = async ({ request, params }: DataFunctionArgs) => {
 	if (!event) {
 		throw new Response('not found', { status: 404 })
 	}
-	return json({ event, horses, instructors })
+	return json({ event, animals, instructors })
 }
 
-const horseSchema = z.object({
+const animalSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	cooldownStartDate: optionalDateSchema,
@@ -83,17 +85,18 @@ const editEventSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
 	startDate: z.coerce.date(),
 	duration: z.coerce.number().gt(0),
-	horses: z.array(horseSchema).optional(),
+	animals: z.array(animalSchema).optional(),
 	instructor: instructorSchema,
 	cleaningCrewReq: z.coerce.number().gt(-1),
 	lessonAssistantsReq: z.coerce.number().gt(-1),
 	sideWalkersReq: z.coerce.number().gt(-1),
-	horseLeadersReq: z.coerce.number().gt(-1),
+	animalHandlersReq: z.coerce.number().gt(-1),
 	isPrivate: checkboxSchema(),
 })
 
 export async function action({ request, params }: DataFunctionArgs) {
 	await requireAdmin(request)
+	const { orgId } = await requireOrgMember(request)
 	invariant(params.eventId, 'Missing event id')
 	const formData = await request.formData()
 	const submission = parse(formData, {
@@ -121,27 +124,27 @@ export async function action({ request, params }: DataFunctionArgs) {
 	if (instructorId) {
 		instructorData = [{ id: instructorId }]
 	}
-	const horseIds = submission.value.horses?.map(e => {
+	const animalIds = submission.value.animals?.map(e => {
 		return { id: e.id }
 	})
 
-	// check that horses selected are not in cooldown period
-	if (submission.value.horses) {
-		const selectedHorsesArray = submission.value.horses
-		const errorHorses = selectedHorsesArray.filter(horse => {
-			if (horse.cooldownStartDate && horse.cooldownEndDate) {
+	// check that animals selected are not in cooldown period
+	if (submission.value.animals) {
+		const selectedAnimalsArray = submission.value.animals
+		const errorAnimals = selectedAnimalsArray.filter(animal => {
+			if (animal.cooldownStartDate && animal.cooldownEndDate) {
 				return (
-					horse.cooldownStartDate <= start &&
-					start < add(horse.cooldownEndDate, { days: 1 })
+					animal.cooldownStartDate <= start &&
+					start < add(animal.cooldownEndDate, { days: 1 })
 				)
 			} else return false
 		})
-		const listOfHorses = errorHorses.map(h => h.name).join(', ')
-		if (errorHorses.length > 0) {
+		const listOfAnimals = errorAnimals.map(a => a.name).join(', ')
+		if (errorAnimals.length > 0) {
 			return json({
-				status: 'horse-error',
+				status: 'animal-error',
 				submission,
-				message: listOfHorses,
+				message: listOfAnimals,
 			} as const)
 		}
 	}
@@ -149,9 +152,12 @@ export async function action({ request, params }: DataFunctionArgs) {
 	const cleaningCrewReq = submission.value.cleaningCrewReq
 	const lessonAssistantsReq = submission.value.lessonAssistantsReq
 	const sideWalkersReq = submission.value.sideWalkersReq
-	const horseLeadersReq = submission.value.horseLeadersReq
+	const animalHandlersReq = submission.value.animalHandlersReq
 
 	const isPrivate = submission.value.isPrivate
+
+	const existingEvent = await prisma.event.findFirst({ where: { id: params.eventId, orgId } })
+	if (!existingEvent) throw new Response('not found', { status: 404 })
 
 	const updatedEvent = await prisma.event.update({
 		where: {
@@ -164,13 +170,13 @@ export async function action({ request, params }: DataFunctionArgs) {
 			instructors: {
 				set: instructorData,
 			},
-			horses: {
-				set: horseIds ?? [],
+			animals: {
+				set: animalIds ?? [],
 			},
 			cleaningCrewReq,
 			lessonAssistantsReq,
 			sideWalkersReq,
-			horseLeadersReq,
+			animalHandlersReq,
 			isPrivate,
 		},
 	})
@@ -224,10 +230,10 @@ export default function EventEditor() {
 				? format(new Date(data.event.start), "yyyy-MM-dd'T'HH:mm:00")
 				: '',
 			duration: defaultDuration,
-			horses: data.event?.horses,
+			animals: data.event?.animals,
 			instructor: data.event?.instructors[0],
 			cleaningCrewReq: data.event?.cleaningCrewReq,
-			horseLeadersReq: data.event?.horseLeadersReq,
+			animalHandlersReq: data.event?.animalHandlersReq,
 			sideWalkersReq: data.event?.sideWalkersReq,
 			lessonAssistantsReq: data.event?.lessonAssistantsReq,
 		},
@@ -238,11 +244,11 @@ export default function EventEditor() {
 		if (!actionData) {
 			return
 		}
-		if (actionData.status === 'horse-error') {
+		if (actionData.status === 'animal-error') {
 			toast({
 				variant: 'destructive',
 				title:
-					'The following horses are scheduled for cooldown on the selected dates:',
+					'The following animals are scheduled for cooldown on the selected dates:',
 				description: actionData.message,
 			})
 		}
@@ -298,12 +304,12 @@ export default function EventEditor() {
 							</Select>
 						</div>
 						<div className="col-span-2 sm:col-span-1">
-							<Label htmlFor="horses">Horses</Label>
-							<HorseListbox
-								name="horses"
-								horses={data.horses}
-								defaultValues={data.event?.horses}
-								error={actionData?.status === 'horse-error' ?? false}
+							<Label htmlFor="animals">Animals</Label>
+							<AnimalListbox
+								name="animals"
+								animals={data.animals}
+								defaultValues={data.event?.animals}
+								error={actionData?.status === 'animal-error' ?? false}
 							/>
 						</div>
 						<div className="col-span-2 sm:col-span-1">
@@ -354,14 +360,14 @@ export default function EventEditor() {
 						<Field
 							className="col-span-2 sm:col-span-1"
 							labelProps={{
-								htmlFor: fields.horseLeadersReq.id,
-								children: 'Horse leaders needed',
+								htmlFor: fields.animalHandlersReq.id,
+								children: 'Animal handlers needed',
 							}}
 							inputProps={{
-								...conform.input(fields.horseLeadersReq),
+								...conform.input(fields.animalHandlersReq),
 								type: 'number',
 							}}
-							errors={fields.horseLeadersReq.errors}
+							errors={fields.animalHandlersReq.errors}
 						/>
 						<CheckboxField
 							className="col-span-2"

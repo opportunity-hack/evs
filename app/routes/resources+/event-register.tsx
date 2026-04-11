@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { requireUserId } from '~/utils/auth.server.ts'
+import { requireOrgMember } from '~/utils/auth.server.ts'
 import { parse } from '@conform-to/zod'
 import { json, type DataFunctionArgs } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
@@ -20,7 +20,7 @@ const volunteerTypes = [
 	'cleaningCrew',
 	'lessonAssistants',
 	'sideWalkers',
-	'horseLeaders',
+	'animalHandlers',
 ] as const
 
 const EventRegistrationSchema = z.object({
@@ -30,7 +30,7 @@ const EventRegistrationSchema = z.object({
 })
 
 export async function action({ request }: DataFunctionArgs) {
-	const userId = await requireUserId(request)
+	const { userId, orgId } = await requireOrgMember(request)
 	const formData = await request.formData()
 	const submission = parse(formData, {
 		schema: EventRegistrationSchema,
@@ -55,6 +55,10 @@ export async function action({ request }: DataFunctionArgs) {
 	}
 
 	if (submission.value._action === 'unregister') {
+		// Verify the event belongs to the user's org before mutating
+		const eventCheck = await prisma.event.findFirst({ where: { id: submission.value.eventId, orgId } })
+		if (!eventCheck) throw json({ error: 'Event not found' }, { status: 404 })
+
 		const event = await prisma.event.update({
 			where: {
 				id: submission.value.eventId,
@@ -88,6 +92,7 @@ export async function action({ request }: DataFunctionArgs) {
 			event: event,
 			role: submission.value.role,
 			action: 'unregister',
+			orgId,
 		})
 		return json(
 			{
@@ -103,11 +108,15 @@ export async function action({ request }: DataFunctionArgs) {
 			throw json({ error: 'Missing permissions' }, { status: 403 })
 		}
 	}
-	if (submission.value.role == 'horseLeaders') {
-		if (!user.roles.find(role => role.name === 'horseLeader')) {
+	if (submission.value.role == 'animalHandlers') {
+		if (!user.roles.find(role => role.name === 'animalHandler')) {
 			throw json({ error: 'Missing permissions' }, { status: 403 })
 		}
 	}
+
+	// Verify the event belongs to the user's org before mutating
+	const eventOrgCheck = await prisma.event.findFirst({ where: { id: submission.value.eventId, orgId } })
+	if (!eventOrgCheck) throw json({ error: 'Event not found' }, { status: 404 })
 
 	const event = await prisma.event.update({
 		where: {
@@ -162,6 +171,7 @@ export async function action({ request }: DataFunctionArgs) {
 		event: event,
 		role: submission.value.role,
 		action: 'register',
+		orgId,
 	})
 
 	return json(
@@ -221,14 +231,16 @@ async function notifyAdmins({
 	role,
 	action,
 	user,
+	orgId,
 }: {
 	event: Event
-	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'horseLeaders'
+	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'animalHandlers'
 	action: 'register' | 'unregister'
 	user: User
+	orgId: string
 }) {
 	const admins = await prisma.user.findMany({
-		where: { roles: { some: { name: 'admin' } } },
+		where: { orgId, roles: { some: { name: 'admin' } } },
 	})
 
 	for (const admin of admins) {

@@ -38,6 +38,12 @@
 
 		--radius: 0.5rem;
 
+		--color-sidebar: 240 5% 96%;
+		--color-sidebar-foreground: 240 5.9% 10%;
+		--color-sidebar-border: 240 5.9% 90%;
+		--color-sidebar-active: 239 84.2% 67.1%;
+		--color-sidebar-active-foreground: 0 0% 100%;
+
 		--color-brand-primary: 217 91% 60%;
 		--color-brand-primary-muted: 208 56% 44%;
 		--color-brand-secondary: 40 100% 62%;
@@ -93,6 +99,12 @@
 		--color-destructive-foreground: 0 85.7% 97.3%;
 
 		--color-ring: 217 32.6% 17.5%;
+
+		--color-sidebar: 240 5.9% 10%;
+		--color-sidebar-foreground: 210 40% 98%;
+		--color-sidebar-border: 240 3.7% 15.9%;
+		--color-sidebar-active: 239 84.2% 67.1%;
+		--color-sidebar-active-foreground: 0 0% 100%;
 	}
 }
 

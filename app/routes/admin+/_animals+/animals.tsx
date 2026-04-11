@@ -10,6 +10,7 @@ import {
 } from '~/remix.ts'
 import { prisma } from '~/utils/db.server.ts'
 import { requireAdmin } from '~/utils/permissions.server.ts'
+import { requireOrgMember } from '~/utils/auth.server.ts'
 import { DataTable } from '~/components/ui/data_table.tsx'
 import { z } from 'zod'
 import {
@@ -31,7 +32,7 @@ import { useResetCallback } from '~/utils/misc.ts'
 import { useToast } from '~/components/ui/use-toast.ts'
 
 import { type ColumnDef } from '@tanstack/react-table'
-import { type Horse } from '@prisma/client'
+import { type Animal } from '@prisma/client'
 import { formatRelative } from 'date-fns'
 import { Icon } from '~/components/ui/icon.tsx'
 import {
@@ -48,10 +49,11 @@ import {
 	optionalDateTimeZoneSchema,
 } from '~/utils/zod-extensions.ts'
 
-export const horseFormSchema = z
+export const animalFormSchema = z
 	.object({
 		_action: z.enum(['create', 'update']),
 		name: z.string().min(1, { message: 'Name is required' }),
+		species: z.string().optional(),
 		notes: z.string().optional(),
 		status: z.string().optional(),
 		cooldown: checkboxSchema(),
@@ -59,10 +61,6 @@ export const horseFormSchema = z
 		cooldownEndDate: optionalDateTimeZoneSchema,
 	})
 	.refine(
-		/**
-		 * This makes sure that if cooldown is checked, there is both a start and end date,
-		 * and if cooldown is not checked, there are no start and end dates
-		 */
 		schema =>
 			(schema.cooldownStartDate === null &&
 				schema.cooldownEndDate === null &&
@@ -78,9 +76,6 @@ export const horseFormSchema = z
 		},
 	)
 	.refine(
-		/**
-		 * Checks that end date is after or equal to start date
-		 */
 		schema => {
 			const { cooldownStartDate, cooldownEndDate } = schema
 			if (cooldownStartDate && cooldownEndDate) {
@@ -88,26 +83,35 @@ export const horseFormSchema = z
 			} else return true
 		},
 		{
-			message: "End date must not be before start date."
-		}
+			message: 'End date must not be before start date.',
+		},
 	)
 
 export const loader = async ({ request }: DataFunctionArgs) => {
 	await requireAdmin(request)
-	return json(await prisma.horse.findMany())
+	const { orgId } = await requireOrgMember(request)
+	return json(await prisma.animal.findMany({ where: { orgId } }))
 }
 
-export default function Horses() {
+export default function Animals() {
 	const data = useLoaderData<typeof loader>()
 	return (
-		<div className="container">
-			<h1 className="text-center text-5xl">Horses</h1>
-			<div className="flex flex-row-reverse">
-				<CreateHorseDialog />
+		<div className="container py-8">
+			<div className="mb-6 flex items-center justify-between">
+				<div>
+					<h1 className="text-h3">Animals</h1>
+					<p className="mt-1 text-body-sm text-muted-foreground">
+						{data.length} animal{data.length !== 1 ? 's' : ''} in your roster
+					</p>
+				</div>
+				<CreateAnimalDialog />
 			</div>
-			<div className="pt-2">
-				<DataTable columns={columns} data={data} />
-			</div>
+			<DataTable
+				columns={columns}
+				data={data}
+				emptyMessage="No animals added yet"
+				emptyDescription="Add your first animal to get started with event scheduling."
+			/>
 			<Outlet />
 		</div>
 	)
@@ -115,17 +119,20 @@ export default function Horses() {
 
 export const action = async ({ request }: ActionArgs) => {
 	await requireAdmin(request)
+	const { orgId } = await requireOrgMember(request)
 	const formData = await request.formData()
-	const submission = parse(formData, { schema: horseFormSchema })
+	const submission = parse(formData, { schema: animalFormSchema })
 	if (!submission.value) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 
-	await prisma.horse.create({
+	await prisma.animal.create({
 		data: {
 			name: submission.value.name,
+			species: submission.value.species ?? 'horse',
 			notes: submission.value.notes,
 			status: submission.value.status,
+			orgId,
 		},
 	})
 
@@ -138,7 +145,7 @@ export const action = async ({ request }: ActionArgs) => {
 	)
 }
 
-function CreateHorseDialog() {
+function CreateAnimalDialog() {
 	const [open, setOpen] = useState(false)
 	const actionData = useActionData<typeof action>()
 	const { toast } = useToast()
@@ -149,15 +156,15 @@ function CreateHorseDialog() {
 		if (actionData.status == 'ok') {
 			toast({
 				title: 'Success',
-				description: `Created horse "${actionData.submission?.value?.name}".`,
+				description: `Added animal "${actionData.submission?.value?.name}".`,
 			})
 			setOpen(false)
 		} else {
 			if (actionData.submission.value?._action == 'create') {
 				toast({
 					variant: 'destructive',
-					title: 'Error creating horse',
-					description: 'Failed to create horse. There was an unexpected error.',
+					title: 'Error adding animal',
+					description: 'Failed to add animal. There was an unexpected error.',
 				})
 			}
 		}
@@ -166,22 +173,25 @@ function CreateHorseDialog() {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button className="mt-5 flex gap-2" variant="outline">
+				<Button className="flex gap-2" variant="default">
 					<Icon className="text-body-md" name="plus" />
-					Register new horse
+					Add new animal
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Register new horse</DialogTitle>
+					<DialogTitle>Add new animal</DialogTitle>
 					<DialogDescription>
-						Fill out this form to add a new horse to the database.
+						Fill out this form to add a new animal to the roster.
 					</DialogDescription>
 				</DialogHeader>
 				<Form method="post">
 					<input type="hidden" name="_action" value="create" />
 					<Label htmlFor="name">Name</Label>
 					<Input type="text" name="name" required></Input>
+
+					<Label htmlFor="species">Species</Label>
+					<Input type="text" name="species" placeholder="e.g. horse, dog, cat"></Input>
 
 					<Label htmlFor="status">Status</Label>
 					<Input type="textarea" name="status"></Input>
@@ -198,10 +208,14 @@ function CreateHorseDialog() {
 	)
 }
 
-export const columns: ColumnDef<Horse>[] = [
+export const columns: ColumnDef<Animal>[] = [
 	{
 		accessorKey: 'name',
 		header: 'name',
+	},
+	{
+		accessorKey: 'species',
+		header: 'species',
 	},
 	{
 		accessorKey: 'notes',

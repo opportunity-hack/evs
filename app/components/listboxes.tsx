@@ -8,27 +8,27 @@ const listboxButtonClassName =
 const listBoxOptionsClassname =
 	'z-50 absolute mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border-input border border-1'
 
-interface HorseData {
+interface AnimalData {
 	id: string
 	name: string
 }
 
-interface HorseListboxProps {
-	horses: HorseData[]
+interface AnimalListboxProps {
+	animals: AnimalData[]
 	name: string
-	defaultValues?: HorseData[]
+	defaultValues?: AnimalData[]
 	error: boolean
 }
 
-export function HorseListbox({
-	horses,
+export function AnimalListbox({
+	animals,
 	name,
 	defaultValues = [],
 	error,
-}: HorseListboxProps) {
-	const initialValues = horses.filter(horse => {
+}: AnimalListboxProps) {
+	const initialValues = animals.filter(animal => {
 		for (const value of defaultValues) {
-			if (value.id == horse.id) {
+			if (value.id == animal.id) {
 				return true
 			}
 		}
@@ -51,7 +51,7 @@ export function HorseListbox({
 						aria-invalid={error ? true : undefined}
 					>
 						<span className="block truncate">
-							{selected.map(horse => horse.name).join(', ')}
+							{selected.map(animal => animal.name).join(', ')}
 						</span>
 						<span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
 							<Icon className="text-body-md" name="caret-sort" />
@@ -65,22 +65,22 @@ export function HorseListbox({
 					leaveTo="opacity-0"
 				>
 					<Listbox.Options className={listBoxOptionsClassname}>
-						{horses.map((horse, horseIdx) => (
+						{animals.map((animal, animalIdx) => (
 							<Listbox.Option
-								key={horseIdx}
+								key={animalIdx}
 								className={({ active }) =>
 									`relative cursor-default select-none py-2 pl-10 pr-4
 									${active ? 'bg-teal-600 text-white' : 'bg-background text-primary'}`
 								}
-								value={horse}
+								value={animal}
 							>
 								{({ selected, active }) => (
 									<>
 										<span
-											className={`block truncate 
+											className={`block truncate
 											${selected ? 'font-semibold' : 'font-normal'}`}
 										>
-											{horse.name}
+											{animal.name}
 										</span>
 										{selected ? (
 											<span

@@ -34,3 +34,11 @@ export async function userHasPermissions(name: string, request: Request) {
 export async function userHasAdminPermissions(request: Request) {
 	return userHasPermissions('admin', request)
 }
+
+export async function requireSuperAdmin(request: Request) {
+	return requireUserWithPermission('superAdmin', request)
+}
+
+export async function userIsSuperAdmin(request: Request) {
+	return userHasPermissions('superAdmin', request)
+}

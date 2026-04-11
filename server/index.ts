@@ -105,9 +105,13 @@ app.use(
 				'script-src': [
 					"'strict-dynamic'",
 					"'self'",
+					// Allow Remix's dev LiveReload inline script (only in development)
+					MODE === 'development'
+						? "'sha256-2DiiCtmfI72XrwYfK/Ss8TmqyUz4JmjPyki8vD75hYU='"
+						: null,
 					// @ts-expect-error
 					(_, res) => `'nonce-${res.locals.cspNonce}'`,
-				],
+				].filter(Boolean),
 				'script-src-attr': [
 					// @ts-expect-error
 					(_, res) => `'nonce-${res.locals.cspNonce}'`,

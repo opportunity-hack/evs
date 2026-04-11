@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker'
 import {
 	createPassword,
 	createUser,
-	createHorse,
+	createAnimal,
 	createEvent,
 } from 'tests/db-utils.ts'
 import { prisma } from '~/utils/db.server.ts'
@@ -19,6 +19,19 @@ async function seed() {
 	deleteAllData()
 	console.timeEnd('🧹 Cleaned up the database...')
 
+	console.time(`🏠 Created default organization...`)
+	const defaultOrg = await prisma.organization.create({
+		data: {
+			name: 'Tumbling T Ranch',
+			slug: 'tumbling-t-ranch',
+			animalType: 'horses',
+			description: 'Equestrian therapy nonprofit for individuals with disabilities',
+			website: 'https://www.thebarnaz.com',
+			isActive: true,
+		},
+	})
+	console.timeEnd(`🏠 Created default organization...`)
+
 	console.time(`👑 Created admin role/permission...`)
 	const adminRole = await prisma.role.create({
 		data: {
@@ -29,6 +42,17 @@ async function seed() {
 		},
 	})
 	console.timeEnd(`👑 Created admin role/permission...`)
+
+	console.time(`🌐 Created superAdmin role/permission...`)
+	const superAdminRole = await prisma.role.create({
+		data: {
+			name: 'superAdmin',
+			permissions: {
+				create: { name: 'superAdmin' },
+			},
+		},
+	})
+	console.timeEnd(`🌐 Created superAdmin role/permission...`)
 
 	console.time(`Created lesson assistant role/permission...`)
 	const lessonAssistantRole = await prisma.role.create({
@@ -41,16 +65,16 @@ async function seed() {
 	})
 	console.timeEnd(`Created lesson assistant role/permission...`)
 
-	console.time(`Created horse leader role/permission...`)
-	const horseLeaderRole = await prisma.role.create({
+	console.time(`Created animal handler role/permission...`)
+	const animalHandlerRole = await prisma.role.create({
 		data: {
-			name: 'horseLeader',
+			name: 'animalHandler',
 			permissions: {
-				create: { name: 'horseLeader' },
+				create: { name: 'animalHandler' },
 			},
 		},
 	})
-	console.timeEnd(`Created horse leader role/permission...`)
+	console.timeEnd(`Created animal handler role/permission...`)
 
 	console.time(`Created instructor role/permission...`)
 	const instructorRole = await prisma.role.create({
@@ -71,6 +95,7 @@ async function seed() {
 			const user = await prisma.user.create({
 				data: {
 					...userData,
+					org: { connect: { id: defaultOrg.id } },
 					password: {
 						create: createPassword(userData.username),
 					},
@@ -101,6 +126,7 @@ async function seed() {
 			email: 'kody@kcd.dev',
 			username: 'kody',
 			name: 'Kody',
+			org: { connect: { id: defaultOrg.id } },
 			roles: { connect: { id: adminRole.id } },
 			image: {
 				create: {
@@ -133,6 +159,7 @@ async function seed() {
 			email: 'bob@not.admin',
 			username: 'bob',
 			name: 'Bob',
+			org: { connect: { id: defaultOrg.id } },
 			image: {
 				create: {
 					contentType: 'image/png',
@@ -163,6 +190,7 @@ async function seed() {
 			email: 'isabelle@is.instructor',
 			username: 'isabelle',
 			name: 'Isabelle',
+			org: { connect: { id: defaultOrg.id } },
 			roles: { connect: { id: instructorRole.id } },
 			image: {
 				create: {
@@ -191,10 +219,11 @@ async function seed() {
 	console.time(`🐴 Created ${totalHorses} horses...`)
 	const horses = await Promise.all(
 		Array.from({ length: totalHorses }, async (_, index) => {
-			const horseData = createHorse()
-			const horse = await prisma.horse.create({
+			const animalData = createAnimal()
+			const animal = await prisma.animal.create({
 				data: {
-					...horseData,
+					...animalData,
+					org: { connect: { id: defaultOrg.id } },
 					image: {
 						create: {
 							contentType: 'image/jpeg',
@@ -209,7 +238,7 @@ async function seed() {
 					},
 				},
 			})
-			return horse
+			return animal
 		}),
 	)
 	console.timeEnd(`🐴 Created ${totalHorses} horses...`)
@@ -230,6 +259,7 @@ async function seed() {
 			const event = await prisma.event.create({
 				data: {
 					...eventData,
+					org: { connect: { id: defaultOrg.id } },
 				},
 			})
 			return event
@@ -237,13 +267,13 @@ async function seed() {
 	)
 	console.timeEnd(`📅 Created a few events in the current month`)
 
-	console.time(`Setting signup password to "horses are cool"`)
+	console.time(`Setting signup password to "animals are cool"`)
 	await prisma.signupPassword.create({
 			data: {
-				hash: await getPasswordHash('horses are cool'),
+				hash: await getPasswordHash('animals are cool'),
 			}
 	})
-	console.timeEnd(`Setting signup password to "horses are cool"`)
+	console.timeEnd(`Setting signup password to "animals are cool"`)
 
 	console.timeEnd(`🌱 Database has been seeded`)
 

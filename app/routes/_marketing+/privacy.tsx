@@ -3,16 +3,16 @@ import { type V2_MetaFunction } from '@remix-run/node'
 export const meta: V2_MetaFunction = () => {
 	return [
 		{
-			title: 'Privacy Policy | TrotTrack.org',
+			title: 'Privacy Policy | thebarnaz.com',
 		},
 		{
 			property: 'og:title',
-			content: 'Privacy Policy | TrotTrack.org',
+			content: 'Privacy Policy | thebarnaz.com',
 		},
 		{
 			name: 'description',
 			content:
-				'Read our Privacy Policy for TrotTrack.org, a nonprofit equestrian volunteer system that connects volunteers with equestrian organizations.',
+				'Read our Privacy Policy for thebarnaz.com, a nonprofit animal volunteer management system that connects volunteers with animal-assisted therapy organizations.',
 		},
 	]
 }

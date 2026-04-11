@@ -20,6 +20,7 @@ import {
 } from '@remix-run/react'
 import { json, type DataFunctionArgs } from '@remix-run/node'
 import { requireAdmin } from '~/utils/permissions.server.ts'
+import { requireOrgMember } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
 import invariant from 'tiny-invariant'
 import { conform, useForm } from '@conform-to/react'
@@ -31,35 +32,37 @@ import { z } from 'zod'
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
-	invariant(params.horseId, 'Missing horse id')
-	const horse = await prisma.horse.findUnique({ where: { id: params.horseId } })
-	if (!horse) {
+	const { orgId } = await requireOrgMember(request)
+	invariant(params.animalId, 'Missing animal id')
+	const animal = await prisma.animal.findFirst({ where: { id: params.animalId, orgId } })
+	if (!animal) {
 		throw new Response('not found', { status: 404 })
 	}
-	return json({ horse })
+	return json({ animal })
 }
 
-export const deleteHorseFormSchema = z.object({
+export const deleteAnimalFormSchema = z.object({
 	name: z
 		.string()
 		.min(1, {
 			message:
-				'You must enter the name of this horse to delete it from the database.',
+				'You must enter the name of this animal to delete it from the database.',
 		}),
 })
 
 export async function action({ request, params }: DataFunctionArgs) {
 	await requireAdmin(request)
-	invariant(params.horseId, 'Missing horse id')
+	const { orgId } = await requireOrgMember(request)
+	invariant(params.animalId, 'Missing animal id')
 	const formData = await request.formData()
-	const horse = await prisma.horse.findUnique({ where: { id: params.horseId } })
-	if (!horse) {
+	const animal = await prisma.animal.findFirst({ where: { id: params.animalId, orgId } })
+	if (!animal) {
 		throw new Response('not found', { status: 404 })
 	}
 	const submission = await parse(formData, {
 		async: true,
-		schema: deleteHorseFormSchema.superRefine(async ({ name }, ctx) => {
-			if (horse.name != name) {
+		schema: deleteAnimalFormSchema.superRefine(async ({ name }, ctx) => {
+			if (animal.name != name) {
 				ctx.addIssue({
 					path: ['name'],
 					code: 'custom',
@@ -82,26 +85,26 @@ export async function action({ request, params }: DataFunctionArgs) {
 		)
 	}
 
-	let deletedHorse
+	let deletedAnimal
 	try {
-		deletedHorse = await prisma.horse.delete({
-			where: { id: params.horseId },
+		deletedAnimal = await prisma.animal.delete({
+			where: { id: params.animalId },
 		})
 	} catch {
-		return redirectWithToast('/admin/horses', {
+		return redirectWithToast('/admin/animals', {
 			title: 'Error',
 			variant: 'destructive',
-			description: 'Failed to delete horse',
+			description: 'Failed to delete animal',
 		})
 	}
 
-	return redirectWithToast('/admin/horses', {
+	return redirectWithToast('/admin/animals', {
 		title: 'Success',
-		description: `Deleted horse ${deletedHorse.name}`,
+		description: `Deleted animal ${deletedAnimal.name}`,
 	})
 }
 
-export default function DeleteHorse() {
+export default function DeleteAnimal() {
 	const data = useLoaderData<typeof loader>() || {}
 	const actionData = useActionData<typeof action>()
 	const [open, setOpen] = useState(true)
@@ -120,7 +123,7 @@ export default function DeleteHorse() {
 		navigate('..', { preventScrollReset: true })
 	}
 	const [form, fields] = useForm({
-		id: 'edit-horse',
+		id: 'delete-animal',
 		lastSubmission: actionData?.submission,
 		shouldRevalidate: 'onSubmit',
 	})
@@ -132,9 +135,9 @@ export default function DeleteHorse() {
 				onPointerDownOutside={dismissModal}
 			>
 				<DialogHeader>
-					<DialogTitle>Delete Horse</DialogTitle>
+					<DialogTitle>Delete Animal</DialogTitle>
 					<DialogDescription>
-						Are you sure you want to remove {data.horse?.name} from the
+						Are you sure you want to remove {data.animal?.name} from the
 						database? This will affect all associated events and assignments.
 					</DialogDescription>
 
@@ -142,7 +145,7 @@ export default function DeleteHorse() {
 						<Field
 							labelProps={{
 								htmlFor: fields.name.id,
-								children: `To confirm, type "${data.horse?.name}" into the box.`,
+								children: `To confirm, type "${data.animal?.name}" into the box.`,
 							}}
 							inputProps={{
 								...conform.input(fields.name),

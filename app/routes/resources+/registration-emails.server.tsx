@@ -9,7 +9,7 @@ export function RegistrationEmail({
 	role,
 }: {
 	event: Event
-	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'horseLeaders'
+	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'animalHandlers'
 }) {
 	let roleName
 	for (let v of volunteerTypes) {
@@ -49,7 +49,7 @@ export function RegistrationNoticeForAdmins({
 	user,
 }: {
 	event: Event
-	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'horseLeaders',
+	role: 'cleaningCrew' | 'lessonAssistants' | 'sideWalkers' | 'animalHandlers',
 	action: 'register' | 'unregister';
 	user: User;
 }) {

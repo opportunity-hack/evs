@@ -162,7 +162,7 @@ export default function SignupRoute() {
 	return (
 		<div className="container mx-auto flex flex-col justify-center pb-32 pt-20">
 			<div className="text-center">
-				<h1 className="text-4xl sm:text-h1">Let's saddle up!</h1>
+				<h1 className="text-4xl sm:text-h1">Let's get started!</h1>
 				<p className="mt-3 text-body-md text-muted-foreground">
 					Please enter your email and the secret password given to you by the
 					volunteer coordinator.

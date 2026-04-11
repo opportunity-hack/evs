@@ -3,16 +3,16 @@ import { type V2_MetaFunction } from '@remix-run/node'
 export const meta: V2_MetaFunction = () => {
 	return [
 		{
-			title: 'Terms of Service | TrotTrack.org',
+			title: 'Terms of Service | thebarnaz.com',
 		},
 		{
 			property: 'og:title',
-			content: 'Terms of Service | TrotTrack.org',
+			content: 'Terms of Service | thebarnaz.com',
 		},
 		{
 			name: 'description',
 			content:
-				'Read or Terms of Service for TrotTrack.org, a nonprofit equestrian volunteer system that connects volunteers with equestrian organizations.',
+				'Read our Terms of Service for thebarnaz.com, a nonprofit animal volunteer management system that connects volunteers with animal-assisted therapy organizations.',
 		},
 	]
 }
@@ -28,7 +28,7 @@ export default function TermsOfServiceRoute() {
 			<section>
 				<h2>1. Acceptance of Terms</h2>
 				<p>
-					These terms of service govern your use of TrotTrack.org. By accessing
+					These terms of service govern your use of thebarnaz.com. By accessing
 					or using our website, you acknowledge that you have read, understood,
 					and agree to be bound by these terms.
 				</p>
@@ -36,8 +36,8 @@ export default function TermsOfServiceRoute() {
 			<section>
 				<h2>2. Description of Services</h2>
 				<p>
-					TrotTrack.org is a nonprofit equestrian volunteer system that connects
-					volunteers with equestrian organizations. Our services include
+					thebarnaz.com is a nonprofit animal volunteer management system that connects
+					volunteers with animal-assisted therapy organizations. Our services include
 					providing a platform for volunteers to find and sign up for volunteer
 					opportunities, and for organizations to manage their volunteer
 					programs.
@@ -45,7 +45,7 @@ export default function TermsOfServiceRoute() {
 			</section>
 			<section>
 				<h2>3. User Responsibilities</h2>
-				<p>As a user of TrotTrack.org, you agree to:</p>
+				<p>As a user of thebarnaz.com, you agree to:</p>
 				<ul>
 					<li>
 						Provide accurate and complete information when creating an account
@@ -57,25 +57,25 @@ export default function TermsOfServiceRoute() {
 					<li>Respect the privacy and rights of other users</li>
 					<li>
 						Not engage in any activity that may disrupt or interfere with the
-						proper functioning of TrotTrack.org
+						proper functioning of thebarnaz.com
 					</li>
 				</ul>
 			</section>
 			<section>
 				<h2>4. Intellectual Property</h2>
 				<p>
-					All content and materials on TrotTrack.org, including but not limited
+					All content and materials on thebarnaz.com, including but not limited
 					to text, graphics, logos, images, and software, are the property of
-					TrotTrack.org or its licensors and are protected by intellectual
+					thebarnaz.com or its licensors and are protected by intellectual
 					property laws. You may not reproduce, distribute, modify, or create
 					derivative works of any content without prior written consent from
-					TrotTrack.org.
+					thebarnaz.com.
 				</p>
 			</section>
 			<section>
 				<h2>5. Limitation of Liability</h2>
 				<p>
-					TrotTrack.org and its affiliates shall not be liable for any direct,
+					thebarnaz.com and its affiliates shall not be liable for any direct,
 					indirect, incidental, special, or consequential damages arising out of
 					or in connection with your use of the website or services.
 				</p>
@@ -84,11 +84,11 @@ export default function TermsOfServiceRoute() {
 				<h2>6. Governing Law</h2>
 				<p>
 					These terms of service shall be governed by and construed in
-					accordance with the laws of the jurisdiction in which TrotTrack.org
+					accordance with the laws of the jurisdiction in which thebarnaz.com
 					operates.
 				</p>
 				<p>
-					By using TrotTrack.org, you agree to these terms of service. If you do
+					By using thebarnaz.com, you agree to these terms of service. If you do
 					not agree with any part of these terms, please do not use our website
 					or services.
 				</p>

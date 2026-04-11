@@ -6,8 +6,8 @@ export function getUserImgSrc(imageId?: string | null) {
 	return imageId ? `/resources/file/${imageId}` : `/img/user.png`
 }
 
-export function getHorseImgSrc(imageId?: string | null) {
-	return imageId ? `/resources/file/${imageId}` : `/img/horse.png`
+export function getAnimalImgSrc(imageId?: string | null) {
+	return imageId ? `/resources/file/${imageId}` : `/img/animal.png`
 }
 
 export function getErrorMessage(error: unknown) {

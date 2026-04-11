@@ -41,20 +41,29 @@ export default function LoginPage() {
 	const redirectTo = searchParams.get('redirectTo') || '/'
 
 	return (
-		<div className="flex min-h-full flex-col justify-center pb-32 pt-20">
-			<div className="mx-auto w-full max-w-md">
-				<div className="flex flex-col gap-3 text-center">
-					<h1 className="text-h1">Welcome back!</h1>
-					<p className="text-body-md text-muted-foreground">
-						Please enter your details.
-					</p>
+		<div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-2">
+			{/* Left brand panel */}
+			<div
+				className="hidden bg-indigo-600 bg-cover bg-center lg:block"
+				style={{ backgroundImage: 'url(/img/login-bg.jpg)' }}
+			/>
+
+			{/* Right form panel */}
+			<div className="flex flex-col items-center justify-center px-4 py-16">
+				<div className="w-full max-w-sm">
+					<div className="mb-8 flex flex-col gap-2">
+						<h1 className="text-h3">Welcome back</h1>
+						<p className="text-body-sm text-muted-foreground">
+							Sign in to your account to continue.
+						</p>
+					</div>
+					<Spacer size="xs" />
+					{data.unverified ? (
+						<Verifier redirectTo={redirectTo} />
+					) : (
+						<InlineLogin redirectTo={redirectTo} formError={data.formError} />
+					)}
 				</div>
-				<Spacer size="xs" />
-				{data.unverified ? (
-					<Verifier redirectTo={redirectTo} />
-				) : (
-					<InlineLogin redirectTo={redirectTo} formError={data.formError} />
-				)}
 			</div>
 		</div>
 	)

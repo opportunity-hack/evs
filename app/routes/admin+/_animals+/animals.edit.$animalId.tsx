@@ -28,32 +28,35 @@ import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert.tsx'
 import { AlertTriangle } from 'lucide-react'
 import { json, type DataFunctionArgs } from '@remix-run/node'
 import { requireAdmin } from '~/utils/permissions.server.ts'
+import { requireOrgMember } from '~/utils/auth.server.ts'
 import { prisma } from '~/utils/db.server.ts'
 import invariant from 'tiny-invariant'
 import { conform, useForm } from '@conform-to/react'
 import { parse } from '@conform-to/zod'
-import { horseFormSchema } from './horses.tsx'
+import { animalFormSchema } from './animals.tsx'
 import { redirectWithToast } from '~/utils/flash-session.server.ts'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { format, add } from 'date-fns'
 
 export const loader = async ({ request, params }: DataFunctionArgs) => {
 	await requireAdmin(request)
-	invariant(params.horseId, 'Missing horse id')
-	const horse = await prisma.horse.findUnique({ where: { id: params.horseId } })
-	if (!horse) {
+	const { orgId } = await requireOrgMember(request)
+	invariant(params.animalId, 'Missing animal id')
+	const animal = await prisma.animal.findFirst({ where: { id: params.animalId, orgId } })
+	if (!animal) {
 		throw new Response('not found', { status: 404 })
 	}
-	return json({ horse })
+	return json({ animal })
 }
 
 export async function action({ request, params }: DataFunctionArgs) {
 	await requireAdmin(request)
-	invariant(params.horseId, 'Missing horse id')
+	const { orgId } = await requireOrgMember(request)
+	invariant(params.animalId, 'Missing animal id')
 	const formData = await request.formData()
 	const submission = await parse(formData, {
 		async: true,
-		schema: horseFormSchema,
+		schema: animalFormSchema,
 	})
 
 	if (submission.intent !== 'submit') {
@@ -79,8 +82,12 @@ export async function action({ request, params }: DataFunctionArgs) {
 		cooldownEndDate,
 	} = submission.value
 
-	const updatedHorse = await prisma.horse.update({
-		where: { id: params.horseId },
+	const existingAnimal = await prisma.animal.findFirst({ where: { id: params.animalId, orgId } })
+	if (!existingAnimal) {
+		throw new Response('not found', { status: 404 })
+	}
+	const updatedAnimal = await prisma.animal.update({
+		where: { id: params.animalId },
 		data: {
 			name,
 			status,
@@ -91,47 +98,44 @@ export async function action({ request, params }: DataFunctionArgs) {
 		},
 	})
 
-	if (!updatedHorse) {
-		return redirectWithToast(`/admin/horses`, {
+	if (!updatedAnimal) {
+		return redirectWithToast(`/admin/animals`, {
 			title: `Error`,
 			variant: 'destructive',
-			description: `Failed to update horse`,
+			description: `Failed to update animal`,
 		})
 	}
 
 	if (cooldown && cooldownStartDate && cooldownEndDate) {
-		// Get events horseID is registered for
-		const horseEvents = await prisma.event.findMany({
+		const animalEvents = await prisma.event.findMany({
 			where: {
-				horses: {
+				animals: {
 					some: {
-						id: updatedHorse.id,
+						id: updatedAnimal.id,
 					},
 				},
 			},
 		})
 
-		// Compare event dates to cooldown dates and gather events with conflicts
 		const conflictEvents = []
-		if (horseEvents) {
-			for (const e of horseEvents) {
+		if (animalEvents) {
+			for (const e of animalEvents) {
 				if (
 					cooldownStartDate <= e.start &&
-					e.start < add(cooldownEndDate, { days: 1 }) // checks that event is before midnight of cooldownEndDate
+					e.start < add(cooldownEndDate, { days: 1 })
 				) {
 					conflictEvents.push(e)
 				}
 			}
 		}
 
-		// Remove horse from events with conflicts
 		if (conflictEvents.length > 0) {
 			for (const e of conflictEvents) {
 				await prisma.event.update({
 					where: { id: e.id },
 					data: {
-						horses: {
-							disconnect: { id: updatedHorse.id },
+						animals: {
+							disconnect: { id: updatedAnimal.id },
 						},
 					},
 				})
@@ -144,13 +148,13 @@ export async function action({ request, params }: DataFunctionArgs) {
 		}
 	}
 
-	return redirectWithToast(`/admin/horses`, {
+	return redirectWithToast(`/admin/animals`, {
 		title: `Success`,
-		description: `Updated ${updatedHorse.name}`,
+		description: `Updated ${updatedAnimal.name}`,
 	})
 }
 
-export default function EditHorse() {
+export default function EditAnimal() {
 	const data = useLoaderData<typeof loader>() || {}
 	const actionData = useActionData<typeof action>()
 	const [open, setOpen] = useState(true)
@@ -169,31 +173,27 @@ export default function EditHorse() {
 		navigate('..', { preventScrollReset: true })
 	}
 	const [form, fields] = useForm({
-		id: 'edit-horse',
+		id: 'edit-animal',
 		lastSubmission: actionData?.submission,
 		defaultValue: {
-			name: data.horse?.name,
-			status: data.horse?.status,
-			notes: data.horse?.notes,
-			cooldownStartDate: data.horse?.cooldownStartDate
-				? format(new Date(data.horse.cooldownStartDate), 'yyyy-MM-dd')
+			name: data.animal?.name,
+			status: data.animal?.status,
+			notes: data.animal?.notes,
+			cooldownStartDate: data.animal?.cooldownStartDate
+				? format(new Date(data.animal.cooldownStartDate), 'yyyy-MM-dd')
 				: null,
-			cooldownEndDate: data.horse?.cooldownEndDate
-				? format(new Date(data.horse.cooldownEndDate), 'yyyy-MM-dd')
+			cooldownEndDate: data.animal?.cooldownEndDate
+				? format(new Date(data.animal.cooldownEndDate), 'yyyy-MM-dd')
 				: null,
 		},
 		shouldRevalidate: 'onSubmit',
 		onSubmit: dismissModal,
 	})
-	/**
-	 * If there is returned actionData (form validation errors),
-	 * use that checked state, otherwise use the boolean from the DB
-	 */
 	const cooldown = actionData
 		? actionData.submission.payload?.cooldown === 'on'
 			? true
 			: false
-		: data.horse?.cooldown
+		: data.animal?.cooldown
 	const [cooldownChecked, setCooldownChecked] = useState(cooldown)
 	const conflictEvents = actionData?.conflictEvents ?? null
 
@@ -204,9 +204,9 @@ export default function EditHorse() {
 				onPointerDownOutside={dismissModal}
 			>
 				<DialogHeader>
-					<DialogTitle>Edit Horse: {data.horse?.name}</DialogTitle>
+					<DialogTitle>Edit Animal: {data.animal?.name}</DialogTitle>
 					<DialogDescription>
-						Edit this horse using this form. Click save to save your changes.
+						Edit this animal using this form. Click save to save your changes.
 					</DialogDescription>
 				</DialogHeader>
 				<Form method="PUT" {...form.props}>
@@ -288,7 +288,7 @@ export default function EditHorse() {
 						<Alert variant="destructive">
 							<AlertTriangle className="h-4 w-4" />
 							<AlertTitle>
-								Horse removed from {conflictEvents.length}{' '}
+								Animal removed from {conflictEvents.length}{' '}
 								{conflictEvents.length === 1 ? 'event' : 'events'}
 							</AlertTitle>
 							<AlertDescription>

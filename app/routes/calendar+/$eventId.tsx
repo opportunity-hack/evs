@@ -5,11 +5,11 @@ import { prisma } from '~/utils/db.server.ts'
 import { Card } from '~/components/ui/card.tsx'
 import { Button } from '~/components/ui/button.tsx'
 import { Separator } from '~/components/ui/separator.tsx'
-import { getUserImgSrc, getHorseImgSrc } from '~/utils/misc.ts'
+import { getUserImgSrc, getAnimalImgSrc } from '~/utils/misc.ts'
 
 import type {
 	UserData,
-	HorseData,
+	AnimalData,
 	CalEvent,
 	EventWithAllRelations,
 } from '~/data.ts'
@@ -19,6 +19,7 @@ import { useFetcher, Outlet } from '@remix-run/react'
 import { z } from 'zod'
 import { parse } from '@conform-to/zod'
 import { requireAdmin } from '~/utils/permissions.server.ts'
+import { requireOrgMember } from '~/utils/auth.server.ts'
 import { formatPhone } from '~/utils/phone-format.ts'
 import invariant from 'tiny-invariant'
 import {
@@ -27,23 +28,25 @@ import {
 	PopoverTrigger,
 } from '@/components/ui/popover.tsx'
 import { Icon } from '~/components/ui/icon.tsx'
-import type { HorseAssignment } from '@prisma/client'
+import type { AnimalAssignment } from '@prisma/client'
 
 export async function loader({ request, params }: DataFunctionArgs) {
 	await requireAdmin(request)
+	const { orgId } = await requireOrgMember(request)
 	const id = params.eventId
-	const event = await prisma.event.findUnique({
+	const event = await prisma.event.findFirst({
 		where: {
 			id,
+			orgId,
 		},
 		include: {
 			instructors: true,
-			horses: true,
+			animals: true,
 			cleaningCrew: true,
 			lessonAssistants: true,
-			horseLeaders: true,
+			animalHandlers: true,
 			sideWalkers: true,
-			horseAssignments: true,
+			animalAssignments: true,
 		},
 	})
 	if (!event) {
@@ -52,9 +55,9 @@ export async function loader({ request, params }: DataFunctionArgs) {
 	return json({ event })
 }
 
-const assignHorseSchema = z.object({
+const assignAnimalSchema = z.object({
 	user: z.string(),
-	horse: z.string(),
+	animal: z.string(),
 })
 
 export const action = async ({ request, params }: ActionArgs) => {
@@ -62,7 +65,7 @@ export const action = async ({ request, params }: ActionArgs) => {
 	const formData = await request.formData()
 	const submission = parse(formData, {
 		schema: () => {
-			return assignHorseSchema
+			return assignAnimalSchema
 		},
 	})
 
@@ -79,10 +82,10 @@ export const action = async ({ request, params }: ActionArgs) => {
 	invariant(params.eventId, 'Expected params.eventId')
 	const eventId = params.eventId
 	const userId = submission.value.user
-	const horseId = submission.value.horse
+	const animalId = submission.value.animal
 
-	if (horseId === 'none') {
-		await prisma.horseAssignment.delete({
+	if (animalId === 'none') {
+		await prisma.animalAssignment.delete({
 			where: {
 				eventId_userId: {
 					eventId,
@@ -101,7 +104,7 @@ export const action = async ({ request, params }: ActionArgs) => {
 		)
 	}
 
-	await prisma.horseAssignment.upsert({
+	await prisma.animalAssignment.upsert({
 		where: {
 			eventId_userId: {
 				eventId,
@@ -109,8 +112,8 @@ export const action = async ({ request, params }: ActionArgs) => {
 			},
 		},
 		update: {
-			horse: {
-				connect: { id: horseId },
+			animal: {
+				connect: { id: animalId },
 			},
 		},
 		create: {
@@ -120,8 +123,8 @@ export const action = async ({ request, params }: ActionArgs) => {
 			volunteer: {
 				connect: { id: userId },
 			},
-			horse: {
-				connect: { id: horseId },
+			animal: {
+				connect: { id: animalId },
 			},
 		},
 	})
@@ -188,20 +191,20 @@ export default function () {
 							)
 						})}
 					</div>
-					<div className="mt-4 font-bold uppercase">Horses:</div>
+					<div className="mt-4 font-bold uppercase">Animals:</div>
 					<div className="flex flex-wrap gap-4">
-						{event.horses.map(horse => {
+						{event.animals.map(animal => {
 							return (
-								<HorseInfoPopover key={horse.id} horse={horse}>
+								<AnimalInfoPopover key={animal.id} animal={animal}>
 									<div className="flex flex-col items-center gap-2">
 										<img
 											className="h-14 w-14 rounded-full object-cover"
-											alt={horse.name}
-											src={getHorseImgSrc(horse.imageId)}
+											alt={animal.name}
+											src={getAnimalImgSrc(animal.imageId)}
 										/>
-										<div>{horse.name}</div>
+										<div>{animal.name}</div>
 									</div>
-								</HorseInfoPopover>
+								</AnimalInfoPopover>
 							)
 						})}
 					</div>
@@ -267,7 +270,7 @@ export function VolunteerSection({
 interface VolunteerListItemProps {
 	user?: UserData
 	event: CalEvent & {
-		horseAssignments: HorseAssignment[]
+		animalAssignments: AnimalAssignment[]
 	}
 }
 
@@ -290,20 +293,20 @@ function VolunteerListItem({
 	const isPlaceholder = user.id === 'placeholder'
 	const assignmentFetcher = useFetcher()
 
-	let assignedHorseId = 'none'
-	let assignedHorseImageId = ''
-	let assignedHorse = null
-	for (const assignment of event.horseAssignments) {
+	let assignedAnimalId = 'none'
+	let assignedAnimalImageId = ''
+	let assignedAnimal = null
+	for (const assignment of event.animalAssignments) {
 		if (assignment.userId === user.id) {
-			assignedHorseId = assignment.horseId
+			assignedAnimalId = assignment.animalId
 		}
 	}
 
-	if (assignedHorseId != 'none') {
-		for (const horse of event.horses) {
-			if (horse.id === assignedHorseId && horse.imageId) {
-				assignedHorseImageId = horse.imageId
-				assignedHorse = horse
+	if (assignedAnimalId != 'none') {
+		for (const animal of event.animals) {
+			if (animal.id === assignedAnimalId && animal.imageId) {
+				assignedAnimalImageId = animal.imageId
+				assignedAnimal = animal
 			}
 		}
 	}
@@ -317,7 +320,7 @@ function VolunteerListItem({
 		assignmentFetcher.submit(
 			{
 				user: user.id,
-				horse: target.value,
+				animal: target.value,
 			},
 			{ method: 'post' },
 		)
@@ -357,19 +360,19 @@ function VolunteerListItem({
 			<div className="flex items-center gap-2">
 				{isSubmitting ? (
 					<span className="inline-block animate-spin">🌀</span>
-				) : assignedHorse ? (
-					<HorseInfoPopover horse={assignedHorse}>
+				) : assignedAnimal ? (
+					<AnimalInfoPopover animal={assignedAnimal}>
 						<img
 							className="h-14 w-14 rounded-full object-cover"
-							alt="horse"
-							src={getHorseImgSrc(assignedHorseImageId)}
+							alt="animal"
+							src={getAnimalImgSrc(assignedAnimalImageId)}
 						/>
-					</HorseInfoPopover>
+					</AnimalInfoPopover>
 				) : (
 					<img
 						className="h-14 w-14 rounded-full object-cover"
-						alt="horse"
-						src={getHorseImgSrc(assignedHorseImageId)}
+						alt="animal"
+						src={getAnimalImgSrc(assignedAnimalImageId)}
 					/>
 				)}
 				<assignmentFetcher.Form method="post" action={`/calendar/${event.id}`}>
@@ -377,14 +380,14 @@ function VolunteerListItem({
 					<select
 						className="rounded-md pl-2"
 						disabled={isPlaceholder}
-						name="horse"
-						defaultValue={assignedHorseId}
+						name="animal"
+						defaultValue={assignedAnimalId}
 						onChange={handleChange}
 					>
 						<option value="none">None</option>
-						{event.horses.map(horse => (
-							<option key={horse.id} value={horse.id}>
-								{horse.name}
+						{event.animals.map(animal => (
+							<option key={animal.id} value={animal.id}>
+								{animal.name}
 							</option>
 						))}
 					</select>
@@ -394,31 +397,31 @@ function VolunteerListItem({
 	)
 }
 
-interface HorseInfoPopoverProps {
+interface AnimalInfoPopoverProps {
 	children: React.ReactNode
-	horse: HorseData
+	animal: AnimalData
 }
 
-function HorseInfoPopover({ children, horse }: HorseInfoPopoverProps) {
+function AnimalInfoPopover({ children, animal }: AnimalInfoPopoverProps) {
 	return (
 		<Popover>
 			<PopoverTrigger asChild className="cursor-pointer">
 				{children}
 			</PopoverTrigger>
 			<PopoverContent side="bottom">
-				<div className="text-xl">{horse.name}</div>
+				<div className="text-xl">{animal.name}</div>
 				<img
 					className="mx-auto h-52 w-52 rounded-full object-cover"
-					alt="horse"
-					src={getHorseImgSrc(horse.imageId)}
+					alt="animal"
+					src={getAnimalImgSrc(animal.imageId)}
 				/>
 				<div>
 					<span className="text-xs font-bold uppercase">Status: </span>
-					{horse.status}
+					{animal.status}
 				</div>
 				<div>
 					<span className="text-xs font-bold uppercase">Notes: </span>
-					{horse.notes}
+					{animal.notes}
 				</div>
 			</PopoverContent>
 		</Popover>
@@ -448,8 +451,8 @@ function VolunteerInfoPopover({
 				</div>
 				<img
 					className="mx-auto h-52 w-52 rounded-full object-cover"
-					alt="horse"
-					src={getHorseImgSrc(volunteer.imageId)}
+					alt="volunteer"
+					src={getUserImgSrc(volunteer.imageId)}
 				/>
 				<div>
 					<span className="text-xs font-bold uppercase">Age: </span>
